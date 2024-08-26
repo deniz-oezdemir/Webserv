@@ -1,0 +1,49 @@
+Language:        Cpp
+IndentWidth:     4
+TabWidth:        4
+UseTab:          Always
+ColumnLimit:     80
+# Aligns the pointers to the left
+DerivePointerAlignment: false
+PointerAlignment: Left
+# Makes braces open on the next line
+BreakBeforeBraces: Allman
+# Breaks constructor initializers before commas
+BreakConstructorInitializersBeforeComma: false
+# Always break before concept, putting it in the line after the template declaration.
+BreakBeforeConceptDeclarations: Always
+# Puts short functions on a single line
+AllowShortFunctionsOnASingleLine: Empty
+# Puts short loops on a single line
+AllowShortLoopsOnASingleLine: false
+# Aligns trailing comments
+AlignTrailingComments: true
+# Indents the parameters of a function declaration or call after the opening bracket
+AlignAfterOpenBracket: BlockIndent
+# Prevents all parameters of a function declaration from being put on the next line
+AllowAllParametersOfDeclarationOnNextLine: false
+# Prevents packing of function call arguments into a single line
+BinPackArguments: false
+# Prevents packing of function parameters into a single line
+BinPackParameters: false
+# Aligns consecutive declarations
+AlignConsecutiveDeclarations:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+# Aligns consecutive bit fields
+AlignConsecutiveBitFields:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+# Aligns consecutive macros
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+# Aligns consecutive case statements
+AlignConsecutiveShortCaseStatements:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: true
+  AlignCaseColons: false
