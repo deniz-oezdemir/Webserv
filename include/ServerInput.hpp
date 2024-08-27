@@ -6,13 +6,15 @@
 /*   By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 14:35:22 by sebasnadu         #+#    #+#             */
-/*   Updated: 2024/08/27 15:11:16 by sebasnadu        ###   ########.fr       */
+/*   Updated: 2024/08/27 22:47:31 by sebasnadu        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include <string>
+#include <vector>
+#include <map>
 
 class ServerInput
 {
@@ -24,6 +26,7 @@ class ServerInput
 
 	ServerInput& operator=(ServerInput const& src);
 
+
 	typedef enum e_serverFlags
 	{
 		NONE = 0x00,
@@ -34,6 +37,12 @@ class ServerInput
 	} t_serverFlags;
 
   private:
-	t_serverFlags _flags;
-	std::string	  _filepath;
+	int			 																_flags;
+	static std::map<std::string, int> const 	_flagMap;
+	std::string															_filepath;
+	std::vector<std::string>								_configLines;
+
+	void	_parseArg(std::string const &arg, int index, int argc);
+	void	_setFlag(std::string const &flag);
+	static std::map<std::string, int> const _createFlagMap(void);
 };
