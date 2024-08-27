@@ -6,7 +6,7 @@
 #    By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/08/26 17:15:37 by sebasnadu         #+#    #+#              #
-#    Updated: 2024/08/26 17:44:06 by sebasnadu        ###   ########.fr        #
+#    Updated: 2024/08/27 14:27:49 by sebasnadu        ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -44,7 +44,7 @@ vpath %.cpp $(SRC_DIR)
 vpath %.hpp $(INC_DIR)
 vpath %.o $(OBJ_DIR)
 
-HEADERS						:= Config.hpp
+HEADERS						:= colors.hpp
 SOURCE						:= main.cpp
 OBJECTS						:= $(addprefix $(OBJ_DIR)/, $(SOURCE:.cpp=.o))
 	
@@ -54,7 +54,7 @@ OBJECTS						:= $(addprefix $(OBJ_DIR)/, $(SOURCE:.cpp=.o))
 
 ifdef DEV
 CXXFLAGS					:=
-else if DEBUG
+else ifdef DEBUG
 	CXXFLAGS				:= -g3 -fsanitize=address
 else
 	CXXFLAGS				:= -Wall -Wextra -Werror -std=c++98
@@ -70,7 +70,7 @@ INCLUDE						:= -I $(INC_DIR)
 
 NUM_SRC_FILES			:= $(words $(SOURCE))
 NUM_OBJ_FILES			:= $(words $(OBJECTS))
-NUM_TO_COMPILE		= $(shell expr $(NUM_SRC_FILES) - $(NUM_OBJ_FILES)
+NUM_TO_COMPILE		= $(shell expr $(NUM_SRC_FILES) - $(NUM_OBJ_FILES))
 
 ifeq ($(shell test $(NUM_TO_COMPILE) -le 0; echo $$?), 0)
 	NUM_TO_COMPILE	= $(NUM_SRC_FILES)
@@ -102,7 +102,7 @@ $(OBJ_DIR)/%.o: %.cpp $(HEADERS) | $(OBJ_DIR)
 $(OBJ_DIR):
 	@printf "$(MAGENTA)[$(NAME)] $(DEFAULT)Creating objects directory "
 	@printf "($(BLUE)$(OBJ_DIR)$(DEFAULT))..."
-	@mkdir -r $(OBJ_DIR)
+	@mkdir -p $(OBJ_DIR)
 	@printf "\r%100s\r$(MAGENTA)[$(NAME)] $(DEFAULT)($(BLUE)$(OBJ_DIR)/$(DEFAULT)) "
 	@printf "Created successfully!\n"
 

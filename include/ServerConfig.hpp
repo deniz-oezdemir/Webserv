@@ -1,27 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   ServerConfig.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/27 14:19:25 by sebasnadu         #+#    #+#             */
-/*   Updated: 2024/08/27 14:28:16 by sebasnadu        ###   ########.fr       */
+/*   Created: 2024/08/26 17:48:50 by sebasnadu         #+#    #+#             */
+/*   Updated: 2024/08/26 21:26:16 by sebasnadu        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "colors.hpp"
+#pragma once
 
-#include <iostream>
+#include <string>
 
-int main(int argc, char* argv[])
+class ServerConfig
 {
-	(void)argc;
-	(void)argv;
-	try {
-		std::cout << "hello" << std::endl;
-	} catch (std::exception &e) {
-		std::cerr << RED << e.what() << RESET << std::endl;
-	}
-	return 0;
-}
+  public:
+	ServerConfig(std::string const& filepath);
+	ServerConfig(ServerConfig const& src);
+	ServerConfig& operator=(ServerConfig const& src);
+
+  private:
+	ServerConfig();
+};
