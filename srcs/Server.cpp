@@ -1,27 +1,13 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: migmanu <jmanuelmigoya@gmail.com>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/28 15:28:13 by migmanu           #+#    #+#             */
-/*   Updated: 2024/08/28 15:28:14 by migmanu          ###   ########.fr       */
+/*   Created: 2024/08/28 15:26:45 by migmanu           #+#    #+#             */
+/*   Updated: 2024/08/28 15:28:35 by migmanu          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
-
-class Server
-{
-  public:
-	Server(void);
-	Server(const Server &src);
-	~Server(void);
-
-	Server &operator=(const Server &rhs);
-
-  protected:
-
-  private:
-};
+#include "../include/Server.hpp"
