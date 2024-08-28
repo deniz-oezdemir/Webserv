@@ -1,0 +1,26 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-std=c++98",
+      "-I",
+      "include",
+      "-c",
+      "-I",
+      "/opt/homebrew/include",
+      "-I",
+      "/opt/homebrew/include",
+      "-I",
+      ".",
+      "-o",
+      "obj/main.o",
+      "main.cpp"
+    ],
+    "directory": "/Users/sebasnadu/code/SebasNadu/42_webServ",
+    "file": "/Users/sebasnadu/code/SebasNadu/42_webServ/main.cpp",
+    "output": "/Users/sebasnadu/code/SebasNadu/42_webServ/obj/main.o"
+  }
+]
