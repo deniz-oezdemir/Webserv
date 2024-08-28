@@ -6,7 +6,7 @@
 /*   By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 16:05:45 by sebasnadu         #+#    #+#             */
-/*   Updated: 2024/08/28 13:38:39 by sebasnadu        ###   ########.fr       */
+/*   Updated: 2024/08/28 19:21:58 by sebasnadu        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,7 +106,6 @@ std::string ServerInput::getHelpMessage(void) const
 					   "\t-T, --Test" RESET WHITE
 					   "\t\tCheck the configutation file and print it\n" RESET;
 }
-#include <iostream>
 
 std::string ServerInput::getVersionMessage(void) const
 {
@@ -136,4 +135,8 @@ std::string ServerInput::getVersionMessage(void) const
 	   << "[denizozd] " << RESET;
 
 	return ss.str();
+}
+
+std::string	ServerInput::getFilePath(void) const {
+	return this->_filepath;
 }

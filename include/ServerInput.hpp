@@ -6,7 +6,7 @@
 /*   By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 14:35:22 by sebasnadu         #+#    #+#             */
-/*   Updated: 2024/08/28 13:38:21 by sebasnadu        ###   ########.fr       */
+/*   Updated: 2024/08/28 19:22:13 by sebasnadu        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ class ServerInput
 	bool					hasThisFlag(t_serverFlags flag) const;
 	std::string		getHelpMessage(void) const;
 	std::string		getVersionMessage(void) const;
+	std::string		getFilePath(void) const;
 
   private:
 	int			 																_flags;
