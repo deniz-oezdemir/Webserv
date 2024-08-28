@@ -6,7 +6,7 @@
 #    By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/08/26 17:15:37 by sebasnadu         #+#    #+#              #
-#    Updated: 2024/08/27 14:27:49 by sebasnadu        ###   ########.fr        #
+#    Updated: 2024/08/28 09:55:57 by sebasnadu        ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,15 +37,15 @@ RM								:= rm -rf
 ################################################################################
 
 OBJ_DIR						:= obj
-SRC_DIR						:= src
+SRC_DIR						:= srcs
 INC_DIR						:= include
 
 vpath %.cpp $(SRC_DIR)
 vpath %.hpp $(INC_DIR)
 vpath %.o $(OBJ_DIR)
 
-HEADERS						:= colors.hpp
-SOURCE						:= main.cpp
+HEADERS						:= colors.hpp ServerInput.hpp
+SOURCE						:= main.cpp ServerInput.cpp
 OBJECTS						:= $(addprefix $(OBJ_DIR)/, $(SOURCE:.cpp=.o))
 	
 ################################################################################
