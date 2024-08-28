@@ -1,27 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ARequestParser.hpp                                 :+:      :+:    :+:   */
+/*   RequestParser.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: migmanu <jmanuelmigoya@gmail.com>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:12:01 by migmanu           #+#    #+#             */
-/*   Updated: 2024/08/28 15:21:57 by migmanu          ###   ########.fr       */
+/*   Updated: 2024/08/28 18:54:54 by migmanu          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 #include "HttpRequest.hpp"
+#include <cstddef>
 
 class RequestParser
 {
   public:
-	virtual ~RequestParser(void) = 0;
-
-	virtual HttpRequest parseRequest(std::string request) = 0;
+	static HttpRequest parseRequest(std::string str);
 
   private:
 	RequestParser(void);
+	~RequestParser(void);
 	RequestParser(const RequestParser &src);
 	RequestParser &operator=(const RequestParser &rhs);
 };
