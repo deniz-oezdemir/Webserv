@@ -6,7 +6,7 @@
 #    By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/08/26 17:15:37 by sebasnadu         #+#    #+#              #
-#    Updated: 2024/08/28 09:55:57 by sebasnadu        ###   ########.fr        #
+#    Updated: 2024/08/28 19:09:37 by sebasnadu        ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -57,7 +57,7 @@ CXXFLAGS					:=
 else ifdef DEBUG
 	CXXFLAGS				:= -g3 -fsanitize=address
 else
-	CXXFLAGS				:= -Wall -Wextra -Werror -std=c++98
+	CXXFLAGS				:= -Wall -Wextra -Werror
 endif
 ifeq ($(shell uname), Linux)
 	CXXFLAGS				+= -D LINUX
@@ -84,6 +84,10 @@ COMPILATION_PCT		= $(shell expr 100 \* $(COMPILED_FILES) / $(NUM_TO_COMPILE))
 ################################################################################
 
 all: $(NAME)
+
+test: $(NAME)
+	@make $(T) -C tests -s
+	@make fclean -C tests -s
 
 $(NAME): $(OBJECTS)
 	@printf "\n$(MAGENTA)[$(NAME)] $(DEFAULT)Linking "
