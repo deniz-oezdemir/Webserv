@@ -121,8 +121,8 @@ std::string ServerInput::getVersionMessage(void) const
 	   << __clang_major__ << "." << __clang_minor__ << "."
 	   << __clang_patchlevel__ << RESET;
 #elif defined(__GNUC__)
-	ss << WHITE "Compiled with << YELLOW " GCC " WHITE << " version
-		  " CYAN ULINE << __GNUC__ << "." << __GNUC_MINOR__
+	ss << WHITE "Compiled with" << YELLOW " GCC " << WHITE "version "
+	   << CYAN ULINE << __GNUC__ << "." << __GNUC_MINOR__
 	   << "." << __GNUC_PATCHLEVEL__ << RESET;
 #elif defined(_MSC_VER)
 	ss << WHITE "Compiled with " << YELLOW "MSVC " << WHITE "version " CYAN BOLD
