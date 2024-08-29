@@ -6,7 +6,7 @@
 #    By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/08/28 17:42:26 by sebasnadu         #+#    #+#              #
-#    Updated: 2024/08/28 19:01:04 by sebasnadu        ###   ########.fr        #
+#    Updated: 2024/08/29 14:25:15 by sebasnadu        ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,7 +29,7 @@ WHITE       := \033[0;97m
 ################################################################################
 
 # Add here the name of the file that contain an specific group of tests.
-TESTS							:= ServerInput
+TESTS							:= ServerInput ServerConfig
 CXX								:= c++
 RM								:= rm -rf
 	
@@ -70,7 +70,11 @@ all: $(TESTS) clean
 # For each test file you need to create a new rule with an descriptive and no so
 # long name, also to have the option to run only this test separately.
 .PHONY: ServerInput
-ServerInput: $(OBJECTS) ServerInputTest.cpp
+ServerInput: $(OBJECTS) ServerInputTests.cpp
+	@$(call run, "$^")
+
+.PHONY: ServerInput
+ServerConfig: $(OBJECTS) ServerConfigTests.cpp
 	@$(call run, "$^")
 
 $(OBJECTS):

@@ -6,7 +6,7 @@
 #    By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/08/26 17:15:37 by sebasnadu         #+#    #+#              #
-#    Updated: 2024/08/29 12:59:00 by sebasnadu        ###   ########.fr        #
+#    Updated: 2024/08/29 16:17:40 by sebasnadu        ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -45,8 +45,9 @@ vpath %.hpp $(INC_DIR)
 vpath %.o $(OBJ_DIR)
 
 HEADERS						:= colors.hpp ServerInput.hpp utils.hpp ServerException.hpp \
-										 ServerConfig.hpp
-SOURCE						:= main.cpp ServerInput.cpp ServerException.cpp ServerConfig.cpp
+										 ServerConfig.hpp ConfigValue.hpp
+SOURCE						:= main.cpp ServerInput.cpp ServerException.cpp ServerConfig.cpp \
+										 ConfigValue.cpp
 
 OBJECTS						:= $(addprefix $(OBJ_DIR)/, $(SOURCE:.cpp=.o))
 	

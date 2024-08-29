@@ -6,7 +6,7 @@
 /*   By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 11:17:21 by sebasnadu         #+#    #+#             */
-/*   Updated: 2024/08/29 14:03:41 by sebasnadu        ###   ########.fr       */
+/*   Updated: 2024/08/29 15:04:16 by sebasnadu        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,14 +19,14 @@ ServerConfig::ServerConfig(std::string const& filepath)
 	: filepath(filepath), _file(filepath)
 {
 	if (!this->_file.is_open())
-		throw ServerException("Could not open file [%]", errno, filepath);
+		throw ServerException("Could not open the file [%]", errno, filepath);
 }
 
 ServerConfig::ServerConfig(ServerConfig const& src)
 	: filepath(src.filepath), _file(src.filepath)
 {
 	if (!this->_file.is_open())
-		throw ServerException("Could not open file [%]", errno, filepath);
+		throw ServerException("Could not open the file [%]", errno, filepath);
 }
 
 ServerConfig& ServerConfig::operator=(ServerConfig const& src)
@@ -44,7 +44,7 @@ ServerConfig& ServerConfig::operator=(ServerConfig const& src)
 		this->_file.open(this->filepath);
 
 		if (!this->_file.is_open())
-			throw ServerException("Could not open file [%]", errno, filepath);
+			throw ServerException("Could not open the file [%]", errno, filepath);
 	}
 	return *this;
 }
@@ -53,4 +53,21 @@ ServerConfig::~ServerConfig()
 {
 	if (this->_file.is_open())
 		this->_file.close();
+}
+
+std::ifstream	&ServerConfig::getFile(void)
+{
+	return this->_file;
+}
+
+#include <iostream>
+
+void	ServerConfig::parseFile(bool isTest, bool isTestPrint)
+{
+	std::string line;
+	while (std::getline(this->_file, line))
+	{
+		if (isTest && isTestPrint)
+			std::cout << line << std::endl;
+	}
 }
