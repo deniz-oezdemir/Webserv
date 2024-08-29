@@ -1,6 +1,17 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/08/28 09:53:44 by sebasnadu         #+#    #+#             */
+/*   Updated: 2024/08/29 19:50:32 by migmanu          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Server.hpp"
 #include "ServerInput.hpp"
-#include "Server.hpp"
 #include "colors.hpp"
 #include "macros.hpp"
 
@@ -71,3 +82,4 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
+
