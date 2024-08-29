@@ -12,33 +12,32 @@
 
 #pragma once
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <stdexcept>
 #include <iostream>
+#include <netinet/in.h>
+#include <stdexcept>
+#include <sys/socket.h>
+#include <unistd.h>
 
 class Server
 {
-	public:
-		Server(int port);
-		Server(const Server &src);
-		~Server(void);
+  public:
+	Server(int port);
+	Server(const Server& src);
+	~Server(void);
 
-		Server &operator=(const Server &rhs);
+	Server& operator=(const Server& rhs);
 
-		void start();
+	void start();
 
-	protected:
+  protected:
+  private:
+	int			serverFd_;
+	sockaddr_in serverAddr_;
+	int			port_;
 
-	private:
-		int	serverFd_;
-		sockaddr_in serverAddr_;
-		int port_;
-
-		void createSocket();
-		void bindSocket();
-		void listenSocket();
-		void acceptConnection();
-		void handleClient(int clientFd);
+	void createSocket();
+	void bindSocket();
+	void listenSocket();
+	void acceptConnection();
+	void handleClient(int clientFd);
 };

@@ -19,7 +19,7 @@ Server::Server(int port) : port_(port)
 	listenSocket();
 }
 
-Server::Server(const Server &src)
+Server::Server(const Server& src)
 {
 	*this = src;
 }
@@ -29,7 +29,7 @@ Server::~Server(void)
 	close(serverFd_);
 }
 
-Server &Server::operator=(const Server &rhs)
+Server& Server::operator=(const Server& rhs)
 {
 	if (this != &rhs)
 	{
@@ -55,7 +55,8 @@ void Server::bindSocket()
 	serverAddr_.sin_addr.s_addr = INADDR_ANY;
 	serverAddr_.sin_port = htons(port_);
 
-	if (bind(serverFd_, (struct sockaddr *)&serverAddr_, sizeof(serverAddr_)) < 0)
+	if (bind(serverFd_, (struct sockaddr*)&serverAddr_, sizeof(serverAddr_)) <
+		0)
 	{
 		throw std::runtime_error("Failed to bind socket");
 	}
@@ -72,7 +73,8 @@ void Server::listenSocket()
 void Server::acceptConnection()
 {
 	int addrLen = sizeof(serverAddr_);
-	int clientFd = accept(serverFd_, (struct sockaddr *)&serverAddr_, (socklen_t*)&addrLen);
+	int clientFd =
+		accept(serverFd_, (struct sockaddr*)&serverAddr_, (socklen_t*)&addrLen);
 	if (clientFd < 0)
 	{
 		throw std::runtime_error("Failed to accept connection");
@@ -90,7 +92,7 @@ void Server::handleClient(int clientFd)
 	}
 	std::cout << "Hello from server. Your message was: " << buffer;
 
-	//most likely send to be kept as has more options than write
+	// most likely send to be kept as has more options than write
 	std::string responseSend = "Have a good day. (send)\n";
 	send(clientFd, responseSend.c_str(), responseSend.size(), 0);
 	std::string responseWrite = "What's up? (write)\n";

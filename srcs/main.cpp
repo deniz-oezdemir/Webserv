@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ServerInput.hpp"
 #include "Server.hpp"
+#include "ServerInput.hpp"
 #include "colors.hpp"
 #include "macros.hpp"
 
