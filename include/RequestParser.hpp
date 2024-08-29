@@ -6,13 +6,14 @@
 /*   By: migmanu <jmanuelmigoya@gmail.com>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 15:12:01 by migmanu           #+#    #+#             */
-/*   Updated: 2024/08/29 12:17:16 by migmanu          ###   ########.fr       */
+/*   Updated: 2024/08/29 19:02:31 by migmanu          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 #include "HttpRequest.hpp"
 #include <cstddef>
+#include <iostream>
 
 class RequestParser
 {

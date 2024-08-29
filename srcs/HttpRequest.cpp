@@ -80,24 +80,26 @@ const std::vector<char>& HttpRequest::getBody(void) const
 	return _body;
 }
 
-std::ostringstream& operator<<(std::ostringstream& os, const HttpRequest& rhs)
+std::ostream& operator<<(std::ostream& os, const HttpRequest& rhs)
 {
-	os << rhs.getMethod();
-	os << rhs.getHttpVersion();
-	os << rhs.getTarget();
-	const std::map<std::string, std::string>& headersCpy = rhs.getHeaders();
-	for (std::map<std::string, std::string>::const_iterator it = headersCpy.begin();
-		 it != headersCpy.end();
-		 it++)
-	{
-		os << it->first << " : " << it->second;
-	}
-	const std::vector<char>& bodyCpy = rhs.getBody();
-	for (std::vector<char>::const_iterator it = bodyCpy.begin(); it != bodyCpy.end();
-		 it++)
-	{
-		os << *it;
-	}
+    os << "Method: " << rhs.getMethod() << std::endl;
+    os << "HTTP version: " << rhs.getHttpVersion() << std::endl;
+    os << "Target: " << rhs.getTarget() << std::endl;
+	os << "HEADERS:" << std::endl;
+    const std::map<std::string, std::string>& headersCpy = rhs.getHeaders();
+    for (std::map<std::string, std::string>::const_iterator it = headersCpy.begin();
+         it != headersCpy.end();
+         it++)
+    {
+        os << it->first << " : " << it->second << std::endl;
+    }
+	os << "BODY:" << std::endl;
+    const std::vector<char>& bodyCpy = rhs.getBody();
+    for (std::vector<char>::const_iterator it = bodyCpy.begin(); it != bodyCpy.end();
+         it++)
+    {
+        os << *it << std::endl;
+    }
 
-	return os;
+    return os;
 }

@@ -43,4 +43,4 @@ class HttpRequest
 	std::vector<char>				   _body;
 };
 
-std::ostringstream& operator<<(std::ostringstream& os, const HttpRequest& rhs);
+std::ostream& operator<<(std::ostream& os, const HttpRequest& rhs);

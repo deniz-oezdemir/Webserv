@@ -86,8 +86,13 @@ void Server::handleClient(int clientFd)
 		return;
 	}
 
+	// Parse the request
+	std::string requestStr(buffer, bytesRead);
+	HttpRequest request = RequestParser::parseRequest(requestStr);
+
 	std::cout << "Hello from server. Your message was: " << buffer;
 
+	std::cout << std::endl << "Request received: " << std::endl << request << std::endl;
 	std::string response = "Have a good day.\n";
 	send(clientFd, response.c_str(), response.size(), 0);
 }

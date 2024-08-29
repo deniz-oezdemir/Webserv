@@ -8,6 +8,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <vector>
+#include "RequestParser.hpp"
+#include "HttpRequest.hpp"
 
 class Server
 {
@@ -33,3 +35,4 @@ class Server
 	void acceptConnection();
 	void handleClient(int clientFd);
 };
+
