@@ -2,6 +2,7 @@
 
 #include <map>
 #include <string>
+#include <sstream>
 #include <vector>
 
 class HttpRequest
@@ -43,4 +44,3 @@ class HttpRequest
 };
 
 std::ostringstream& operator<<(std::ostringstream& os, const HttpRequest& rhs);
-
