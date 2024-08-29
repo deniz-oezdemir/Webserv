@@ -2,9 +2,12 @@
 #include "Server.hpp"
 #include "ServerInput.hpp"
 #include "colors.hpp"
+#include "Logger.hpp"
 #include "macros.hpp"
 
 #include <iostream>
+
+Logger	LOG;
 
 int main(int argc, char *argv[])
 {
@@ -22,15 +25,15 @@ int main(int argc, char *argv[])
 			input.hasThisFlag(ServerInput::TEST_PRINT)
 		);
 
-		Server server(PORT);
-		server.start();
+		// Server server(PORT);
+		// server.start();
 	}
 	catch (std::exception &e)
 	{
 		std::cerr << RED BOLD "Error:\t" RESET RED << e.what() << RESET
 				  << std::endl;
 	}
-
+/*
 	//to be added to class
 	//error checking to be added
 
@@ -71,7 +74,7 @@ int main(int argc, char *argv[])
 
 	close(clientFd);
 	close(serverFd);
-
+*/
 	return 0;
 }
 
