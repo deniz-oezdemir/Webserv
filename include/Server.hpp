@@ -12,11 +12,14 @@
 
 #pragma once
 
+#include <fcntl.h>
 #include <iostream>
 #include <netinet/in.h>
+#include <poll.h>
 #include <stdexcept>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <vector>
 
 class Server
 {
@@ -31,9 +34,10 @@ class Server
 
   protected:
   private:
-	int			serverFd_;
-	sockaddr_in serverAddr_;
-	int			port_;
+	int					serverFd_;
+	int					port_;
+	sockaddr_in			serverAddr_;
+	std::vector<pollfd> pollFds_;
 
 	void createSocket();
 	void bindSocket();
