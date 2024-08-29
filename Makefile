@@ -32,8 +32,13 @@ vpath %.cpp $(SRC_DIR)
 vpath %.hpp $(INC_DIR)
 vpath %.o $(OBJ_DIR)
 
-HEADERS						:= colors.hpp ServerInput.hpp Server.hpp HttpRequest.hpp RequestParser.hpp
-SOURCE						:= main.cpp ServerInput.cpp Server.cpp HttpRequest.cpp RequestParser.cpp
+HEADERS						:= colors.hpp ServerInput.hpp utils.hpp ServerException.hpp \
+										 ServerConfig.hpp ConfigValue.hpp utils.hpp Server.hpp \
+										 HttpRequest.hpp RequestParser.hpp
+SOURCE						:= main.cpp ServerInput.cpp ServerException.cpp ServerConfig.cpp \
+										 ConfigValue.cpp utils.cpp Server.cpp HttpRequest.cpp \
+										 RequestParser.cpp
+
 OBJECTS						:= $(addprefix $(OBJ_DIR)/, $(SOURCE:.cpp=.o))
 
 ################################################################################

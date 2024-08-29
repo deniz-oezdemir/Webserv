@@ -17,7 +17,7 @@ WHITE       := \033[0;97m
 ################################################################################
 
 # Add here the name of the file that contain an specific group of tests.
-TESTS							:= ServerInput HttpRequest RequestParser
+TESTS							:= ServerInput ServerConfig utils HttpRequest RequestParser
 CXX								:= c++
 RM								:= rm -rf
 	
@@ -58,7 +58,15 @@ all: $(TESTS) clean
 # For each test file you need to create a new rule with an descriptive and no so
 # long name, also to have the option to run only this test separately.
 .PHONY: ServerInput
-ServerInput: $(OBJECTS) ServerInputTest.cpp
+ServerInput: $(OBJECTS) ServerInputTests.cpp
+	@$(call run, "$^")
+
+.PHONY: ServerConfig
+ServerConfig: $(OBJECTS) ServerConfigTests.cpp
+	@$(call run, "$^")
+
+.PHONY: utils
+utils: $(OBJECTS) utilsTests.cpp
 	@$(call run, "$^")
 
 .PHONY: HttpRequest

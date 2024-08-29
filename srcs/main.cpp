@@ -1,3 +1,4 @@
+#include "ServerConfig.hpp"
 #include "Server.hpp"
 #include "ServerInput.hpp"
 #include "colors.hpp"
@@ -5,7 +6,7 @@
 
 #include <iostream>
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
 	try
 	{
@@ -15,17 +16,19 @@ int main(int argc, char* argv[])
 		if (input.hasThisFlag(ServerInput::V_LITE) ||
 			input.hasThisFlag(ServerInput::V_FULL))
 			std::cout << input.getVersionMessage() << std::endl;
-		if (input.hasThisFlag(ServerInput::TEST))
-			std::cout << "test" << std::endl;
-		if (input.hasThisFlag(ServerInput::TEST_PRINT))
-			std::cout << "test print" << std::endl;
+		ServerConfig config(input.getFilePath());
+		config.parseFile(
+			input.hasThisFlag(ServerInput::TEST),
+			input.hasThisFlag(ServerInput::TEST_PRINT)
+		);
 
 		Server server(PORT);
 		server.start();
 	}
-	catch (std::exception& e)
+	catch (std::exception &e)
 	{
-		std::cerr << RED "Error:\t" << e.what() << RESET << std::endl;
+		std::cerr << RED BOLD "Error:\t" RESET RED << e.what() << RESET
+				  << std::endl;
 	}
 
 	//to be added to class
@@ -54,6 +57,7 @@ int main(int argc, char* argv[])
 	//read
 	char buffer[1000];
 	long bytesRead;
+	(void)bytesRead;
 	bytesRead = read(clientFd, buffer, 1000);
 	std::cout << "Hello from server. Your message was: " << buffer;
 

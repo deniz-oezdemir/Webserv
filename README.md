@@ -4,11 +4,15 @@
 
 ### Compilation
 
-`make`
+```bash
+make
+```
 
 ### Execution
 
-`` ./webserv [OPTIONAL: flags] [OPTIONAL: config_file]` ``
+```bash
+./webserv [OPTIONAL: flags] [OPTIONAL: config_file]
+```
 
 #### Flags
 
@@ -24,11 +28,17 @@
 
 #### Run all tests
 
-`make test`
+```bash
+make test
+```
 
 #### Run specific test
 
-`make test T=SpecificTestName`
+```bash
+make test
+make test T=SpecificTestName
+```
 
 ## Miscellaneous
+
 - test non blocking behaviour from multiple terminal clients with different messages like `yes "Example message 1" | telnet localhost 8080`
