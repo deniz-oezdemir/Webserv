@@ -57,6 +57,7 @@ int main(int argc, char *argv[])
 	//read
 	char buffer[1000];
 	long bytesRead;
+	(void)bytesRead;
 	bytesRead = read(clientFd, buffer, 1000);
 	std::cout << "Hello from server. Your message was: " << buffer;
 
