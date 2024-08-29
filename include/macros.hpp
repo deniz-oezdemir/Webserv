@@ -28,3 +28,5 @@
 #define HOST "Host"
 #define TRANSFER_ENCODING "Transfer-Encoding"
 
+#define PORT	   8080
+#define QUEUE_SIZE 1
