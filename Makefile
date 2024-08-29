@@ -11,15 +11,15 @@ BLUE        := \033[0;94m
 MAGENTA     := \033[0;95m
 CYAN        := \033[0;96m
 WHITE       := \033[0;97m
-	
+
 ################################################################################
 ##                                  WEBSERV                                   ##
 ################################################################################
 
-NAME							:= webServ
+NAME							:= webserv
 CXX								:= c++
 RM								:= rm -rf
-	
+
 ################################################################################
 ##                                DIRECTORIES                                 ##
 ################################################################################
@@ -33,12 +33,14 @@ vpath %.hpp $(INC_DIR)
 vpath %.o $(OBJ_DIR)
 
 HEADERS						:= colors.hpp ServerInput.hpp utils.hpp ServerException.hpp \
-										 ServerConfig.hpp ConfigValue.hpp utils.hpp
+										 ServerConfig.hpp ConfigValue.hpp utils.hpp Server.hpp \
+										 HttpRequest.hpp RequestParser.hpp
 SOURCE						:= main.cpp ServerInput.cpp ServerException.cpp ServerConfig.cpp \
-										 ConfigValue.cpp utils.cpp
+										 ConfigValue.cpp utils.cpp Server.cpp HttpRequest.cpp \
+										 RequestParser.cpp
 
 OBJECTS						:= $(addprefix $(OBJ_DIR)/, $(SOURCE:.cpp=.o))
-	
+
 ################################################################################
 ##                                   FLAGS                                    ##
 ################################################################################
@@ -54,7 +56,7 @@ ifeq ($(shell uname), Linux)
 	CXXFLAGS				+= -D LINUX
 endif
 INCLUDE						:= -I $(INC_DIR)
-	
+
 ################################################################################
 ##                                PROGRESS_BAR                                ##
 ################################################################################
@@ -69,7 +71,7 @@ endif
 
 COMPILED_FILES		= 0
 COMPILATION_PCT		= $(shell expr 100 \* $(COMPILED_FILES) / $(NUM_TO_COMPILE))
-	
+
 ################################################################################
 ##                                COMPILATION                                 ##
 ################################################################################
@@ -90,7 +92,7 @@ $(NAME): $(OBJECTS)
 $(OBJ_DIR)/%.o: %.cpp $(HEADERS) | $(OBJ_DIR)
 	@$(eval COMPILED_FILES = $(shell expr $(COMPILED_FILES) + 1))
 	@printf "$(MAGENTA)\r%100s\r[$(NAME)] $(GREEN)[ %d/%d (%d%%) ]" \
-			"" $(COMPILED_FILES) $(NUM_TO_COMPILE) $(COMPILATION_PCT) 
+			"" $(COMPILED_FILES) $(NUM_TO_COMPILE) $(COMPILATION_PCT)
 	@printf " $(DEFAULT)Compiling ($(BLUE)$<$(DEFAULT))..."
 	@$(CXX) $(CXXFLAGS) $(INCLUDE) -c $< -o $@
 

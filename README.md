@@ -38,3 +38,7 @@ make test
 make test
 make test T=SpecificTestName
 ```
+
+## Miscellaneous
+
+- test non blocking behaviour from multiple terminal clients with different messages like `yes "Example message 1" | telnet localhost 8080`

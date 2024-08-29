@@ -17,7 +17,7 @@ WHITE       := \033[0;97m
 ################################################################################
 
 # Add here the name of the file that contain an specific group of tests.
-TESTS							:= ServerInput ServerConfig utils
+TESTS							:= ServerInput ServerConfig utils HttpRequest RequestParser
 CXX								:= c++
 RM								:= rm -rf
 	
@@ -69,6 +69,14 @@ ServerConfig: $(OBJECTS) ServerConfigTests.cpp
 utils: $(OBJECTS) utilsTests.cpp
 	@$(call run, "$^")
 
+.PHONY: HttpRequest
+HttpRequest: $(OBJECTS) HttpRequestTest.cpp
+	@$(call run, "$^")
+
+.PHONY: RequestParser
+RequestParser: $(OBJECTS) RequestParserTest.cpp
+	@$(call run, "$^")
+
 $(OBJECTS):
 	@make -C .. -s
 
@@ -83,3 +91,4 @@ fclean: clean
 re: fclean all
 
 .PHONY: all clean fclean re
+

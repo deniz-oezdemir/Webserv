@@ -28,19 +28,19 @@ std::map<std::string, int> const ServerInput::_createFlagMap()
 ServerInput::ServerInput()
 	: _flags(this->NONE), _filepath("./default.config"){};
 
-ServerInput::ServerInput(int argc, char** argv)
+ServerInput::ServerInput(int argc, char **argv)
 	: _flags(this->NONE), _filepath("./default.config")
 {
 	for (int i = 1; i < argc; ++i)
 		this->_parseArg(argv[i], i, argc);
 };
 
-ServerInput::ServerInput(ServerInput const& src)
+ServerInput::ServerInput(ServerInput const &src)
 {
 	*this = src;
 };
 
-ServerInput& ServerInput::operator=(ServerInput const& src)
+ServerInput &ServerInput::operator=(ServerInput const &src)
 {
 	if (this != &src)
 	{
@@ -52,7 +52,7 @@ ServerInput& ServerInput::operator=(ServerInput const& src)
 
 ServerInput::~ServerInput(){};
 
-void ServerInput::_parseArg(std::string const& arg, int index, int argc)
+void ServerInput::_parseArg(std::string const &arg, int index, int argc)
 {
 	if (arg[0] == '-')
 		this->_setFlag(arg);
@@ -64,7 +64,7 @@ void ServerInput::_parseArg(std::string const& arg, int index, int argc)
 		);
 };
 
-void ServerInput::_setFlag(std::string const& flag)
+void ServerInput::_setFlag(std::string const &flag)
 {
 	std::map<std::string, int>::const_iterator it = this->_flagMap.find(flag);
 	if (it != this->_flagMap.end())
