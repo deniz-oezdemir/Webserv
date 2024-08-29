@@ -15,17 +15,30 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <stdexcept>
+#include <iostream>
 
 class Server
 {
-  public:
-	Server(void);
-	Server(const Server &src);
-	~Server(void);
+	public:
+		Server(int port);
+		Server(const Server &src);
+		~Server(void);
 
-	Server &operator=(const Server &rhs);
+		Server &operator=(const Server &rhs);
 
-  protected:
+		void start();
 
-  private:
+	protected:
+
+	private:
+		int	serverFd_;
+		sockaddr_in serverAddr_;
+		int port_;
+
+		void createSocket();
+		void bindSocket();
+		void listenSocket();
+		void acceptConnection();
+		void handleClient(int clientFd);
 };

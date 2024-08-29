@@ -44,8 +44,8 @@ vpath %.cpp $(SRC_DIR)
 vpath %.hpp $(INC_DIR)
 vpath %.o $(OBJ_DIR)
 
-HEADERS						:= colors.hpp ServerInput.hpp
-SOURCE						:= main.cpp ServerInput.cpp
+HEADERS						:= colors.hpp ServerInput.hpp Server.hpp
+SOURCE						:= main.cpp ServerInput.cpp Server.cpp
 OBJECTS						:= $(addprefix $(OBJ_DIR)/, $(SOURCE:.cpp=.o))
 
 ################################################################################
