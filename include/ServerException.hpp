@@ -1,31 +1,38 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ServerConfig.hpp                                   :+:      :+:    :+:   */
+/*   ServerException.hpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/26 17:48:50 by sebasnadu         #+#    #+#             */
-/*   Updated: 2024/08/29 13:55:16 by sebasnadu        ###   ########.fr       */
+/*   Created: 2024/08/29 11:42:48 by sebasnadu         #+#    #+#             */
+/*   Updated: 2024/08/29 13:13:19 by sebasnadu        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+#include <exception>
 #include <string>
-#include <fstream>
 
-class ServerConfig
+class ServerException : virtual public std::exception
 {
-  public:
-	ServerConfig(std::string const& filepath);
-	ServerConfig(ServerConfig const& src);
-	ServerConfig	&operator=(ServerConfig const& src);
-	~ServerConfig();
+public:
+	ServerException(
+		std::string const &msg,
+		int				   err_num = 0,
+		std::string const &arg = ""
+	);
+	ServerException(ServerException const &src);
+	virtual ~ServerException() throw();
 
-	std::string	filepath;
-  private:
-	ServerConfig();
+	ServerException &operator=(ServerException const &src);
 
-	std::ifstream	_file;
+	char const *what() const throw();
+
+private:
+	ServerException();
+
+	int					_errno;
+	std::string	_msg;
 };

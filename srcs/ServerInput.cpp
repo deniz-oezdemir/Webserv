@@ -6,12 +6,14 @@
 /*   By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 16:05:45 by sebasnadu         #+#    #+#             */
-/*   Updated: 2024/08/28 19:21:58 by sebasnadu        ###   ########.fr       */
+/*   Updated: 2024/08/29 13:21:51 by sebasnadu        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ServerInput.hpp"
+#include "ServerException.hpp"
 #include "colors.hpp"
+
 #include <sstream>
 
 std::map<std::string, int> const ServerInput::_flagMap =
@@ -35,10 +37,11 @@ std::map<std::string, int> const ServerInput::_createFlagMap()
 	return m;
 }
 
-ServerInput::ServerInput() : _flags(this->NONE), _filepath("./default.conf"){};
+ServerInput::ServerInput()
+	: _flags(this->NONE), _filepath("./default.config"){};
 
 ServerInput::ServerInput(int argc, char** argv)
-	: _flags(this->NONE), _filepath("./default.conf")
+	: _flags(this->NONE), _filepath("./default.config")
 {
 	for (int i = 1; i < argc; ++i)
 		this->_parseArg(argv[i], i, argc);
@@ -68,9 +71,8 @@ void ServerInput::_parseArg(std::string const& arg, int index, int argc)
 	else if (index == argc - 1)
 		this->_filepath = arg;
 	else
-		throw std::runtime_error(
-			"Invalid argument=> " + arg +
-			"\nUsage:\t./webserv [OPTIONAL: -flag][OPTIONAL: config_file]"
+		throw ServerException(
+			"Invalid argument=> %\n\n" + this->getHelpMessage(), 0, arg
 		);
 };
 
@@ -80,9 +82,8 @@ void ServerInput::_setFlag(std::string const& flag)
 	if (it != this->_flagMap.end())
 		this->_flags |= it->second;
 	else
-		throw std::runtime_error(
-			"Invalid flag=> " + flag +
-			"\nUsage:\t./webserv [OPTIONAL: -flag][OPTIONAL: config_file]"
+		throw ServerException(
+			"Invalid flag=> %\n\n" + this->getHelpMessage(), 0, flag
 		);
 };
 
@@ -116,12 +117,12 @@ std::string ServerInput::getVersionMessage(void) const
 		return ss.str();
 
 #ifdef __clang__
-	ss << WHITE "Compiled with" << YELLOW " Clang " << WHITE "version " CYAN BOLD
-	   << __clang_major__ << "." << __clang_minor__ << "."
-	   << __clang_patchlevel__ << RESET;
+	ss << WHITE "Compiled with" << YELLOW " Clang "
+	   << WHITE "version " CYAN BOLD << __clang_major__ << "."
+	   << __clang_minor__ << "." << __clang_patchlevel__ << RESET;
 #elif defined(__GNUC__)
 	ss << WHITE "Compiled with << YELLOW " GCC " WHITE << " version
-		  " CYAN ULINE << __GNUC__ << "." << __GNUC_MINOR__
+				" CYAN ULINE << __GNUC__ << "." << __GNUC_MINOR__
 	   << "." << __GNUC_PATCHLEVEL__ << RESET;
 #elif defined(_MSC_VER)
 	ss << WHITE "Compiled with " << YELLOW "MSVC " << WHITE "version " CYAN BOLD
@@ -137,6 +138,7 @@ std::string ServerInput::getVersionMessage(void) const
 	return ss.str();
 }
 
-std::string	ServerInput::getFilePath(void) const {
+std::string ServerInput::getFilePath(void) const
+{
 	return this->_filepath;
 }

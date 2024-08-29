@@ -4,11 +4,15 @@
 
 ### Compilation
 
-`make`
+```bash
+make
+```
 
 ### Execution
 
-`` ./webserv [OPTIONAL: flags] [OPTIONAL: config_file]` ``
+```bash
+./webserv [OPTIONAL: flags] [OPTIONAL: config_file]
+```
 
 #### Flags
 
@@ -24,8 +28,13 @@
 
 #### Run all tests
 
-`make test`
+```bash
+make test
+```
 
 #### Run specific test
 
-`make test T=SpecificTestName`
+```bash
+make test
+make test T=SpecificTestName
+```
