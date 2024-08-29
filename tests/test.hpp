@@ -6,7 +6,7 @@
 /*   By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 18:01:12 by sebasnadu         #+#    #+#             */
-/*   Updated: 2024/08/29 14:26:49 by sebasnadu        ###   ########.fr       */
+/*   Updated: 2024/08/29 18:12:02 by sebasnadu        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,3 +17,5 @@
 
 #include "../include/ServerInput.hpp"
 #include "../include/ServerConfig.hpp"
+#include "../include/ConfigValue.hpp"
+#include "../include/utils.hpp"

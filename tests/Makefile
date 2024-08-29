@@ -1,15 +1,3 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/08/28 17:42:26 by sebasnadu         #+#    #+#              #
-#    Updated: 2024/08/29 14:25:15 by sebasnadu        ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
 ################################################################################
 ##                                   COLORS                                   ##
 ################################################################################
@@ -29,7 +17,7 @@ WHITE       := \033[0;97m
 ################################################################################
 
 # Add here the name of the file that contain an specific group of tests.
-TESTS							:= ServerInput ServerConfig
+TESTS							:= ServerInput ServerConfig utils
 CXX								:= c++
 RM								:= rm -rf
 	
@@ -73,8 +61,12 @@ all: $(TESTS) clean
 ServerInput: $(OBJECTS) ServerInputTests.cpp
 	@$(call run, "$^")
 
-.PHONY: ServerInput
+.PHONY: ServerConfig
 ServerConfig: $(OBJECTS) ServerConfigTests.cpp
+	@$(call run, "$^")
+
+.PHONY: utils
+utils: $(OBJECTS) utilsTests.cpp
 	@$(call run, "$^")
 
 $(OBJECTS):

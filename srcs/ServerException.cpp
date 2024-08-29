@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ServerException.cpp                                :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/29 11:51:32 by sebasnadu         #+#    #+#             */
-/*   Updated: 2024/08/29 13:32:08 by sebasnadu        ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "ServerException.hpp"
 #include "utils.hpp"
 
@@ -23,7 +11,7 @@ ServerException::ServerException(
 	if (this->_msg.find('%') != std::string::npos)
 		this->_msg.replace(this->_msg.find('%'), 1, arg);
 	if (this->_errno)
-		this->_msg += " : (" + ft::to_string(this->_errno) + ") " + strerror(this->_errno);
+		this->_msg += " : (" + ft::toString(this->_errno) + ") " + strerror(this->_errno);
 }
 
 char const* ServerException::what(void) const throw()

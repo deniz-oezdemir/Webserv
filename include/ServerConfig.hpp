@@ -1,21 +1,10 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ServerConfig.hpp                                   :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/26 17:48:50 by sebasnadu         #+#    #+#             */
-/*   Updated: 2024/08/29 16:18:46 by sebasnadu        ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 
 #include <fstream>
 #include <map>
 #include <string>
 #include <vector>
+#include <array>
 
 #include "ConfigValue.hpp"
 
@@ -31,11 +20,15 @@ class ServerConfig
 	void		   parseFile(bool isTest = false, bool isTestPrint = false);
 
 	std::string filepath;
+	static std::array<std::string, 4> const	validLogLevels;
 
   private:
 	ServerConfig();
 
-	std::ifstream					   _file;
-	std::map<std::string, std::string> _generalConfig;
-	std::vector<std::map<std::string, ConfigValue> > _serversConfig;
+	void	_initGeneralConfig(void);
+	void	_initServersConfig(void);
+
+	std::ifstream					   													_file;
+	std::map<std::string, std::string>								_generalConfig;
+	std::vector<std::map<std::string, ConfigValue> >	_serversConfig;
 };
