@@ -2,3 +2,4 @@
 webserv
 webServ
 obj/
+*.o
