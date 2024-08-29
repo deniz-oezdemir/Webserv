@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/28 09:53:44 by sebasnadu         #+#    #+#             */
-/*   Updated: 2024/08/28 10:59:33 by sebasnadu        ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Server.hpp"
 #include "ServerInput.hpp"
 #include "Server.hpp"
@@ -41,8 +29,6 @@ int main(int argc, char* argv[])
 		std::cerr << RED "Error:\t" << e.what() << RESET << std::endl;
 	}
 
-<<<<<<< HEAD
-=======
 	//to be added to class
 	//error checking to be added
 
@@ -83,6 +69,5 @@ int main(int argc, char* argv[])
 	close(clientFd);
 	close(serverFd);
 
->>>>>>> cf8f1a9 (basic TCP server works)
 	return 0;
 }
