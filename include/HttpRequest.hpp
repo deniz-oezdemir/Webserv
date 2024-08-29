@@ -2,14 +2,8 @@
 
 #include <map>
 #include <string>
-#include <sstream>
 #include <vector>
 
-/*
- * The HttpRequest class encapsulates an HTTP request, providing methods to
- * manipulate and retrieve its components (method, HTTP version, target, headers,
- * and body). It also overloads the << operator for std::ostrstream output.
- */
 class HttpRequest
 {
   public:
@@ -49,3 +43,4 @@ class HttpRequest
 };
 
 std::ostringstream& operator<<(std::ostringstream& os, const HttpRequest& rhs);
+

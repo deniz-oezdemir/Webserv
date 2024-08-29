@@ -1,5 +1,8 @@
 #pragma once
 
+#define PORT	   8080
+#define QUEUE_SIZE 1
+
 // HTTP CODES
 #define HTTP_200_CODE 200
 #define HTTP_200_REASON "OK"
@@ -28,5 +31,3 @@
 #define HOST "Host"
 #define TRANSFER_ENCODING "Transfer-Encoding"
 
-#define PORT	   8080
-#define QUEUE_SIZE 1
