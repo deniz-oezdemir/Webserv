@@ -6,7 +6,7 @@
 #    By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/08/26 17:15:37 by sebasnadu         #+#    #+#              #
-#    Updated: 2024/08/28 19:09:37 by sebasnadu        ###   ########.fr        #
+#    Updated: 2024/08/29 12:55:42 by migmanu          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -44,8 +44,8 @@ vpath %.cpp $(SRC_DIR)
 vpath %.hpp $(INC_DIR)
 vpath %.o $(OBJ_DIR)
 
-HEADERS						:= colors.hpp ServerInput.hpp
-SOURCE						:= main.cpp ServerInput.cpp
+HEADERS						:= colors.hpp ServerInput.hpp Server.hpp HttpRequest.hpp RequestParser.hpp
+SOURCE						:= main.cpp ServerInput.cpp Server.cpp HttpRequest.cpp RequestParser.cpp
 OBJECTS						:= $(addprefix $(OBJ_DIR)/, $(SOURCE:.cpp=.o))
 
 ################################################################################

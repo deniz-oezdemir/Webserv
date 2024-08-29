@@ -1,20 +1,8 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   HttpRequest.hpp                                    :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: migmanu <jmanuelmigoya@gmail.com>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/28 12:36:58 by migmanu           #+#    #+#             */
-/*   Updated: 2024/08/29 12:16:56 by migmanu          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 
 #include <map>
 #include <string>
-#include <strstream>
+#include <sstream>
 #include <vector>
 
 /*
@@ -60,4 +48,4 @@ class HttpRequest
 	std::vector<char>				   _body;
 };
 
-std::ostrstream& operator<<(std::ostrstream& os, const HttpRequest& rhs);
+std::ostringstream& operator<<(std::ostringstream& os, const HttpRequest& rhs);

@@ -1,16 +1,5 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   HttpRequest.cpp                                    :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: migmanu <jmanuelmigoya@gmail.com>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/28 19:11:14 by migmanu           #+#    #+#             */
-/*   Updated: 2024/08/28 19:53:55 by migmanu          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "../include/HttpRequest.hpp"
+#include <sstream>
 
 HttpRequest::HttpRequest(
 	std::string&						method,
@@ -91,7 +80,7 @@ const std::vector<char>& HttpRequest::getBody(void) const
 	return _body;
 }
 
-std::ostrstream& operator<<(std::ostrstream& os, const HttpRequest& rhs)
+std::ostringstream& operator<<(std::ostringstream& os, const HttpRequest& rhs)
 {
 	os << rhs.getMethod();
 	os << rhs.getHttpVersion();
