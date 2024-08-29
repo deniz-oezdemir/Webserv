@@ -6,7 +6,7 @@
 /*   By: migmanu <jmanuelmigoya@gmail.com>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 12:36:58 by migmanu           #+#    #+#             */
-/*   Updated: 2024/08/28 19:47:57 by migmanu          ###   ########.fr       */
+/*   Updated: 2024/08/29 11:58:14 by migmanu          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,11 @@
 #include <strstream>
 #include <vector>
 
-// Basic class for storing parsed requests
+/*
+ * The HttpRequest class encapsulates an HTTP request, providing methods to
+ * manipulate and retrieve its components (method, HTTP version, target, headers,
+ * and body). It also overloads the << operator for std::ostrstream output.
+ */
 class HttpRequest
 {
   public:
