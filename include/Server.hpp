@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: migmanu <jmanuelmigoya@gmail.com>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/28 15:28:13 by migmanu           #+#    #+#             */
-/*   Updated: 2024/08/28 15:28:14 by migmanu          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 
 #include <fcntl.h>
@@ -20,6 +8,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <vector>
+#include "RequestParser.hpp"
+#include "HttpRequest.hpp"
 
 class Server
 {
@@ -45,3 +35,4 @@ class Server
 	void acceptConnection();
 	void handleClient(int clientFd);
 };
+

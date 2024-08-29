@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: migmanu <jmanuelmigoya@gmail.com>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/28 15:26:45 by migmanu           #+#    #+#             */
-/*   Updated: 2024/08/28 15:28:35 by migmanu          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "../include/Server.hpp"
 
 Server::Server(int port) : port_(port)
@@ -63,8 +51,7 @@ void Server::bindSocket()
 	serverAddr_.sin_port = htons(port_);
 
 	// bind socket to server address
-	if (bind(serverFd_, (struct sockaddr*)&serverAddr_, sizeof(serverAddr_)) <
-		0)
+	if (bind(serverFd_, (struct sockaddr*)&serverAddr_, sizeof(serverAddr_)) < 0)
 	{
 		throw std::runtime_error("Failed to bind socket");
 	}
@@ -99,8 +86,13 @@ void Server::handleClient(int clientFd)
 		return;
 	}
 
+	// Parse the request
+	std::string requestStr(buffer, bytesRead);
+	HttpRequest request = RequestParser::parseRequest(requestStr);
+
 	std::cout << "Hello from server. Your message was: " << buffer;
 
+	std::cout << std::endl << "Request received: " << std::endl << request << std::endl;
 	std::string response = "Have a good day.\n";
 	send(clientFd, response.c_str(), response.size(), 0);
 }
@@ -168,3 +160,4 @@ void Server::acceptConnection()
 	pollfd clientPollFd = {clientFd, POLLIN, 0};
 	pollFds_.push_back(clientPollFd);
 }
+

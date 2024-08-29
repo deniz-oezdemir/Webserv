@@ -1,5 +1,6 @@
 .cache
 webserv
+webServ
 obj/
 *.o
 .vscode/

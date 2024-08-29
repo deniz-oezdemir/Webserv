@@ -1,15 +1,3 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/08/28 17:42:26 by sebasnadu         #+#    #+#              #
-#    Updated: 2024/08/28 19:01:04 by sebasnadu        ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
 ################################################################################
 ##                                   COLORS                                   ##
 ################################################################################
@@ -29,7 +17,7 @@ WHITE       := \033[0;97m
 ################################################################################
 
 # Add here the name of the file that contain an specific group of tests.
-TESTS							:= ServerInput
+TESTS							:= ServerInput HttpRequest RequestParser
 CXX								:= c++
 RM								:= rm -rf
 	
@@ -73,6 +61,14 @@ all: $(TESTS) clean
 ServerInput: $(OBJECTS) ServerInputTest.cpp
 	@$(call run, "$^")
 
+.PHONY: HttpRequest
+HttpRequest: $(OBJECTS) HttpRequestTest.cpp
+	@$(call run, "$^")
+
+.PHONY: RequestParser
+RequestParser: $(OBJECTS) RequestParserTest.cpp
+	@$(call run, "$^")
+
 $(OBJECTS):
 	@make -C .. -s
 
@@ -87,3 +83,4 @@ fclean: clean
 re: fclean all
 
 .PHONY: all clean fclean re
+
