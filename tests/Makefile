@@ -1,3 +1,18 @@
+<<<<<<< HEAD
+=======
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: sebasnadu <johnavar@student.42berlin.de>   +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/08/28 17:42:26 by sebasnadu         #+#    #+#              #
+#    Updated: 2024/08/28 19:01:04 by sebasnadu        ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+>>>>>>> 2a3a022 (Feat: add Makefile for testing, add Criterion, update README)
 ################################################################################
 ##                                   COLORS                                   ##
 ################################################################################
@@ -17,7 +32,11 @@ WHITE       := \033[0;97m
 ################################################################################
 
 # Add here the name of the file that contain an specific group of tests.
+<<<<<<< HEAD
 TESTS							:= ServerInput HttpRequest RequestParser
+=======
+TESTS							:= ServerInput
+>>>>>>> 2a3a022 (Feat: add Makefile for testing, add Criterion, update README)
 CXX								:= c++
 RM								:= rm -rf
 	
