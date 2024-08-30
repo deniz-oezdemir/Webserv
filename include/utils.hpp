@@ -22,5 +22,6 @@ std::vector<std::string> &split(
 	std::string const		 &str,
 	std::string const		 &delimiters = " \t\n"
 );
+bool	isStrOfDigits(std::string const &str);
 
 } // namespace ft

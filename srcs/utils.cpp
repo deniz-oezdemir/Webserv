@@ -35,4 +35,9 @@ std::vector<std::string> &split(
 	return result;
 }
 
+bool	isStrOfDigits(std::string const &str)
+{
+	return str.find_first_not_of("0123456789") == std::string::npos;
+}
+
 } // namespace ft
