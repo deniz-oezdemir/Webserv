@@ -10,6 +10,7 @@
 #include <vector>
 #include "RequestParser.hpp"
 #include "HttpRequest.hpp"
+#include "colors.hpp"
 
 class Server
 {
