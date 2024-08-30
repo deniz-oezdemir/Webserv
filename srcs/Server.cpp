@@ -7,7 +7,7 @@ Server::Server(int port) : port_(port)
 	listenSocket();
 }
 
-Server::Server(const Server& src)
+Server::Server(const Server &src)
 {
 	*this = src;
 }
@@ -17,7 +17,7 @@ Server::~Server(void)
 	close(serverFd_);
 }
 
-Server& Server::operator=(const Server& rhs)
+Server &Server::operator=(const Server &rhs)
 {
 	if (this != &rhs)
 	{
@@ -42,6 +42,15 @@ void Server::createSocket()
 	{
 		throw std::runtime_error("Failed to set non-blocking mode");
 	}
+
+	// Set the SO_REUSEADDR option
+	int optval = 1;
+	if (setsockopt(
+			serverFd_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)
+		) == -1)
+	{
+		throw std::runtime_error("Failed to set SO_REUSEADDR");
+	}
 }
 
 void Server::bindSocket()
@@ -51,7 +60,8 @@ void Server::bindSocket()
 	serverAddr_.sin_port = htons(port_);
 
 	// bind socket to server address
-	if (bind(serverFd_, (struct sockaddr*)&serverAddr_, sizeof(serverAddr_)) < 0)
+	if (bind(serverFd_, (struct sockaddr *)&serverAddr_, sizeof(serverAddr_)) <
+		0)
 	{
 		throw std::runtime_error("Failed to bind socket");
 	}
@@ -87,12 +97,22 @@ void Server::handleClient(int clientFd)
 	}
 
 	// Parse the request
-	std::string requestStr(buffer, bytesRead);
-	HttpRequest request = RequestParser::parseRequest(requestStr);
 
-	std::cout << "Hello from server. Your message was: " << buffer;
+	try
+	{
+		std::string requestStr(buffer, bytesRead);
+		HttpRequest request = RequestParser::parseRequest(requestStr);
+		std::cout << "Hello from server. Your message was: " << buffer;
 
-	std::cout << std::endl << "Request received: " << std::endl << request << std::endl;
+		std::cout << std::endl
+				  << "Request received: " << std::endl
+				  << request << std::endl;
+	}
+	catch (std::exception &e)
+	{
+		std::cerr << RED BOLD "Error:\t" RESET RED << e.what() << RESET
+				  << std::endl;
+	}
 	std::string response = "Have a good day.\n";
 	send(clientFd, response.c_str(), response.size(), 0);
 }
@@ -139,8 +159,9 @@ void Server::start()
 void Server::acceptConnection()
 {
 	int addrLen = sizeof(serverAddr_);
-	int clientFd =
-		accept(serverFd_, (struct sockaddr*)&serverAddr_, (socklen_t*)&addrLen);
+	int clientFd = accept(
+		serverFd_, (struct sockaddr *)&serverAddr_, (socklen_t *)&addrLen
+	);
 	if (clientFd < 0)
 	{
 		if (errno != EWOULDBLOCK && errno != EAGAIN)
@@ -160,4 +181,3 @@ void Server::acceptConnection()
 	pollfd clientPollFd = {clientFd, POLLIN, 0};
 	pollFds_.push_back(clientPollFd);
 }
-
