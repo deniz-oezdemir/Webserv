@@ -86,6 +86,7 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 	(void)isTestPrint;
 	std::stack<bool>		 brackets;
 	std::string				 line;
+	unsigned int			 index(1);
 	std::vector<std::string> tmp;
 	tmp.reserve(5);
 	while (std::getline(this->_file, line))
@@ -98,15 +99,20 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 		if (tmp[0] == "worker_processes")
 		{
 			if (tmp.size() != 2 && (isTest || isTestPrint))
-				std::cerr << PURPLE "[WebServer] " << YELLOW "(emerg)"
-						  << WHITE " invalid number of arguments in "
-								   "worker_processes directive" RESET
+				std::cerr << PURPLE "<WebServer> " << YELLOW "[emerg]"
+						  << WHITE " invalid number of arguments in " CYAN
+						  << tmp[0]
+						  << " directive in the configuration file " CYAN
+						  << this->filepath << ":" << index << RESET
 						  << std::endl;
 			if (tmp[tmp.size() - 1][tmp[tmp.size() - 1].size() - 1] != ';')
-				throw ServerException(
-					"Invalid directive terminator [%]", 0, tmp[tmp.size() - 1]
-				);
+				std::cerr << PURPLE "<WebServer> " << YELLOW "[emerg]"
+						  << WHITE " missing ';' in " CYAN << tmp[0]
+						  << WHITE " directive in the configuration file " CYAN
+						  << this->filepath << ":" << index << RESET
+						  << std::endl;
 		}
 		tmp.clear();
+		++index;
 	}
 }
