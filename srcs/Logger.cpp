@@ -1,7 +1,6 @@
 #include "Logger.hpp"
 #include "colors.hpp"
 
-#include <cstdio>
 #include <ctime>
 #include <iostream>
 

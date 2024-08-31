@@ -17,9 +17,12 @@ class ServerConfig
 	~ServerConfig();
 
 	std::ifstream &getFile(void);
-	bool		   getIsConfigOK(void) const;
+	bool		   isConfigOK(void) const;
 	void		   parseFile(bool isTest = false, bool isTestPrint = false);
 	void		   printConfig(void);
+	std::string	   getGeneralConfigValue(std::string const &key) const;
+	bool	getAllServersConfig(std::vector<std::map<std::string, ConfigValue> > &serversConfig) const;
+	bool	getServerConfigValue(unsigned int serverIndex, std::string const &key, ConfigValue &value) const;
 
 	std::string								filepath;
 	static std::array<std::string, 4> const validLogLevels;
@@ -42,6 +45,8 @@ class ServerConfig
 		bool			   isTest,
 		bool			   isTestPrint
 	);
+	void _checkGeneralConfig(bool isTest, bool isTestPrint);
+	void _checkServersConfig(bool isTest, bool isTestPrint);
 
 	std::ifstream									_file;
 	std::map<std::string, std::string>				_generalConfig;

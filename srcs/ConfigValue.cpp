@@ -24,10 +24,31 @@ std::vector<std::string> const &ConfigValue::getVector(void) const
 	return this->_vectorValue;
 }
 
+bool ConfigValue::getVectorValue(unsigned int index, std::string &value) const
+{
+	if (index >= this->_vectorValue.size())
+		return false;
+	value = this->_vectorValue[index];
+	return true;
+}
+
 std::map<std::string, std::vector<std::string> > const &ConfigValue::getMap(void
 ) const
 {
 	return this->_mapValue;
+}
+
+bool	ConfigValue::getMapValue(
+	std::string const &key,
+	std::vector<std::string> &value
+) const
+{
+	std::map<std::string, std::vector<std::string> >::const_iterator it;
+	it = this->_mapValue.find(key);
+	if (it == this->_mapValue.end())
+		return false;
+	value = it->second;
+	return true;
 }
 
 void ConfigValue::setVector(std::vector<std::string> const &value)

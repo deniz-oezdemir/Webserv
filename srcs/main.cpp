@@ -27,17 +27,18 @@ int main(int argc, char *argv[])
 		if (input.hasThisFlag(ServerInput::TEST) ||
 			input.hasThisFlag(ServerInput::TEST_PRINT))
 		{
-			if (config.getIsConfigOK())
+			if (config.isConfigOK())
 				std::cout << PURPLE "<WebServ> "
-						  << RESET "Test finished: " << GREEN "Config OK!" RESET
+						  << RESET "Test finished: " << GREEN BOLD "Config OK!" RESET
 						  << std::endl;
 			if (input.hasThisFlag(ServerInput::TEST_PRINT))
 				config.printConfig();
 			return 0;
 		}
+		LOG.setLevel(config.getGeneralConfigValue("error_log"));
 
-		// Server server(PORT);
-		// server.start();
+		Server server(PORT);
+		server.start();
 	}
 	catch (std::exception &e)
 	{

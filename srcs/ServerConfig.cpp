@@ -35,7 +35,7 @@ ServerConfig &ServerConfig::operator=(ServerConfig const &src)
 	if (this != &src)
 	{
 		this->filepath = src.filepath;
-		this->_isConfigOK = src.getIsConfigOK();
+		this->_isConfigOK = src.isConfigOK();
 
 		if (this->_file.is_open())
 		{
@@ -64,7 +64,7 @@ std::ifstream &ServerConfig::getFile(void)
 	return this->_file;
 }
 
-bool ServerConfig::getIsConfigOK(void) const
+bool ServerConfig::isConfigOK(void) const
 {
 	return this->_isConfigOK;
 }
@@ -83,6 +83,7 @@ void ServerConfig::_initServersConfig(void)
 	server["listen"] = ConfigValue();
 	server["root"] = ConfigValue();
 	server["index"] = ConfigValue();
+	server["client_max_body_size"] = ConfigValue();
 	this->_serversConfig.push_back(server);
 }
 
@@ -115,7 +116,7 @@ bool ServerConfig::_checkValues(
 	bool							isTestPrint
 )
 {
-	if (tokens.size() != maxSize)
+	if (tokens.size() > maxSize)
 	{
 		this->_errorHandler(
 			"Invalid number of arguments in [" + tokens[0] + "] directive",
@@ -149,7 +150,11 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 	{
 		ft::trim(line);
 		if (line.empty() || line[0] == '#')
+		{
+			tokens.clear();
+			++lineIndex;
 			continue;
+		}
 		ft::split(tokens, line);
 		if (tokens[0] == "}")
 		{
@@ -227,15 +232,29 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 		}
 		else if (tokens[0] == "server_name" || tokens[0] == "index")
 		{
-			if (tokens.size() > 1 &&
-				this->_checkValues(tokens, 99, lineIndex, isTest, isTestPrint))
+			if (tokens.size() > 1)
 			{
-				tokens[tokens.size() - 1].erase(
-					tokens[tokens.size() - 1].size() - 1
-				);
-				this->_serversConfig.back()[tokens[0]] = ConfigValue(
-					std::vector<std::string>(tokens.begin() + 1, tokens.end())
-				);
+				if (this->_checkValues(
+						tokens, 99, lineIndex, isTest, isTestPrint
+					))
+				{
+					tokens[tokens.size() - 1].erase(
+						tokens[tokens.size() - 1].size() - 1
+					);
+					if (this->_serversConfig.size() > 0)
+						this->_serversConfig.back()[tokens[0]] =
+							ConfigValue(std::vector<std::string>(
+								tokens.begin() + 1, tokens.end()
+							));
+					else
+						this->_errorHandler(
+							"Invalid directive [" + tokens[0] +
+								"] outside a server block",
+							lineIndex,
+							isTest,
+							isTestPrint
+						);
+				}
 			}
 			else
 				this->_errorHandler(
@@ -263,10 +282,21 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 						isTestPrint
 					);
 				else
-					this->_serversConfig.back()[tokens[0]] =
-						ConfigValue(std::vector<std::string>(
-							tokens.begin() + 1, tokens.end()
-						));
+				{
+					if (this->_serversConfig.size() > 0)
+						this->_serversConfig.back()[tokens[0]] =
+							ConfigValue(std::vector<std::string>(
+								tokens.begin() + 1, tokens.end()
+							));
+					else
+						this->_errorHandler(
+							"Invalid directive [" + tokens[0] +
+								"] outside a server block",
+							lineIndex,
+							isTest,
+							isTestPrint
+						);
+				}
 			}
 		}
 		else if (tokens[0] == "error_page")
@@ -289,10 +319,21 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 							isTestPrint
 						);
 					else
-						this->_serversConfig.back()[*it] =
-							ConfigValue(std::vector<std::string>(
-								tokens.end() - 1, tokens.end()
-							));
+					{
+						if (this->_serversConfig.size() > 0)
+							this->_serversConfig.back()[*it] =
+								ConfigValue(std::vector<std::string>(
+									tokens.end() - 1, tokens.end()
+								));
+						else
+							this->_errorHandler(
+								"Invalid directive [" + tokens[0] +
+									"] outside a server block",
+								lineIndex,
+								isTest,
+								isTestPrint
+							);
+					}
 				}
 			}
 			else
@@ -310,17 +351,18 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 				tokens[tokens.size() - 1] == "{")
 			{
 				if (tokens.size() == 4 &&
-					(tokens[2] != "~" && tokens[2] != "=" &&
-					 tokens[2] != "^~" && tokens[2] != "~*"))
+					(tokens[1] != "~" && tokens[1] != "=" &&
+					 tokens[1] != "^~" && tokens[1] != "~*"))
 					this->_errorHandler(
-						"Invalid value [" + tokens[2] + "] for " + tokens[0] +
-							" directive, expected '~' or '='",
+						"Invalid value [" + tokens[1] + "] for " + tokens[0] +
+							" directive, expected '~', '=', '^~' or '~*'",
 						lineIndex,
 						isTest,
 						isTestPrint
 					);
 				else
 				{
+					brackets.push(true);
 					std::string tmp(tokens[1] + " " + tokens[2]);
 					std::map<std::string, std::vector<std::string> > location;
 					tokens.clear();
@@ -332,7 +374,10 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 							continue;
 						ft::split(tokens, line);
 						if (tokens[0] == "}")
+						{
+							brackets.pop();
 							break;
+						}
 						if (this->_checkValues(
 								tokens, 99, lineIndex, isTest, isTestPrint
 							))
@@ -347,15 +392,16 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 						tokens.clear();
 						++lineIndex;
 					}
-					if (location.empty())
+					if (this->_serversConfig.size() > 0)
+						this->_serversConfig.back()[tmp].setMap(location);
+					else
 						this->_errorHandler(
-							"Empty location directive",
+							"Invalid directive [" + tokens[0] +
+								"] outside a server block",
 							lineIndex,
 							isTest,
 							isTestPrint
 						);
-					else
-						this->_serversConfig.back()[tmp].setMap(location);
 				}
 			}
 			else
@@ -378,22 +424,171 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 		tokens.clear();
 		++lineIndex;
 	}
+	if (!brackets.empty())
+		this->_errorHandler(
+			"Format error: Missing '}' to pair '{'",
+			lineIndex,
+			isTest,
+			isTestPrint
+		);
+	this->_checkGeneralConfig(isTest, isTestPrint);
+	this->_checkServersConfig(isTest, isTestPrint);
 	this->_file.clear();
 	this->_file.seekg(0, std::ios::beg);
 }
 
-void	ServerConfig::printConfig(void)
+void ServerConfig::_checkGeneralConfig(bool isTest, bool isTestPrint)
+{
+	if (this->_generalConfig["error_log"].empty())
+	{
+		if (isTest || isTestPrint)
+			this->_errorHandler(
+				"Missing error_log directive", 0, isTest, isTestPrint
+			);
+		this->_generalConfig["error_log"] = "info";
+	}
+}
+
+void ServerConfig::_checkServersConfig(bool isTest, bool isTestPrint)
+{
+	if (this->_serversConfig.empty())
+	{
+		this->_errorHandler(
+			"Missing [server] directive", 0, isTest, isTestPrint
+		);
+		return;
+	}
+	std::vector<std::map<std::string, ConfigValue> >::iterator it(
+		this->_serversConfig.begin()
+	);
+	for (; it != this->_serversConfig.end(); ++it)
+	{
+		if (it->find("server_name")->second.getVector().empty())
+		{
+			if (isTest || isTestPrint)
+				this->_errorHandler(
+					"Missing [server_name] directive, set default volue: "
+					"'localhost'",
+					0,
+					isTest,
+					isTestPrint
+				);
+			it->find("server_name")
+				->second.setVector(std::vector<std::string>(1, "_"));
+		}
+		if (it->find("listen")->second.getVector().empty())
+		{
+			if (isTest || isTestPrint)
+				this->_errorHandler(
+					"Missing [listen] directive, set default value: '80'",
+					0,
+					isTest,
+					isTestPrint
+				);
+			it->find("listen")->second.setVector(
+				std::vector<std::string>(1, "80")
+			);
+		}
+		if (it->find("root")->second.getVector().empty())
+		{
+			if (isTest || isTestPrint)
+				this->_errorHandler(
+					"Missing [root] directive, set default value: './www'",
+					0,
+					isTest,
+					isTestPrint
+				);
+			it->find("root")->second.setVector(
+				std::vector<std::string>(1, "./www")
+			);
+		}
+		if (it->find("index")->second.getVector().empty())
+		{
+			if (isTest || isTestPrint)
+				this->_errorHandler(
+					"Missing [index] directive, set default value: "
+					"'index.html'",
+					0,
+					isTest,
+					isTestPrint
+				);
+			it->find("index")->second.setVector(
+				std::vector<std::string>(1, "index.html")
+			);
+		}
+		if (it->find("client_max_body_size")->second.getVector().empty())
+		{
+			if (isTest || isTestPrint)
+				this->_errorHandler(
+					"Missing [client_max_body_size] directive, set default "
+					"value: "
+					"'1M'",
+					0,
+					isTest,
+					isTestPrint
+				);
+			it->find("client_max_body_size")
+				->second.setVector(std::vector<std::string>(1, "1048576"));
+		}
+	}
+}
+
+void ServerConfig::printConfig(void)
 {
 	if (this->_file.is_open())
 	{
 		std::string line;
 
 		std::cout << PURPLE "\n<WebServ> " GREEN "Printing configuration file("
-			  << CYAN << this->filepath << GREEN ")..." RESET "\n\n";
+				  << CYAN << this->filepath << GREEN ")..." RESET "\n\n";
 		while (std::getline(this->_file, line))
 			std::cout << line << '\n';
-		std::cout << PURPLE "\n<WebServ> " << GREEN "\t---- End of file ----" << std::endl;
+		std::cout << PURPLE "\n<WebServ> " << GREEN "\t---- End of file ----"
+				  << std::endl;
 		this->_file.clear();
 		this->_file.seekg(0, std::ios::beg);
 	}
+}
+
+std::string ServerConfig::getGeneralConfigValue(std::string const &key) const
+{
+	std::string										   value;
+	std::map<std::string, std::string>::const_iterator it(
+		this->_generalConfig.find(key)
+	);
+	if (it != this->_generalConfig.end())
+	{
+		value = it->second;
+		return value;
+	}
+	return value;
+}
+
+bool ServerConfig::getAllServersConfig(
+	std::vector<std::map<std::string, ConfigValue> > &serversConfig
+) const
+{
+	if (this->_serversConfig.empty())
+		return false;
+	serversConfig = this->_serversConfig;
+	return true;
+}
+
+bool ServerConfig::getServerConfigValue(
+	unsigned int	   serverIndex,
+	std::string const &key,
+	ConfigValue		  &value
+) const
+{
+	if (serverIndex >= this->_serversConfig.size())
+		return false;
+	std::map<std::string, ConfigValue>::const_iterator it(
+		this->_serversConfig[serverIndex].find(key)
+	);
+	if (it != this->_serversConfig[serverIndex].end())
+	{
+		value = it->second;
+		return true;
+	}
+	return false;
 }
