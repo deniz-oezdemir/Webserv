@@ -3,6 +3,7 @@
 #include <array>
 #include <fstream>
 #include <map>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -21,8 +22,14 @@ class ServerConfig
 	void		   parseFile(bool isTest = false, bool isTestPrint = false);
 	void		   printConfig(void);
 	std::string	   getGeneralConfigValue(std::string const &key) const;
-	bool	getAllServersConfig(std::vector<std::map<std::string, ConfigValue> > &serversConfig) const;
-	bool	getServerConfigValue(unsigned int serverIndex, std::string const &key, ConfigValue &value) const;
+	bool		   getAllServersConfig(
+				  std::vector<std::map<std::string, ConfigValue> > &serversConfig
+			  ) const;
+	bool getServerConfigValue(
+		unsigned int	   serverIndex,
+		std::string const &key,
+		ConfigValue		  &value
+	) const;
 
 	std::string								filepath;
 	static std::array<std::string, 4> const validLogLevels;
@@ -44,6 +51,14 @@ class ServerConfig
 		unsigned int	   lineIndex,
 		bool			   isTest,
 		bool			   isTestPrint
+	);
+	void _parseLocationBlock(
+		std::vector<std::string> &tokens,
+		std::string				 &line,
+		unsigned int			 &lineIndex,
+		std::stack<bool>		 &brackets,
+		bool					 &isTest,
+		bool					 &isTestPrint
 	);
 	void _checkGeneralConfig(bool isTest, bool isTestPrint);
 	void _checkServersConfig(bool isTest, bool isTestPrint);

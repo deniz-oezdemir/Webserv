@@ -38,9 +38,7 @@ ServerConfig &ServerConfig::operator=(ServerConfig const &src)
 		this->_isConfigOK = src.isConfigOK();
 
 		if (this->_file.is_open())
-		{
 			this->_file.close();
-		}
 
 		this->_file.clear();
 		this->_file.open(this->filepath);
@@ -139,6 +137,52 @@ bool ServerConfig::_checkValues(
 	return true;
 }
 
+void ServerConfig::_parseLocationBlock(
+	std::vector<std::string> &tokens,
+	std::string				 &line,
+	unsigned int			 &lineIndex,
+	std::stack<bool>		 &brackets,
+	bool					 &isTest,
+	bool					 &isTestPrint
+)
+{
+	std::string tmp(tokens[1] + " " + tokens[2]);
+	std::map<std::string, std::vector<std::string> > location;
+	tokens.clear();
+	++lineIndex;
+	while (std::getline(this->_file, line))
+	{
+		ft::trim(line);
+		if (line.empty() || line[0] == '#')
+			continue;
+		ft::split(tokens, line);
+		if (tokens[0] == "}")
+		{
+			brackets.pop();
+			break;
+		}
+		if (this->_checkValues(tokens, 99, lineIndex, isTest, isTestPrint))
+		{
+			tokens[tokens.size() - 1].erase(
+				tokens[tokens.size() - 1].size() - 1
+			);
+			location[tokens[0]] =
+				std::vector<std::string>(tokens.begin() + 1, tokens.end());
+		}
+		tokens.clear();
+		++lineIndex;
+	}
+	if (this->_serversConfig.size() > 0)
+		this->_serversConfig.back()[tmp].setMap(location);
+	else
+		this->_errorHandler(
+			"Invalid directive [" + tokens[0] + "] outside a server block",
+			lineIndex,
+			isTest,
+			isTestPrint
+		);
+}
+
 void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 {
 	std::stack<bool>		 brackets;
@@ -151,10 +195,10 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 		ft::trim(line);
 		if (line.empty() || line[0] == '#')
 		{
-			tokens.clear();
 			++lineIndex;
 			continue;
 		}
+
 		ft::split(tokens, line);
 		if (tokens[0] == "}")
 		{
@@ -204,19 +248,8 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 					);
 			}
 		}
-		else if (tokens[0] == "events")
-		{
-			if (tokens.size() == 2 && tokens[1] == "{")
-				brackets.push(true);
-			else
-				this->_errorHandler(
-					"Missing '{' in [" + tokens[0] + "] directive",
-					lineIndex,
-					isTest,
-					isTest
-				);
-		}
-		else if (tokens[0] == "http" || tokens[0] == "server")
+		else if (tokens[0] == "http" || tokens[0] == "server" ||
+				 tokens[0] == "events")
 		{
 			if (tokens.size() == 2 && tokens[1] == "{")
 				brackets.push(true);
@@ -350,6 +383,7 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 			if (tokens.size() > 2 && tokens.size() < 5 &&
 				tokens[tokens.size() - 1] == "{")
 			{
+				brackets.push(true);
 				if (tokens.size() == 4 &&
 					(tokens[1] != "~" && tokens[1] != "=" &&
 					 tokens[1] != "^~" && tokens[1] != "~*"))
@@ -361,48 +395,9 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 						isTestPrint
 					);
 				else
-				{
-					brackets.push(true);
-					std::string tmp(tokens[1] + " " + tokens[2]);
-					std::map<std::string, std::vector<std::string> > location;
-					tokens.clear();
-					++lineIndex;
-					while (std::getline(this->_file, line))
-					{
-						ft::trim(line);
-						if (line.empty() || line[0] == '#')
-							continue;
-						ft::split(tokens, line);
-						if (tokens[0] == "}")
-						{
-							brackets.pop();
-							break;
-						}
-						if (this->_checkValues(
-								tokens, 99, lineIndex, isTest, isTestPrint
-							))
-						{
-							tokens[tokens.size() - 1].erase(
-								tokens[tokens.size() - 1].size() - 1
-							);
-							location[tokens[0]] = std::vector<std::string>(
-								tokens.begin() + 1, tokens.end()
-							);
-						}
-						tokens.clear();
-						++lineIndex;
-					}
-					if (this->_serversConfig.size() > 0)
-						this->_serversConfig.back()[tmp].setMap(location);
-					else
-						this->_errorHandler(
-							"Invalid directive [" + tokens[0] +
-								"] outside a server block",
-							lineIndex,
-							isTest,
-							isTestPrint
-						);
-				}
+					this->_parseLocationBlock(
+						tokens, line, lineIndex, brackets, isTest, isTestPrint
+					);
 			}
 			else
 				this->_errorHandler(
@@ -467,7 +462,7 @@ void ServerConfig::_checkServersConfig(bool isTest, bool isTestPrint)
 		{
 			if (isTest || isTestPrint)
 				this->_errorHandler(
-					"Missing [server_name] directive, set default volue: "
+					"Missing [server_name] directive, set default value: "
 					"'localhost'",
 					0,
 					isTest,
