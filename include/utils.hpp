@@ -23,5 +23,8 @@ std::vector<std::string> &split(
 	std::string const		 &delimiters = " \t\n"
 );
 bool	isStrOfDigits(std::string const &str);
+bool	isUint16(std::string const &str);
+bool	strToUint16(std::string const &str, unsigned short &value);
+bool	isValidIPv4(std::string const &str);
 
 } // namespace ft

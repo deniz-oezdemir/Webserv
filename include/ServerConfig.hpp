@@ -67,4 +67,10 @@ class ServerConfig
 	std::map<std::string, std::string>				_generalConfig;
 	std::vector<std::map<std::string, ConfigValue> > _serversConfig;
 	bool											_isConfigOK;
+	void											_setListenDirective(
+												   std::vector<std::string> const &tokens,
+												   unsigned int							  &lineIndex,
+												   bool							  &isTest,
+												   bool							  &isTestPrint
+											   );
 };

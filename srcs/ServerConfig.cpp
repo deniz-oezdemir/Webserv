@@ -137,6 +137,58 @@ bool ServerConfig::_checkValues(
 	return true;
 }
 
+void ServerConfig::_setListenDirective(
+	std::vector<std::string> const &tokens,
+	unsigned int				   &lineIndex,
+	bool						   &isTest,
+	bool						   &isTestPrint
+)
+{
+	std::string host("0.0.0.0");
+	std::string port("80");
+	try
+	{
+		if (ft::isStrOfDigits(tokens[1]))
+		{
+			if (!ft::isUint16(tokens[1]))
+				throw std::invalid_argument("Invalid port number");
+			port = tokens[1];
+		}
+		else if (tokens[1].find(':') != std::string::npos)
+		{
+			std::vector<std::string> tmp;
+			ft::split(tmp, tokens[1], ":");
+			if (tmp.size() == 2 && ft::isUint16(tmp[1]) &&
+				ft::isValidIPv4(tmp[0]))
+			{
+				host = tmp[0];
+				port = tmp[1];
+			}
+			else
+				throw std::invalid_argument("Invalid IP address or port number"
+				);
+		}
+		else
+			throw std::invalid_argument(
+				"Invalid format, expected host:port or port"
+			);
+		std::map<std::string, std::vector<std::string> > listenMap;
+		listenMap["host"] = std::vector<std::string>(1, host);
+		listenMap["port"] = std::vector<std::string>(1, port);
+		this->_serversConfig.back()["listen"] = ConfigValue(listenMap);
+	}
+	catch (std::exception &e)
+	{
+		this->_errorHandler(
+			"Invalid value [" + tokens[1] + "] for " + tokens[0] +
+				" directive: " + e.what(),
+			lineIndex,
+			isTest,
+			isTestPrint
+		);
+	}
+}
+
 void ServerConfig::_parseLocationBlock(
 	std::vector<std::string> &tokens,
 	std::string				 &line,
@@ -304,8 +356,7 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 			if (this->_checkValues(tokens, 2, lineIndex, isTest, isTestPrint))
 			{
 				tokens[1].erase(tokens[1].size() - 1);
-				if ((tokens[0] == "listen" ||
-					 tokens[0] == "client_max_body_size") &&
+				if (tokens[0] == "client_max_body_size" &&
 					!ft::isStrOfDigits(tokens[1]))
 					this->_errorHandler(
 						"Invalid value [" + tokens[1] + "] for " + tokens[0] +
@@ -316,11 +367,18 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 					);
 				else
 				{
-					if (this->_serversConfig.size() > 0)
-						this->_serversConfig.back()[tokens[0]] =
-							ConfigValue(std::vector<std::string>(
-								tokens.begin() + 1, tokens.end()
-							));
+					if (!this->_serversConfig.empty())
+					{
+						if (tokens[0] == "listen")
+							this->_setListenDirective(
+								tokens, lineIndex, isTest, isTestPrint
+							);
+						else
+							this->_serversConfig.back()[tokens[0]] =
+								ConfigValue(std::vector<std::string>(
+									tokens.begin() + 1, tokens.end()
+								));
+					}
 					else
 						this->_errorHandler(
 							"Invalid directive [" + tokens[0] +
@@ -471,18 +529,19 @@ void ServerConfig::_checkServersConfig(bool isTest, bool isTestPrint)
 			it->find("server_name")
 				->second.setVector(std::vector<std::string>(1, "_"));
 		}
-		if (it->find("listen")->second.getVector().empty())
+		if (it->find("listen")->second.getMap().empty())
 		{
 			if (isTest || isTestPrint)
 				this->_errorHandler(
-					"Missing [listen] directive, set default value: '80'",
+					"Missing [listen] directive, set default value: '0.0.0.0:80'",
 					0,
 					isTest,
 					isTestPrint
 				);
-			it->find("listen")->second.setVector(
-				std::vector<std::string>(1, "80")
-			);
+			std::map<std::string, std::vector<std::string> > listenMap;
+			listenMap["host"] = std::vector<std::string>(1, "0.0.0.0");
+			listenMap["port"] = std::vector<std::string>(1, "80");
+			it->find("listen")->second.setMap(listenMap);
 		}
 		if (it->find("root")->second.getVector().empty())
 		{
