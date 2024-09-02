@@ -14,27 +14,16 @@ HttpRequest RequestParser::parseRequest(std::string str)
 	{
 		str.replace(pos, 2, "\n");
 		pos += 1;
-		// std::cout << "Replaced! str now is: " << str << std::endl;
 	}
 
 	std::istringstream requestStream(str.c_str());
 
-	// Parse the first line
-	std::string firstLine;
-	std::getline(requestStream, firstLine, '\n');
-	if (!firstLine.empty() && firstLine[firstLine.size() - 1] == '\r')
+	// Parse the start line
+	std::string startLine;
+	std::getline(requestStream, startLine, '\n');
+	if (isStartLineOK(startLine, &method, &target, &httpVersion) == false)
 	{
-		firstLine.erase(firstLine.size() - 1); // Remove the trailing '\r'
-	}
-
-	// for now I'm extracting the firs line elements assuming correct space
-	// separation
-	std::istringstream firstLineStream(firstLine.c_str());
-	if (!(firstLineStream >> method >> target >> httpVersion))
-	{
-		// Extraction operation failed, handle the error
-		throw std::runtime_error("failed to parse first line of request"
-		);
+		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 
 	// Parse the headers
@@ -77,4 +66,46 @@ HttpRequest RequestParser::parseRequest(std::string str)
 	HttpRequest req(method, httpVersion, target, headers, body);
 
 	return req;
+}
+
+bool RequestParser::isStartLineOK(
+	std::string &startLine,
+	std::string *method,
+	std::string *target,
+	std::string *httpVersion
+)
+{
+	if (startLine.empty())
+	{
+		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+	}
+	if (startLine[startLine.size() - 1] == '\r')
+	{
+		startLine.erase(startLine.size() - 1); // Remove the trailing '\r'
+	}
+
+	std::istringstream startLineStream(startLine.c_str());
+	if (!(startLineStream >> *method >> *target >> *httpVersion))
+	{
+		// Extraction operation failed, handle the error
+		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+	}
+	isMethodOK(*method);
+	isTargetOK(*target);
+	isHttpVersionOK(*httpVersion);
+
+	return true;
+}
+
+bool RequestParser::isMethodOK(std::string &method)
+{
+	return true;
+}
+bool RequestParser::isTargetOK(std::string &target)
+{
+	return true;
+}
+bool RequestParser::isHttpVersionOK(std::string &HttpVersion)
+{
+	return true;
 }
