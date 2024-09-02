@@ -1,4 +1,5 @@
 #include "ConfigValue.hpp"
+#include "ServerException.hpp"
 
 ConfigValue::ConfigValue(void) : _type(VECTOR) {}
 
@@ -24,7 +25,7 @@ ConfigValue::valueType ConfigValue::getType(void) const
 std::vector<std::string> const &ConfigValue::getVector(void) const
 {
 	if (this->_type != VECTOR)
-		throw std::runtime_error("ConfigValue::getVector: not a vector");
+		throw ServerException("ConfigValue:getVector: not a vector.");
 	return this->_vectorValue;
 }
 
@@ -34,7 +35,7 @@ std::vector<std::string> const &ConfigValue::getVector(void) const
 bool ConfigValue::getVectorValue(unsigned int index, std::string &value) const
 {
 	if (this->_type != VECTOR)
-		throw std::runtime_error(
+		throw ServerException(
 			"ConfigValue::getVectorValue: not a vector, index:" +
 			std::to_string(index)
 		);
@@ -50,7 +51,7 @@ std::map<std::string, std::vector<std::string> > const &ConfigValue::getMap(void
 ) const
 {
 	if (this->_type != MAP)
-		throw std::runtime_error("ConfigValue::getMap: not a map");
+		throw ServerException("ConfigValue::getMap: not a map");
 	return this->_mapValue;
 }
 
@@ -63,7 +64,7 @@ bool ConfigValue::getMapValue(
 ) const
 {
 	if (this->_type != MAP)
-		throw std::runtime_error(
+		throw ServerException(
 			"ConfigValue::getMapValue: not a map, key:" + key
 		);
 
