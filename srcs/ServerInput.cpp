@@ -52,6 +52,8 @@ ServerInput &ServerInput::operator=(ServerInput const &src)
 
 ServerInput::~ServerInput(){};
 
+// Parse the argument, if it is a flag, set the flag, if it is the last argument
+// and not a flag, set the filepath.
 void ServerInput::_parseArg(std::string const &arg, int index, int argc)
 {
 	if (arg[0] == '-')
@@ -64,6 +66,8 @@ void ServerInput::_parseArg(std::string const &arg, int index, int argc)
 		);
 };
 
+// Set the flag, if it is valid use OR bitwise operation to store the respective
+// bit in _flags. Otherwise, throw an exception.
 void ServerInput::_setFlag(std::string const &flag)
 {
 	std::map<std::string, int>::const_iterator it = this->_flagMap.find(flag);
@@ -75,6 +79,7 @@ void ServerInput::_setFlag(std::string const &flag)
 		);
 };
 
+// Check if the flag is set using AND bitwise operation.
 bool ServerInput::hasThisFlag(t_serverFlags flag) const
 {
 	return (this->_flags & flag);
