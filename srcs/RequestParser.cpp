@@ -21,10 +21,7 @@ HttpRequest RequestParser::parseRequest(std::string str)
 	// Parse the start line
 	std::string startLine;
 	std::getline(requestStream, startLine, '\n');
-	if (isStartLineOK(startLine, &method, &target, &httpVersion) == false)
-	{
-		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
-	}
+	checkStartLine(startLine, &method, &target, &httpVersion);
 
 	// Parse the headers
 	std::string headerLine;
@@ -68,7 +65,7 @@ HttpRequest RequestParser::parseRequest(std::string str)
 	return req;
 }
 
-bool RequestParser::isStartLineOK(
+void RequestParser::checkStartLine(
 	std::string &startLine,
 	std::string *method,
 	std::string *target,
@@ -90,22 +87,55 @@ bool RequestParser::isStartLineOK(
 		// Extraction operation failed, handle the error
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
-	isMethodOK(*method);
-	isTargetOK(*target);
-	isHttpVersionOK(*httpVersion);
-
-	return true;
+	checkMethod(*method);
+	checkTarget(*target);
+	checkHttpVersion(*httpVersion);
 }
 
-bool RequestParser::isMethodOK(std::string &method)
+void RequestParser::checkMethod(std::string &method)
 {
-	return true;
+	std::string array[] = HTTP_ACCEPTED_METHODS;
+	size_t		arraySize = sizeof(array) / sizeof(std::string);
+	if (std::find(array, array + arraySize, method) != array + arraySize)
+	{
+		throw HttpException(HTTP_501_CODE, HTTP_501_REASON);
+	}
 }
-bool RequestParser::isTargetOK(std::string &target)
+
+void RequestParser::checkTarget(std::string &target)
 {
-	return true;
+	if (target == "*")
+	{
+		return;
+	}
+
+	if (target[0] != '/')
+	{
+		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+	}
+
+	for (std::size_t i = 0; i < target.size(); ++i)
+	{
+		char c = target[i];
+		if (!std::isalnum(c) &&
+			std::string("-._~:/?#[]@!$&'()*+,;=%").find(c) == std::string::npos)
+		{
+			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+		}
+
+		if (c == '%' &&
+			(i + 2 >= target.size() || !std::isxdigit(target[i + 1]) ||
+			 !std::isxdigit(target[i + 2])))
+		{
+			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+		}
+	}
 }
-bool RequestParser::isHttpVersionOK(std::string &HttpVersion)
+
+void RequestParser::checkHttpVersion(std::string &httpVersion)
 {
-	return true;
+	if (httpVersion != "HTTP/1.1")
+	{
+		throw HttpException(HTTP_501_CODE, HTTP_501_REASON);
+	}
 }

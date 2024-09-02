@@ -1,10 +1,15 @@
 #pragma once
-#include "macros.hpp"
-#include "HttpRequest.hpp"
 #include "HttpException.hpp"
+#include "HttpRequest.hpp"
+#include "macros.hpp"
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
 
+// RequestParser checks the syntax of the received request. It does not check
+// the validity of the fields. For example, a target's URI might pass all syntax
+// checks and still not correspond with any valid target in the server.
+// On succes, RequestParser returns a HttpRequest object.
 class RequestParser
 {
   public:
@@ -16,9 +21,6 @@ class RequestParser
 	RequestParser(const RequestParser &src);
 	RequestParser &operator=(const RequestParser &rhs);
 
-	/*
-	 * HTTP request syntax checks
-	 */
 	// Start line checks
 	static void checkStartLine(
 		std::string &startLine,
@@ -31,4 +33,5 @@ class RequestParser
 	static void checkHttpVersion(std::string &httpVersion);
 
 	// Headers checks
+	// TODO: check Host header is present
 };
