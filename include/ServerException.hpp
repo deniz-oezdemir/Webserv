@@ -2,6 +2,7 @@
 
 #include <exception>
 #include <string>
+#include <cstring>
 
 class ServerException : virtual public std::exception
 {

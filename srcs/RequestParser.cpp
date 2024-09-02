@@ -33,7 +33,7 @@ HttpRequest RequestParser::parseRequest(std::string str)
 	if (!(firstLineStream >> method >> target >> httpVersion))
 	{
 		// Extraction operation failed, handle the error
-		throw std::runtime_error("Error: failed to parse first line of request"
+		throw std::runtime_error("failed to parse first line of request"
 		);
 	}
 
