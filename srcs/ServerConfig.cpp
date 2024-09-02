@@ -311,7 +311,7 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 			if (this->_checkValues(tokens, 2, lineIndex, isTest, isTestPrint))
 			{
 				tokens[1].erase(tokens[1].size() - 1);
-				if (std::find(
+				if (ft::find(
 						this->validLogLevels.begin(),
 						this->validLogLevels.end(),
 						tokens[1]
