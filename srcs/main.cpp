@@ -1,10 +1,13 @@
-#include "ServerConfig.hpp"
+#include "Logger.hpp"
 #include "Server.hpp"
+#include "ServerConfig.hpp"
 #include "ServerInput.hpp"
 #include "colors.hpp"
 #include "macros.hpp"
 
 #include <iostream>
+
+Logger LOG;
 
 int main(int argc, char *argv[])
 {
@@ -21,6 +24,18 @@ int main(int argc, char *argv[])
 			input.hasThisFlag(ServerInput::TEST),
 			input.hasThisFlag(ServerInput::TEST_PRINT)
 		);
+		if (input.hasThisFlag(ServerInput::TEST) ||
+			input.hasThisFlag(ServerInput::TEST_PRINT))
+		{
+			if (config.isConfigOK())
+				std::cout << PURPLE "<WebServ> "
+						  << RESET "Test finished: " << GREEN BOLD "Config OK!" RESET
+						  << std::endl;
+			if (input.hasThisFlag(ServerInput::TEST_PRINT))
+				config.printConfig();
+			return 0;
+		}
+		LOG.setLevel(config.getGeneralConfigValue("error_log"));
 
 		Server server(PORT);
 		server.start();
@@ -30,7 +45,5 @@ int main(int argc, char *argv[])
 		std::cerr << RED BOLD "Error:\t" RESET RED << e.what() << RESET
 				  << std::endl;
 	}
-
 	return 0;
 }
-

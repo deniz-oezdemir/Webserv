@@ -4,6 +4,7 @@
 #include <string>
 #include <cstring>
 
+// ServerException is a custom exception class for the server.
 class ServerException : virtual public std::exception
 {
 public:
@@ -22,6 +23,5 @@ public:
 private:
 	ServerException();
 
-	int					_errno;
 	std::string	_msg;
 };

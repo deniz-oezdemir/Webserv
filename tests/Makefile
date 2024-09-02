@@ -43,7 +43,12 @@ OBJECTS						:= $(addprefix $(OBJ_DIR)/, $(SOURCE:.cpp=.o))
 
 CXXFLAGS						:= -std=c++11
 INCLUDE							:= $(addprefix -I, $(INC_DIRS))
-TLIB								:= -I/opt/homebrew/include -L/opt/homebrew/lib -lcriterion
+
+ifeq ($(shell uname), Linux)
+	TLIB								:= -I/usr/local/include -L/user/local/lib -lcriterion
+else
+	TLIB								:= -I/opt/homebrew/include -L/opt/homebrew/lib -lcriterion
+endif
 
 define run
 	$(CXX) $(CXXFLAGS) $(INCLUDE) $^ $(TLIB) -o $@ && ./$@ --verbose
