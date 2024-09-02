@@ -19,6 +19,8 @@ ConfigValue::valueType ConfigValue::getType(void) const
 	return this->_type;
 }
 
+// Returns the vector of strings stored in the ConfigValue object. If the type
+// of ConfigValue is not a vector, it will throw an exception.
 std::vector<std::string> const &ConfigValue::getVector(void) const
 {
 	if (this->_type != VECTOR)
@@ -26,6 +28,9 @@ std::vector<std::string> const &ConfigValue::getVector(void) const
 	return this->_vectorValue;
 }
 
+// Returns the string stored at index in the vector of strings stored in the
+// ConfigValue object. If the type of ConfigValue is not a vector, it will throw
+// an exception. If the index is out of bounds, it will return false.
 bool ConfigValue::getVectorValue(unsigned int index, std::string &value) const
 {
 	if (this->_type != VECTOR)
@@ -39,6 +44,8 @@ bool ConfigValue::getVectorValue(unsigned int index, std::string &value) const
 	return true;
 }
 
+// Returns the map of strings stored in the ConfigValue object. If the type of
+// ConfigValue is not a map, it will throw an exception.
 std::map<std::string, std::vector<std::string> > const &ConfigValue::getMap(void
 ) const
 {
@@ -47,6 +54,9 @@ std::map<std::string, std::vector<std::string> > const &ConfigValue::getMap(void
 	return this->_mapValue;
 }
 
+// Returns the vector of strings stored at key in the map of strings stored in
+// the ConfigValue object. If the type of ConfigValue is not a map, it will
+// throw an exception. If the key is not found, it will return false.
 bool ConfigValue::getMapValue(
 	std::string const		 &key,
 	std::vector<std::string> &value

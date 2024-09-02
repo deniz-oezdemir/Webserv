@@ -2,6 +2,8 @@
 
 #include <string>
 
+// Logger class is used to log messages to the console. Depending on the level
+// set, it will log the message or not.
 class Logger
 {
   public:
@@ -20,6 +22,7 @@ class Logger
 	void  setLevel(std::string const &level);
 	Level getLevel(void) const;
 	Level getLevel(std::string const &level) const;
+
 	void
 	log(Level const		   level,
 		std::string const &message,

@@ -8,6 +8,8 @@
 #include <stack>
 #include <string>
 
+// Array of valid log levels to check if the log level set in the configuration
+// file is valid.
 std::array<std::string, 4> const ServerConfig::validLogLevels = {
 	"debug",
 	"info",
@@ -24,7 +26,7 @@ ServerConfig::ServerConfig(std::string const &filepath)
 }
 
 ServerConfig::ServerConfig(ServerConfig const &src)
-	: filepath(src.filepath), _file(src.filepath), _isConfigOK(true)
+	: filepath(src.filepath), _file(src.filepath), _isConfigOK(src.isConfigOK())
 {
 	if (!this->_file.is_open())
 		throw ServerException("Could not open the file [%]", errno, filepath);
@@ -67,6 +69,7 @@ bool ServerConfig::isConfigOK(void) const
 	return this->_isConfigOK;
 }
 
+// General directives in the configuration file.
 void ServerConfig::_initGeneralConfig(void)
 {
 	this->_generalConfig["worker_processes"] = "";
@@ -74,6 +77,7 @@ void ServerConfig::_initGeneralConfig(void)
 	this->_generalConfig["error_log"] = "info";
 }
 
+// Server directives in the configuration file.
 void ServerConfig::_initServersConfig(void)
 {
 	std::map<std::string, ConfigValue> server;
@@ -85,6 +89,8 @@ void ServerConfig::_initServersConfig(void)
 	this->_serversConfig.push_back(server);
 }
 
+// Handle the error message, if isTest or isTestPrint is true, print the error
+// message without stopping the program. Otherwise, throw an exception.
 void ServerConfig::_errorHandler(
 	std::string const &message,
 	unsigned int	   lineIndex,
@@ -106,6 +112,9 @@ void ServerConfig::_errorHandler(
 		);
 }
 
+// Check the number of arguments in the directive, if the number of arguments is
+// greater than maxSize, print an error message and return false. If the last
+// argument does not end with ';', print an error message and return false.
 bool ServerConfig::_checkValues(
 	std::vector<std::string> const &tokens,
 	unsigned int					maxSize,
@@ -137,6 +146,10 @@ bool ServerConfig::_checkValues(
 	return true;
 }
 
+// Set the host and port in the listen directive. If the argument is a port
+// number, set the port. If the argument is an IP address and a port number,
+// split the argument and set the host and port. Otherwise, print an error
+// message.
 void ServerConfig::_setListenDirective(
 	std::vector<std::string> const &tokens,
 	unsigned int				   &lineIndex,
@@ -148,16 +161,22 @@ void ServerConfig::_setListenDirective(
 	std::string port("80");
 	try
 	{
+		// If the argument is a port number, set the port.
 		if (ft::isStrOfDigits(tokens[1]))
 		{
+			// Check if the port number is valid.
 			if (!ft::isUint16(tokens[1]))
 				throw std::invalid_argument("Invalid port number");
 			port = tokens[1];
 		}
+		// If the argument is an host:port, split the argument and set the host
+		// and port.
 		else if (tokens[1].find(':') != std::string::npos)
 		{
 			std::vector<std::string> tmp;
 			ft::split(tmp, tokens[1], ":");
+			// Check if the argument is host:port, check if the port number is
+			// valid and if the IP address is valid
 			if (tmp.size() == 2 && ft::isUint16(tmp[1]) &&
 				ft::isValidIPv4(tmp[0]))
 			{
@@ -172,6 +191,7 @@ void ServerConfig::_setListenDirective(
 			throw std::invalid_argument(
 				"Invalid format, expected host:port or port"
 			);
+		// Set the host and port in the listen as a map of host and port.
 		std::map<std::string, std::vector<std::string> > listenMap;
 		listenMap["host"] = std::vector<std::string>(1, host);
 		listenMap["port"] = std::vector<std::string>(1, port);
@@ -189,6 +209,8 @@ void ServerConfig::_setListenDirective(
 	}
 }
 
+// Parse the location block, if the argument is a location block, parse the
+// block and set the location as a map. Otherwise, print an error message.
 void ServerConfig::_parseLocationBlock(
 	std::vector<std::string> &tokens,
 	std::string				 &line,
@@ -241,10 +263,12 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 	std::string				 line;
 	unsigned int			 lineIndex(1);
 	std::vector<std::string> tokens;
-	tokens.reserve(5);
+	// Reserve memory for the tokens to avoid reallocations.
+	tokens.reserve(6);
 	while (std::getline(this->_file, line))
 	{
 		ft::trim(line);
+		// Skip empty lines and comments.
 		if (line.empty() || line[0] == '#')
 		{
 			++lineIndex;
@@ -252,6 +276,9 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 		}
 
 		ft::split(tokens, line);
+		// Check if the directive is a closing bracket '}'. If it is, pop the
+		// bracket from the stack. If the stack is empty, print an error
+		// message for unmatched brackets.
 		if (tokens[0] == "}")
 		{
 			if (!brackets.empty())
@@ -300,6 +327,8 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 					);
 			}
 		}
+		// If the directive is http, server or events, check if the directive
+		// has an opening bracket '{'. If it doesn't, print an error message.
 		else if (tokens[0] == "http" || tokens[0] == "server" ||
 				 tokens[0] == "events")
 		{
@@ -369,6 +398,8 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 				{
 					if (!this->_serversConfig.empty())
 					{
+						// If the directive is listen, set the host and port in
+						// the listen as a map of host and port.
 						if (tokens[0] == "listen")
 							this->_setListenDirective(
 								tokens, lineIndex, isTest, isTestPrint
@@ -486,10 +517,14 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 		);
 	this->_checkGeneralConfig(isTest, isTestPrint);
 	this->_checkServersConfig(isTest, isTestPrint);
+	// Clear the file stream flags and set the file stream position to the
+	// beginning of the file.
 	this->_file.clear();
 	this->_file.seekg(0, std::ios::beg);
 }
 
+// Check the mandatory diirectives in the general configuration. If the
+// directive is missing, set the default value.
 void ServerConfig::_checkGeneralConfig(bool isTest, bool isTestPrint)
 {
 	if (this->_generalConfig["error_log"].empty())
@@ -502,6 +537,8 @@ void ServerConfig::_checkGeneralConfig(bool isTest, bool isTestPrint)
 	}
 }
 
+// Check the mandatory directives in the server configuration. If the directive
+// is missing, set the default value.
 void ServerConfig::_checkServersConfig(bool isTest, bool isTestPrint)
 {
 	if (this->_serversConfig.empty())
@@ -533,7 +570,8 @@ void ServerConfig::_checkServersConfig(bool isTest, bool isTestPrint)
 		{
 			if (isTest || isTestPrint)
 				this->_errorHandler(
-					"Missing [listen] directive, set default value: '0.0.0.0:80'",
+					"Missing [listen] directive, set default value: "
+					"'0.0.0.0:80'",
 					0,
 					isTest,
 					isTestPrint
@@ -604,6 +642,7 @@ void ServerConfig::printConfig(void)
 	}
 }
 
+// Get the value of a key in the general configuration map.
 std::string ServerConfig::getGeneralConfigValue(std::string const &key) const
 {
 	std::string										   value;
@@ -618,6 +657,7 @@ std::string ServerConfig::getGeneralConfigValue(std::string const &key) const
 	return value;
 }
 
+// Get all servers stored in a vector of maps.
 bool ServerConfig::getAllServersConfig(
 	std::vector<std::map<std::string, ConfigValue> > &serversConfig
 ) const
@@ -628,6 +668,7 @@ bool ServerConfig::getAllServersConfig(
 	return true;
 }
 
+// Get the value of a key in a server[serverIndex] configuration map.
 bool ServerConfig::getServerConfigValue(
 	unsigned int	   serverIndex,
 	std::string const &key,

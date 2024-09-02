@@ -43,6 +43,10 @@ Logger::Level Logger::getLevel(std::string const &level) const
 	return this->INFO;
 }
 
+// This function logs the message to the console if the level is equal or higher
+// than the set level. The message is colored depending on the color string
+// passed. If isError is true, the message is logged to std::cerr, otherwise it
+// is logged to std::cout.
 void Logger::log(
 	Level const		   level,
 	std::string const &message,
