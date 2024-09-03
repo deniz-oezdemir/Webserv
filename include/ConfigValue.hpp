@@ -30,7 +30,7 @@ class ConfigValue
 	void setMap(std::map<std::string, std::vector<std::string> > const &value);
 
   private:
-	valueType										_type;
-	std::vector<std::string>						_vectorValue;
-	std::map<std::string, std::vector<std::string> > _mapValue;
+	valueType										type_;
+	std::vector<std::string>						vectorValue_;
+	std::map<std::string, std::vector<std::string> > mapValue_;
 };

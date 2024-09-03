@@ -21,17 +21,21 @@ class ServerConfig
 
 	std::ifstream &getFile(void);
 	bool		   isConfigOK(void) const;
+
 	// Parse the configuration file and store the values in the map. If isTest
 	// and/or isTestPrint is true, it will print the error messages without
 	// stopping the program.
-	void		parseFile(bool isTest = false, bool isTestPrint = false);
-	void		printConfig(void);
+	void parseFile(bool isTest = false, bool isTestPrint = false);
+	void printConfig(void);
+
 	// Get the value of a key in the general configuration map.
 	std::string getGeneralConfigValue(std::string const &key) const;
+
 	// Get all servers stored in a vector of maps.
-	bool		getAllServersConfig(
-			   std::vector<std::map<std::string, ConfigValue> > &serversConfig
-		   ) const;
+	bool getAllServersConfig(
+		std::vector<std::map<std::string, ConfigValue> > &serversConfig
+	) const;
+
 	// Get the value of a key in a server[serverIndex] configuration map.
 	bool getServerConfigValue(
 		unsigned int	   serverIndex,
@@ -45,22 +49,22 @@ class ServerConfig
   private:
 	ServerConfig();
 
-	void _initGeneralConfig(void);
-	void _initServersConfig(void);
-	bool _checkValues(
+	void initGeneralConfig_(void);
+	void initServersConfig_(void);
+	bool checkValues_(
 		std::vector<std::string> const &line,
 		unsigned int					maxSize,
 		unsigned int					lineIndex,
 		bool							isTest,
 		bool							isTestPrint
 	);
-	void _errorHandler(
+	void errorHandler_(
 		std::string const &message,
 		unsigned int	   lineIndex,
 		bool			   isTest,
 		bool			   isTestPrint
 	);
-	void _parseLocationBlock(
+	void parseLocationBlock_(
 		std::vector<std::string> &tokens,
 		std::string				 &line,
 		unsigned int			 &lineIndex,
@@ -68,14 +72,14 @@ class ServerConfig
 		bool					 &isTest,
 		bool					 &isTestPrint
 	);
-	void _checkGeneralConfig(bool isTest, bool isTestPrint);
-	void _checkServersConfig(bool isTest, bool isTestPrint);
+	void checkGeneralConfig_(bool isTest, bool isTestPrint);
+	void checkServersConfig_(bool isTest, bool isTestPrint);
 
-	std::ifstream									_file;
-	std::map<std::string, std::string>				_generalConfig;
-	std::vector<std::map<std::string, ConfigValue> > _serversConfig;
-	bool											_isConfigOK;
-	void											_setListenDirective(
+	std::ifstream									file_;
+	std::map<std::string, std::string>				generalConfig_;
+	std::vector<std::map<std::string, ConfigValue> > serversConfig_;
+	bool											isConfigOK_;
+	void											setListenDirective_(
 												   std::vector<std::string> const &tokens,
 												   unsigned int					  &lineIndex,
 												   bool							  &isTest,

@@ -1,25 +1,20 @@
 #pragma once
 
 #include <fcntl.h>
-#include <iostream>
 #include <netinet/in.h>
 #include <poll.h>
-#include <stdexcept>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <vector>
-#include "RequestParser.hpp"
-#include "HttpRequest.hpp"
-#include "colors.hpp"
 
 class Server
 {
   public:
 	Server(int port);
-	Server(const Server& src);
+	Server(const Server &src);
 	~Server(void);
 
-	Server& operator=(const Server& rhs);
+	Server &operator=(const Server &rhs);
 
 	void start();
 
@@ -36,4 +31,3 @@ class Server
 	void acceptConnection();
 	void handleClient(int clientFd);
 };
-

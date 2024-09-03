@@ -2,6 +2,7 @@
 #include "Logger.hpp"
 #include "macros.hpp"
 #include <algorithm>
+#include <sstream>
 #include <cstddef>
 #include <iostream>
 

@@ -2,9 +2,9 @@
 
 #include <map>
 #include <string>
-#include <sstream>
 #include <vector>
 
+// TODO: implement normalization on initialization
 class HttpRequest
 {
   public:
@@ -15,7 +15,7 @@ class HttpRequest
 		std::map<std::string, std::string> &headers,
 		std::vector<char>				   &body
 	);
-	HttpRequest(const HttpRequest& src);
+	HttpRequest(const HttpRequest &src);
 	~HttpRequest(void);
 
 	// Setters
@@ -26,21 +26,21 @@ class HttpRequest
 	void setBody(std::vector<char> &newBody);
 
 	// Getters
-	const std::string&						   getMethod(void) const;
-	const std::string&						   getHttpVersion(void) const;
-	const std::string&						   getTarget(void) const;
-	const std::map<std::string, std::string>& getHeaders(void) const;
-	const std::vector<char>&				   getBody(void) const;
+	const std::string						 &getMethod(void) const;
+	const std::string						 &getHttpVersion(void) const;
+	const std::string						 &getTarget(void) const;
+	const std::map<std::string, std::string> &getHeaders(void) const;
+	const std::vector<char>					 &getBody(void) const;
 
 	// Overloaded Operators
-	HttpRequest&	 operator=(const HttpRequest& rhs);
+	HttpRequest &operator=(const HttpRequest &rhs);
 
   private:
-	std::string						   _method;
-	std::string						   _httpVersion;
-	std::string						   _target;
-	std::map<std::string, std::string> _headers;
-	std::vector<char>				   _body;
+	std::string						   method_;
+	std::string						   httpVersion_;
+	std::string						   target_;
+	std::map<std::string, std::string> headers_;
+	std::vector<char>				   body_;
 };
 
-std::ostream& operator<<(std::ostream& os, const HttpRequest& rhs);
+std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs);
