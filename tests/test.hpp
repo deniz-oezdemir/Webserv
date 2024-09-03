@@ -12,3 +12,5 @@
 #include "../include/utils.hpp"
 #include "../include/HttpRequest.hpp"
 #include "../include/RequestParser.hpp"
+#include "../include/Logger.hpp"
+#include "../include/ServerException.hpp"
