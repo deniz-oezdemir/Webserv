@@ -38,5 +38,5 @@ class Logger
 	Logger(const Logger &src);
 	Logger &operator=(const Logger &rhs);
 
-	Level _level;
+	Level level_;
 };

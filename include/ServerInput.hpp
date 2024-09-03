@@ -32,12 +32,12 @@ class ServerInput
 	std::string getFilePath(void) const;
 
   private:
-	int										_flags;
+	int										flags_;
 	// Map to store all type of flags and their respective values.
-	static std::map<std::string, int> const _flagMap;
-	std::string								_filepath;
+	static std::map<std::string, int> const flagMap_;
+	std::string								filepath_;
 
-	void _parseArg(std::string const &arg, int index, int argc);
-	void _setFlag(std::string const &flag);
-	static std::map<std::string, int> const _createFlagMap(void);
+	void parseArg_(std::string const &arg, int index, int argc);
+	void setFlag_(std::string const &flag);
+	static std::map<std::string, int> const createFlagMap_(void);
 };

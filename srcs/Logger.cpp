@@ -4,30 +4,30 @@
 #include <ctime>
 #include <iostream>
 
-Logger::Logger(void) : _level(INFO){};
+Logger::Logger(void) : level_(INFO){};
 
 Logger::~Logger(void){};
 
 void Logger::setLevel(Level level)
 {
-	_level = level;
+	level_ = level;
 }
 
 void Logger::setLevel(std::string const &level)
 {
 	if (level == "debug")
-		_level = DEBUG;
+		level_ = DEBUG;
 	else if (level == "info")
-		_level = INFO;
+		level_ = INFO;
 	else if (level == "warm")
-		_level = WARN;
+		level_ = WARN;
 	else if (level == "error")
-		_level = ERROR;
+		level_ = ERROR;
 }
 
 Logger::Level Logger::getLevel(void) const
 {
-	return _level;
+	return level_; 
 }
 
 Logger::Level Logger::getLevel(std::string const &level) const
@@ -54,7 +54,7 @@ void Logger::log(
 	bool const		   isError
 )
 {
-	if (level < _level)
+	if (level < level_) 
 		return;
 	time_t	   rawTime;
 	struct tm *timeInfo;
