@@ -2,9 +2,15 @@
 #include "colors.hpp"
 
 #include <ctime>
-#include <iostream>
 
-Logger::Logger(void) : _level(INFO){};
+// The static variable _level is set to DEBUG by default.
+Logger::Level Logger::_level = Logger::DEBUG;
+// The static variable _instance is the instance of the Logger class.
+Logger Logger::_instance;
+
+// Private constructor, the constructor is private to prevent the creation of
+// multiple instances of the Logger class.
+Logger::Logger(void) : _currentLevel(DEBUG), _isError(false){};
 
 Logger::~Logger(void){};
 
@@ -16,46 +22,44 @@ void Logger::setLevel(Level level)
 void Logger::setLevel(std::string const &level)
 {
 	if (level == "debug")
-		_level = DEBUG;
+		_level = Logger::DEBUG;
 	else if (level == "info")
-		_level = INFO;
+		_level = Logger::INFO;
 	else if (level == "warm")
-		_level = WARN;
+		_level = Logger::WARN;
 	else if (level == "error")
-		_level = ERROR;
+		_level = Logger::ERROR;
 }
 
-Logger::Level Logger::getLevel(void) const
+// getLevel is a static function that returns the Level enum value of the static
+// variable _level, that is the Logger current level.
+Logger::Level Logger::getLevel(void)
 {
 	return _level;
 }
 
-Logger::Level Logger::getLevel(std::string const &level) const
+// getLevel is a static function that returns the Level enum value of the string
+// passed as a parameter. If the string is not a valid level, it will return
+// INFO.
+Logger::Level Logger::getLevel(std::string const &level)
 {
 	if (level == "debug")
-		return this->DEBUG;
+		return Logger::DEBUG;
 	else if (level == "info")
-		return this->INFO;
+		return Logger::INFO;
 	else if (level == "warn")
-		return this->WARN;
+		return Logger::WARN;
 	else if (level == "error")
-		return this->ERROR;
-	return this->INFO;
+		return Logger::ERROR;
+	return Logger::INFO;
 }
 
-// This function logs the message to the console if the level is equal or higher
-// than the set level. The message is colored depending on the color string
-// passed. If isError is true, the message is logged to std::cerr, otherwise it
-// is logged to std::cout.
-void Logger::log(
-	Level const		   level,
-	std::string const &message,
-	std::string const &color,
-	bool const		   isError
-)
+// _prepareLog is a private function that prepares the log message with the
+// header (current time + server) and set the level of the message.
+void Logger::_prepareLog(Level const &level)
 {
-	if (level < _level)
-		return;
+	this->_currentLevel = level;
+
 	time_t	   rawTime;
 	struct tm *timeInfo;
 	char	   buffTime[32];
@@ -64,20 +68,21 @@ void Logger::log(
 	timeInfo = localtime(&rawTime);
 	if (strftime(buffTime, sizeof(buffTime), "%T", timeInfo) == 0)
 		buffTime[0] = '\0';
-	if (isError)
-		std::cerr << CYAN "[" << buffTime << "] " << PURPLE "<WebServ> "
-				  << color << message << RESET << std::endl;
-	else
-		std::cout << CYAN "[" << buffTime << "] " << PURPLE "<WebServ> "
-				  << color << message << RESET << std::endl;
+
+	std::string const color(this->_getColor(this->_currentLevel));
+	this->_stream << CYAN "[" << buffTime << "] " << PURPLE "<WebServ> "
+				  << color;
 }
 
-void Logger::log(
-	std::string const &level,
-	std::string const &message,
-	std::string const &color,
-	bool const		   isError
-)
+std::string const Logger::_getColor(Level const &level) const
 {
-	this->log(this->getLevel(level), message, color, isError);
+	if (level == Logger::DEBUG)
+		return CYAN;
+	else if (level == Logger::INFO)
+		return WHITE;
+	else if (level == Logger::WARN)
+		return YELLOW;
+	else if (level == Logger::ERROR)
+		return RED;
+	return BLUE;
 }
