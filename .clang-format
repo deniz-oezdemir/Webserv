@@ -12,6 +12,8 @@ BreakBeforeBraces: Allman
 BreakConstructorInitializersBeforeComma: false
 # Always break before concept, putting it in the line after the template declaration.
 BreakBeforeConceptDeclarations: Always
+# Put binary operators in line after if line length exceeded
+BreakBeforeBinaryOperators: All
 # Puts short functions on a single line
 AllowShortFunctionsOnASingleLine: Empty
 # Puts short loops on a single line
