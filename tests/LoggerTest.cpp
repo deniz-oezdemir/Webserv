@@ -59,10 +59,6 @@ Test(Logger, loggerWithDebugLevel)
 	cr_assert(
 		capturedOutput.str().find("This is a test with info level") != std::string::npos
 	);
-  Logger::log(Logger::WARN) << "This is a test with warn level" << std::endl;
-	cr_assert(
-		capturedOutput.str().find("This is a test with warn level") != std::string::npos
-	);
   Logger::log(Logger::ERROR) << "This is a test with error level" << std::endl;
 	cr_assert(
 		capturedOutput.str().find("This is a test with error level") != std::string::npos
@@ -92,43 +88,6 @@ Test(Logger, loggerWithInfoLevel)
 	cr_assert(
 		capturedOutput.str().find("This is a test with info level") != std::string::npos
 	);
-  Logger::log(Logger::WARN) << "This is a test with warn level" << std::endl;
-	cr_assert(
-		capturedOutput.str().find("This is a test with warn level") != std::string::npos
-	);
-  Logger::log(Logger::ERROR) << "This is a test with error level" << std::endl;
-	cr_assert(
-		capturedOutput.str().find("This is a test with error level") != std::string::npos
-	);
-	// Restore the original buffer
-	std::cout.rdbuf(originalCoutBuffer);
-	// Print all message =>
-	// Logger::log(Logger::DEBUG) << "This is a test with error debug" << std::endl;
-	// Logger::log(Logger::INFO) << "This is a test with info level" << std::endl;
-	// Logger::log(Logger::WARN) << "This is a test with warn level" << std::endl;
-	// Logger::log(Logger::ERROR) << "This is a test with error level" << std::endl;
-}
-
-Test(Logger, loggerWithWarnLevel)
-{
-	std::ostringstream capturedOutput;
-	std::streambuf	  *originalCoutBuffer = std::cout.rdbuf();
-	std::cout.rdbuf(capturedOutput.rdbuf());
-
-	Logger::setLevel(Logger::WARN);
-
-  Logger::log(Logger::DEBUG) << "This is a test with debug level" << std::endl;
-	cr_assert(
-		capturedOutput.str().find("This is a test with debug level") == std::string::npos
-	);
-  Logger::log(Logger::INFO) << "This is a test with info level" << std::endl;
-	cr_assert(
-		capturedOutput.str().find("This is a test with info level") == std::string::npos
-	);
-  Logger::log(Logger::WARN) << "This is a test with warn level" << std::endl;
-	cr_assert(
-		capturedOutput.str().find("This is a test with warn level") != std::string::npos
-	);
   Logger::log(Logger::ERROR) << "This is a test with error level" << std::endl;
 	cr_assert(
 		capturedOutput.str().find("This is a test with error level") != std::string::npos
@@ -157,10 +116,6 @@ Test(Logger, loggerWithErrorLevel)
   Logger::log(Logger::INFO) << "This is a test with info level" << std::endl;
 	cr_assert(
 		capturedOutput.str().find("This is a test with info level") == std::string::npos
-	);
-  Logger::log(Logger::WARN) << "This is a test with warn level" << std::endl;
-	cr_assert(
-		capturedOutput.str().find("This is a test with warn level") == std::string::npos
 	);
   Logger::log(Logger::ERROR) << "This is a test with error level" << std::endl;
 	cr_assert(
