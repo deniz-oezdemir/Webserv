@@ -1,5 +1,5 @@
 #include "../include/HttpRequest.hpp"
-#include <sstream>
+#include <ostream>
 
 HttpRequest::HttpRequest(
 	std::string&						method,
@@ -8,19 +8,19 @@ HttpRequest::HttpRequest(
 	std::map<std::string, std::string>& headers,
 	std::vector<char>&					body
 )
-	: _method(method), _httpVersion(httpVersion), _target(target),
-	  _headers(headers), _body(body)
+	: method_(method), httpVersion_(httpVersion), target_(target),
+	  headers_(headers), body_(body)
 {
 	return;
 }
 
 HttpRequest::HttpRequest(const HttpRequest& src)
 {
-	_method = src._method;
-	_httpVersion = src._httpVersion;
-	_target = src._target;
-	_headers = src._headers;
-	_body = src._body;
+	method_ = src.method_;
+	httpVersion_ = src.httpVersion_;
+	target_ = src.target_;
+	headers_ = src.headers_;
+	body_ = src.body_;
 
 	return;
 }
@@ -32,52 +32,52 @@ HttpRequest::~HttpRequest(void)
 
 void HttpRequest::setMethod(std::string &newMethod)
 {
-	_method = newMethod;
+	method_ = newMethod;
 }
 
 void HttpRequest::setHttpVersion(std::string &newHttpVersion)
 {
-	_httpVersion = newHttpVersion;
+	httpVersion_ = newHttpVersion;
 }
 
 void HttpRequest::setTarget(std::string &newTarget)
 {
-	_target = newTarget;
+	target_ = newTarget;
 }
 
 void HttpRequest::setHeaders(std::map<std::string, std::string> &newHeaders)
 {
-	_headers = newHeaders;
+	headers_ = newHeaders;
 }
 
 void HttpRequest::setBody(std::vector<char> &newBody)
 {
-	_body = newBody;
+	body_ = newBody;
 }
 
 const std::string& HttpRequest::getMethod(void) const
 {
-	return _method;
+	return method_;
 }
 
 const std::string& HttpRequest::getHttpVersion(void) const
 {
-	return _httpVersion;
+	return httpVersion_;
 }
 
 const std::string& HttpRequest::getTarget(void) const
 {
-	return _target;
+	return target_;
 }
 
 const std::map<std::string, std::string>& HttpRequest::getHeaders(void) const
 {
-	return _headers;
+	return headers_;
 }
 
 const std::vector<char>& HttpRequest::getBody(void) const
 {
-	return _body;
+	return body_;
 }
 
 std::ostream& operator<<(std::ostream& os, const HttpRequest& rhs)

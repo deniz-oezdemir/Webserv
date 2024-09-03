@@ -4,10 +4,10 @@
 
 #include <sstream>
 
-std::map<std::string, int> const ServerInput::_flagMap =
-	ServerInput::_createFlagMap();
+std::map<std::string, int> const ServerInput::flagMap_ =
+	ServerInput::createFlagMap_();
 
-std::map<std::string, int> const ServerInput::_createFlagMap()
+std::map<std::string, int> const ServerInput::createFlagMap_()
 {
 	std::map<std::string, int> m;
 	m["--version"] = V_LITE;
@@ -26,13 +26,13 @@ std::map<std::string, int> const ServerInput::_createFlagMap()
 }
 
 ServerInput::ServerInput()
-	: _flags(this->NONE), _filepath("./default.config"){};
+	: flags_(this->NONE), filePath_("./default.config"){};
 
 ServerInput::ServerInput(int argc, char **argv)
-	: _flags(this->NONE), _filepath("./default.config")
+	: flags_(this->NONE), filePath_("./default.config")
 {
 	for (int i = 1; i < argc; ++i)
-		this->_parseArg(argv[i], i, argc);
+		this->parseArg_(argv[i], i, argc);
 };
 
 ServerInput::ServerInput(ServerInput const &src)
@@ -44,8 +44,8 @@ ServerInput &ServerInput::operator=(ServerInput const &src)
 {
 	if (this != &src)
 	{
-		this->_flags = src._flags;
-		this->_filepath = src._filepath;
+		this->flags_ = src.flags_;
+		this->filePath_ = src.filePath_;
 	}
 	return *this;
 };
@@ -54,12 +54,12 @@ ServerInput::~ServerInput(){};
 
 // Parse the argument, if it is a flag, set the flag, if it is the last argument
 // and not a flag, set the filepath.
-void ServerInput::_parseArg(std::string const &arg, int index, int argc)
+void ServerInput::parseArg_(std::string const &arg, int index, int argc)
 {
 	if (arg[0] == '-')
-		this->_setFlag(arg);
+		this->setFlag_(arg);
 	else if (index == argc - 1)
-		this->_filepath = arg;
+		this->filePath_ = arg;
 	else
 		throw ServerException(
 			"Invalid argument=> %\n\n" + this->getHelpMessage(), 0, arg
@@ -67,12 +67,12 @@ void ServerInput::_parseArg(std::string const &arg, int index, int argc)
 };
 
 // Set the flag, if it is valid use OR bitwise operation to store the respective
-// bit in _flags. Otherwise, throw an exception.
-void ServerInput::_setFlag(std::string const &flag)
+// bit in flags_. Otherwise, throw an exception.
+void ServerInput::setFlag_(std::string const &flag)
 {
-	std::map<std::string, int>::const_iterator it = this->_flagMap.find(flag);
-	if (it != this->_flagMap.end())
-		this->_flags |= it->second;
+	std::map<std::string, int>::const_iterator it = this->flagMap_.find(flag);
+	if (it != this->flagMap_.end())
+		this->flags_ |= it->second;
 	else
 		throw ServerException(
 			"Invalid flag=> %\n\n" + this->getHelpMessage(), 0, flag
@@ -82,7 +82,7 @@ void ServerInput::_setFlag(std::string const &flag)
 // Check if the flag is set using AND bitwise operation.
 bool ServerInput::hasThisFlag(t_serverFlags flag) const
 {
-	return (this->_flags & flag);
+	return (this->flags_ & flag);
 };
 
 std::string ServerInput::getHelpMessage(void) const
@@ -124,7 +124,7 @@ std::string ServerInput::getVersionMessage(void) const
 	ss << RED "Unknown compiler" << RESET;
 #endif
 
-	ss << WHITE "\nConfiguration file path: " YELLOW << this->_filepath << '\n';
+	ss << WHITE "\nConfiguration file path: " YELLOW << this->filePath_ << '\n';
 	ss << WHITE "Created by " << CYAN BOLD "[johnavar] " << "[jmigoya] "
 	   << "[denizozd] " << RESET;
 
@@ -133,5 +133,5 @@ std::string ServerInput::getVersionMessage(void) const
 
 std::string ServerInput::getFilePath(void) const
 {
-	return this->_filepath;
+	return this->filePath_;
 }

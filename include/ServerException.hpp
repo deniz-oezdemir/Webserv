@@ -23,5 +23,5 @@ public:
 private:
 	ServerException();
 
-	std::string	_msg;
+	std::string	msg_;
 };

@@ -9,18 +9,17 @@ ServerException::ServerException(
 	int				   err_num,
 	std::string const &arg
 )
-	: _msg(msg)
+	: msg_(msg)
 {
-	if (this->_msg.find('%') != std::string::npos)
-		this->_msg.replace(this->_msg.find('%'), 1, arg);
+	if (this->msg_.find('%') != std::string::npos)
+		this->msg_.replace(this->msg_.find('%'), 1, arg);
 	if (err_num != 0)
-		this->_msg +=
-			" : (" + ft::toString(err_num) + ") " + strerror(err_num);
+		this->msg_ += " : (" + ft::toString(err_num) + ") " + strerror(err_num);
 }
 
 char const *ServerException::what(void) const throw()
 {
-	return this->_msg.c_str();
+	return this->msg_.c_str();
 }
 
 ServerException::ServerException(ServerException const &src)
@@ -31,7 +30,7 @@ ServerException::ServerException(ServerException const &src)
 ServerException &ServerException::operator=(ServerException const &src)
 {
 	if (this != &src)
-		this->_msg = src._msg;
+		this->msg_ = src.msg_;
 	return *this;
 }
 

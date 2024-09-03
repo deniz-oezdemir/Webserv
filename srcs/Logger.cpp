@@ -3,37 +3,37 @@
 
 #include <ctime>
 
-// The static variable _level is set to DEBUG by default.
-Logger::Level Logger::_level = Logger::DEBUG;
-// The static variable _instance is the instance of the Logger class.
-Logger Logger::_instance;
+// The static variable level_ is set to DEBUG by default.
+Logger::Level Logger::level_ = Logger::DEBUG;
+// The static variable instance_ is the instance of the Logger class.
+Logger Logger::instance_;
 
 // Private constructor, the constructor is private to prevent the creation of
 // multiple instances of the Logger class.
-Logger::Logger(void) : _currentLevel(DEBUG), _isError(false){};
+Logger::Logger(void) : currentLevel_(DEBUG), isError_(false){};
 
 Logger::~Logger(void){};
 
 void Logger::setLevel(Level level)
 {
-	_level = level;
+	level_ = level;
 }
 
 void Logger::setLevel(std::string const &level)
 {
 	if (level == "debug")
-		_level = Logger::DEBUG;
+		level_ = Logger::DEBUG;
 	else if (level == "info")
-		_level = Logger::INFO;
+		level_ = Logger::INFO;
 	else if (level == "error")
-		_level = Logger::ERROR;
+		level_ = Logger::ERROR;
 }
 
 // getLevel is a static function that returns the Level enum value of the static
-// variable _level, that is the Logger current level.
+// variable level_, that is the Logger current level.
 Logger::Level Logger::getLevel(void)
 {
-	return _level;
+	return level_;
 }
 
 // getLevel is a static function that returns the Level enum value of the string
@@ -52,20 +52,20 @@ Logger::Level Logger::getLevel(std::string const &level)
 
 std::string Logger::getLevel(Level const &level)
 {
-	 if (level == Logger::DEBUG)
-    return "DEBUG";
-  else if (level == Logger::INFO)
-    return "INFO";
-  else if (level == Logger::ERROR)
-    return "ERROR";
-  return "INFO";
+	if (level == Logger::DEBUG)
+		return "DEBUG";
+	else if (level == Logger::INFO)
+		return "INFO";
+	else if (level == Logger::ERROR)
+		return "ERROR";
+	return "INFO";
 }
 
 // _prepareLog is a private function that prepares the log message with the
 // header (current time + server) and set the level of the message.
-void Logger::_prepareLog(Level const &level)
+void Logger::prepareLog_(Level const &level)
 {
-	this->_currentLevel = level;
+	this->currentLevel_ = level;
 
 	time_t	   rawTime;
 	struct tm *timeInfo;
@@ -76,13 +76,13 @@ void Logger::_prepareLog(Level const &level)
 	if (strftime(buffTime, sizeof(buffTime), "%T", timeInfo) == 0)
 		buffTime[0] = '\0';
 
-	std::string const color(this->_getColor(this->_currentLevel));
-	std::string const strLevel(this->getLevel(this->_currentLevel));
-	this->_stream << CYAN "[" << buffTime << "] " << PURPLE "<WebServ> "
+	std::string const color(this->getColor_(this->currentLevel_));
+	std::string const strLevel(this->getLevel(this->currentLevel_));
+	this->stream_ << CYAN "[" << buffTime << "] " << PURPLE "<WebServ> "
 				  << color << "[" << strLevel << "] ";
 }
 
-std::string const Logger::_getColor(Level const &level) const
+std::string const Logger::getColor_(Level const &level) const
 {
 	if (level == Logger::DEBUG)
 		return CYAN;
