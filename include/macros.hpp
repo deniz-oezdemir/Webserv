@@ -3,6 +3,8 @@
 #define PORT	   8080
 #define QUEUE_SIZE 1
 
+#define HTTP_ACCEPTED_METHODS {"GET", "POST", "DELETE"}
+
 // HTTP CODES
 #define HTTP_200_CODE 200
 #define HTTP_200_REASON "OK"

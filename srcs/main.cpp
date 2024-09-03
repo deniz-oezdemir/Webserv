@@ -7,8 +7,6 @@
 
 #include <iostream>
 
-Logger LOG;
-
 int main(int argc, char *argv[])
 {
 	try
@@ -35,7 +33,7 @@ int main(int argc, char *argv[])
 				config.printConfig();
 			return 0;
 		}
-		LOG.setLevel(config.getGeneralConfigValue("error_log"));
+		Logger::setLevel(config.getGeneralConfigValue("error_log"));
 
 		Server server(PORT);
 		server.start();

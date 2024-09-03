@@ -100,7 +100,7 @@ void ServerConfig::errorHandler_(
 {
 	if (isTest || isTestPrint)
 	{
-		std::cerr << PURPLE "<WebServ> " << YELLOW "[emerg] " RESET << message
+		std::cerr << PURPLE "<WebServ> " << YELLOW "[EMERG] " RESET << message
 				  << " in the configuration file " CYAN << this->filepath_ << ":"
 				  << lineIndex << RESET << std::endl;
 		this->isConfigOK_ = false;
