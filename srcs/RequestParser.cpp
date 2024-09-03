@@ -1,10 +1,15 @@
 #include "../include/RequestParser.hpp"
+#include "Logger.hpp"
+#include "macros.hpp"
+#include <algorithm>
+#include <cstddef>
+#include <iostream>
 
 HttpRequest RequestParser::parseRequest(std::string str)
 {
 	std::string						   method;
 	std::string						   httpVersion;
-	std::string						   target;
+	std::string						   uri;
 	std::map<std::string, std::string> headers;
 	std::vector<char>				   body;
 
@@ -21,7 +26,7 @@ HttpRequest RequestParser::parseRequest(std::string str)
 	// Parse the start line
 	std::string startLine;
 	std::getline(requestStream, startLine, '\n');
-	checkStartLine(startLine, &method, &target, &httpVersion);
+	checkStartLine(startLine, &method, &uri, &httpVersion);
 
 	// Parse the headers
 	std::string headerLine;
@@ -60,7 +65,7 @@ HttpRequest RequestParser::parseRequest(std::string str)
 		body.insert(body.end(), bodyLine.begin(), bodyLine.end());
 	}
 
-	HttpRequest req(method, httpVersion, target, headers, body);
+	HttpRequest req(method, httpVersion, uri, headers, body);
 
 	return req;
 }
@@ -68,7 +73,7 @@ HttpRequest RequestParser::parseRequest(std::string str)
 void RequestParser::checkStartLine(
 	std::string &startLine,
 	std::string *method,
-	std::string *target,
+	std::string *uri,
 	std::string *httpVersion
 )
 {
@@ -83,14 +88,14 @@ void RequestParser::checkStartLine(
 	}
 
 	std::istringstream startLineStream(startLine.c_str());
-	if (!(startLineStream >> *method >> *target >> *httpVersion))
+	if (!(startLineStream >> *method >> *uri >> *httpVersion))
 	{
 		Logger::log(Logger::INFO)
 			<< "Request start line is malformed: " << startLine << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 	checkMethod(*method);
-	checkTarget(*target);
+	checkUri(*uri);
 	checkHttpVersion(*httpVersion);
 }
 
@@ -106,37 +111,37 @@ void RequestParser::checkMethod(std::string &method)
 	}
 }
 
-void RequestParser::checkTarget(std::string &target)
+void RequestParser::checkUri(std::string &uri)
 {
-	if (target == "*")
+	if (uri == "*")
 		return;
 
-	if (target[0] != '/')
+	if (uri[0] != '/')
 	{
 		Logger::log(Logger::INFO)
-			<< "Target is not \'*\' and does not start with /: " << target
+			<< "Uri is not \'*\' and does not start with /: " << uri
 			<< std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 
-	for (std::size_t i = 0; i < target.size(); ++i)
+	for (std::size_t i = 0; i < uri.size(); ++i)
 	{
-		char c = target[i];
-		if (!std::isalnum(c) &&
-			std::string("-._~:/?#[]@!$&'()*+,;=%").find(c) == std::string::npos)
+		char c = uri[i];
+		if (!std::isalnum(c)
+			&& std::string("-._~:/?#[]@!$&'()*+,;=%").find(c)
+				   == std::string::npos)
 		{
 			Logger::log(Logger::INFO)
-				<< "Target contains incorrect characters: " << target
-				<< std::endl;
+				<< "Uri contains incorrect characters: " << uri << std::endl;
 			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 		}
 
-		if (c == '%' &&
-			(i + 2 >= target.size() || !std::isxdigit(target[i + 1]) ||
-			 !std::isxdigit(target[i + 2])))
+		if (c == '%'
+			&& (i + 2 >= uri.size() || !std::isxdigit(uri[i + 1])
+				|| !std::isxdigit(uri[i + 2])))
 		{
 			Logger::log(Logger::INFO)
-				<< "Target contains non-hex characters after \'%\': " << target
+				<< "Uri contains non-hex characters after \'%\': " << uri
 				<< std::endl;
 			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 		}
@@ -161,8 +166,8 @@ void RequestParser::checkHeaders(
 {
 	bool hasHost = false;
 
-	for (std::map<std::string, std::string>::const_iterator it =
-			 headers.begin();
+	for (std::map<std::string, std::string>::const_iterator it
+		 = headers.begin();
 		 it != headers.end();
 		 ++it)
 	{
@@ -192,5 +197,41 @@ void RequestParser::checkHeaders(
 	{
 		Logger::log(Logger::INFO) << "Absent Host header." << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+	}
+}
+
+void RequestParser::checkBody(
+	const std::string						 &method,
+	const std::map<std::string, std::string> &headers,
+	const std::string						 &body
+)
+{
+	if ((method == "GET" || method == "DELETE") && !body.empty())
+	{
+		Logger::log(
+			Logger::INFO, "Body should be empty for GET or DELETE requests."
+		);
+		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+	}
+
+	if (headers.count("Content-Length") > 0
+		&& (unsigned long)std::atol(headers.at("Content-Length").c_str())
+			   != body.size())
+	{
+		Logger::log(
+			Logger::INFO, "Content-Length does not match actual body length."
+		);
+		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+	}
+
+	if (headers.count("Transfer-Encoding") > 0
+		&& headers.at("Transfer-Encoding") == "chunked")
+	{
+		// TODO: Check that the body is in the chunked transfer coding format
+		// Logger::log(
+		// 	Logger::INFO,
+		// 	"Transfer-Encoding is chunked, body should be in chunked transfer "
+		// 	"coding format"
+		// );
 	}
 }
