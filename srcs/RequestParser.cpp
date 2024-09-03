@@ -159,7 +159,7 @@ void RequestParser::checkHttpVersion(std::string &httpVersion)
 }
 
 // TODO: check that only list containing headers are allowed to appear more than
-// once
+// once. This might impy using std::multimap
 void RequestParser::checkHeaders(
 	const std::map<std::string, std::string> &headers
 )
