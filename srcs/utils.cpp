@@ -1,7 +1,8 @@
 #include "utils.hpp"
+#include "ServerException.hpp"
 
-#include <cstdlib>
 #include <climits>
+#include <cstdlib>
 
 namespace ft
 {
@@ -38,40 +39,60 @@ std::vector<std::string> &split(
 	return result;
 }
 
-bool	isStrOfDigits(std::string const &str)
+bool isStrOfDigits(std::string const &str)
 {
 	return str.find_first_not_of("0123456789") == std::string::npos;
 }
 
-bool	isUint16(std::string const &str)
+bool isUint16(std::string const &str)
 {
 	if (str.length() > 5)
 		return false;
 	if (!isStrOfDigits(str))
 		return false;
-	char *end;
+	char		 *end;
 	unsigned long value = std::strtoul(str.c_str(), &end, 10);
 	if (*end != '\0')
 		return false;
 	return value <= USHRT_MAX;
 }
 
-bool	strToUint16(std::string const &str, unsigned short &result)
+bool strToUint16(std::string const &str, unsigned short &result)
 {
-	char *end;
+	if (str.empty())
+		throw ServerException("Empty string passed to stringToULong");
+
+	char		 *end;
 	unsigned long value = std::strtoul(str.c_str(), &end, 10);
 
-	if (*end != '\0' || end == str.c_str() || value > USHRT_MAX)
-		return false;
+	if (*end != '\0')
+		throw ServerException("Invalid string passed to stringToUint16: %", errno, str);
+	if (value == USHRT_MAX || errno == ERANGE)
+		throw ServerException("Overflow in stringToUint16: " +  str);
 	result = static_cast<unsigned short>(value);
 	return true;
 }
 
-bool	isValidIPv4(std::string const &str)
+uint16_t strToUint16(std::string const &str)
+{
+	if (str.empty())
+		throw ServerException("Empty string passed to stringToULong");
+
+	char		 *end;
+	unsigned long value = std::strtoul(str.c_str(), &end, 10);
+
+	if (*end != '\0')
+		throw ServerException("Invalid string passed to stringToUint16: %", errno, str);
+	if (value == USHRT_MAX || errno == ERANGE)
+		throw ServerException("Overflow in stringToUint16: " +  str);
+	return static_cast<uint16_t>(value);
+}
+
+bool isValidIPv4(std::string const &str)
 {
 	std::istringstream iss(str);
-	std::string octet;
-	int num, count = 0;
+	std::string		   octet;
+	int				   num, count = 0;
 
 	while (std::getline(iss, octet, '.'))
 	{
@@ -83,6 +104,22 @@ bool	isValidIPv4(std::string const &str)
 		++count;
 	}
 	return count == 4;
+}
+
+unsigned long stringToULong(std::string const &str)
+{
+	if (str.empty())
+		throw ServerException("Empty string passed to stringToULong");
+
+	char *end;
+	unsigned long value = std::strtoul(str.c_str(), &end, 10);
+
+	if (*end != '\0')
+		throw ServerException("Invalid string passed to stringToULong: %", errno, str);
+	if (value == ULONG_MAX && errno == ERANGE)
+		throw ServerException("Overflow in stringToULong: %", errno, str);
+
+	return value;
 }
 
 } // namespace ft

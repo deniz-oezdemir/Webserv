@@ -1,11 +1,18 @@
-#include "../include/Server.hpp"
-#include "HttpRequest.hpp"
-#include "RequestParser.hpp"
-#include "colors.hpp"
-#include <iostream>
+#include "Server.hpp"
+#include "utils.hpp"
+
 #include <stdexcept>
 
-Server::Server(int port) : port_(port)
+Server::Server(std::map<std::string, ConfigValue> &server, bool isDefault)
+	: port_(ft::strToUint16(server["listen"].getMapValue("port")[0])),
+	  ipV6_(server["listen"].getMapValue("host")[0]),
+	  clientMaxBodySize_(
+		  ft::stringToULong(server["client_max_body_size"].getVectorValue(0))
+	  ),
+	  root_(server["root"].getVectorValue(0)),
+	  index_(server["index"].getVector()),
+	  serverName_(server["server_name"].getVector()), serverConfig_(server),
+	  isDefault_(isDefault)
 {
 	createSocket();
 	bindSocket();
@@ -13,24 +20,21 @@ Server::Server(int port) : port_(port)
 }
 
 Server::Server(const Server &src)
+	: port_(src.port_), ipV6_(src.ipV6_),
+	  clientMaxBodySize_(src.clientMaxBodySize_), root_(src.root_),
+	  index_(src.index_), serverName_(src.serverName_),
+	  serverConfig_(src.serverConfig_),
+	  isDefault_(src.isDefault_), serverFd_(src.serverFd_),
+	  serverAddr_(src.serverAddr_)
 {
-	*this = src;
+	createSocket();
+	bindSocket();
+	listenSocket();
 }
 
 Server::~Server(void)
 {
 	close(serverFd_);
-}
-
-Server &Server::operator=(const Server &rhs)
-{
-	if (this != &rhs)
-	{
-		serverFd_ = rhs.serverFd_;
-		serverAddr_ = rhs.serverAddr_;
-		port_ = rhs.port_;
-	}
-	return *this;
 }
 
 void Server::createSocket()
@@ -50,9 +54,8 @@ void Server::createSocket()
 
 	// Set the SO_REUSEADDR option
 	int optval = 1;
-	if (setsockopt(
-			serverFd_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)
-		) == -1)
+	if (setsockopt(serverFd_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval))
+		== -1)
 	{
 		throw std::runtime_error("Failed to set SO_REUSEADDR");
 	}
@@ -65,8 +68,8 @@ void Server::bindSocket()
 	serverAddr_.sin_port = htons(port_);
 
 	// bind socket to server address
-	if (bind(serverFd_, (struct sockaddr *)&serverAddr_, sizeof(serverAddr_)) <
-		0)
+	if (bind(serverFd_, (struct sockaddr *)&serverAddr_, sizeof(serverAddr_))
+		< 0)
 	{
 		throw std::runtime_error("Failed to bind socket");
 	}
