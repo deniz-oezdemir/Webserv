@@ -74,6 +74,7 @@ void RequestParser::checkStartLine(
 {
 	if (startLine.empty())
 	{
+		Logger::log(Logger::INFO) << "Request start line is empy." << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 	if (startLine[startLine.size() - 1] == '\r')
@@ -84,7 +85,8 @@ void RequestParser::checkStartLine(
 	std::istringstream startLineStream(startLine.c_str());
 	if (!(startLineStream >> *method >> *target >> *httpVersion))
 	{
-		// Extraction operation failed, handle the error
+		Logger::log(Logger::INFO)
+			<< "Request start line is malformed: " << startLine << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 	checkMethod(*method);
@@ -98,7 +100,8 @@ void RequestParser::checkMethod(std::string &method)
 	size_t		arraySize = sizeof(array) / sizeof(std::string);
 	if (std::find(array, array + arraySize, method) == array + arraySize)
 	{
-		std::cerr << "method: " << method << " not found!" << std::endl;
+		Logger::log(Logger::INFO)
+			<< "Method not found: " << method << std::endl;
 		throw HttpException(HTTP_501_CODE, HTTP_501_REASON);
 	}
 }
@@ -106,12 +109,13 @@ void RequestParser::checkMethod(std::string &method)
 void RequestParser::checkTarget(std::string &target)
 {
 	if (target == "*")
-	{
 		return;
-	}
 
 	if (target[0] != '/')
 	{
+		Logger::log(Logger::INFO)
+			<< "Target is not \'*\' and does not start with /: " << target
+			<< std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 
@@ -121,6 +125,9 @@ void RequestParser::checkTarget(std::string &target)
 		if (!std::isalnum(c) &&
 			std::string("-._~:/?#[]@!$&'()*+,;=%").find(c) == std::string::npos)
 		{
+			Logger::log(Logger::INFO)
+				<< "Target contains incorrect characters: " << target
+				<< std::endl;
 			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 		}
 
@@ -128,6 +135,9 @@ void RequestParser::checkTarget(std::string &target)
 			(i + 2 >= target.size() || !std::isxdigit(target[i + 1]) ||
 			 !std::isxdigit(target[i + 2])))
 		{
+			Logger::log(Logger::INFO)
+				<< "Target contains non-hex characters after \'%\': " << target
+				<< std::endl;
 			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 		}
 	}
@@ -137,6 +147,8 @@ void RequestParser::checkHttpVersion(std::string &httpVersion)
 {
 	if (httpVersion != "HTTP/1.1")
 	{
+		Logger::log(Logger::INFO)
+			<< "HTTP version is not \'HTTP/1.1\': " << httpVersion << std::endl;
 		throw HttpException(HTTP_501_CODE, HTTP_501_REASON);
 	}
 }
