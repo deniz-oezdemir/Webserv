@@ -5,7 +5,7 @@
 
 // The static variable level_ is set to DEBUG by default.
 Logger::Level Logger::level_ = Logger::DEBUG;
-// The static variable _instance is the instance of the Logger class.
+// The static variable instance_ is the instance of the Logger class.
 Logger Logger::instance_;
 
 // Private constructor, the constructor is private to prevent the creation of
@@ -33,7 +33,7 @@ void Logger::setLevel(std::string const &level)
 // variable level_, that is the Logger current level.
 Logger::Level Logger::getLevel(void)
 {
-	return level_; 
+	return level_;
 }
 
 // getLevel is a static function that returns the Level enum value of the string
@@ -52,13 +52,13 @@ Logger::Level Logger::getLevel(std::string const &level)
 
 std::string Logger::getLevel(Level const &level)
 {
-	 if (level == Logger::DEBUG)
-    return "DEBUG";
-  else if (level == Logger::INFO)
-    return "INFO";
-  else if (level == Logger::ERROR)
-    return "ERROR";
-  return "INFO";
+	if (level == Logger::DEBUG)
+		return "DEBUG";
+	else if (level == Logger::INFO)
+		return "INFO";
+	else if (level == Logger::ERROR)
+		return "ERROR";
+	return "INFO";
 }
 
 // _prepareLog is a private function that prepares the log message with the

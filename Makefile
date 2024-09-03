@@ -87,7 +87,7 @@ $(NAME): $(OBJECTS)
 	@printf "\n$(MAGENTA)[$(NAME)] $(DEFAULT)Linking "
 	@printf "($(BLUE)$(NAME)$(DEFAULT))..."
 	@$(CXX) $(CXXFLAGS) $^ -o $@
-	@printf "\r%100s\r$(MAGENTA)[$(NAME)] $(GREEN)Compilation success "
+	@printf "\r%100s\r$(MAGENTA)[$(NAME)] $(GREEN)Compilation OK "
 	@printf "🎉!$(DEFAULT)\n"
 
 $(OBJ_DIR)/%.o: %.cpp $(HEADERS) | $(OBJ_DIR)
@@ -105,17 +105,17 @@ $(OBJ_DIR):
 	@printf "Created successfully!\n"
 
 clean:
-	@printf "$(MAGENTA)[$(NAME)] $(DEFAULT)Cleaning up objects files in "
+	@printf "$(MAGENTA)[$(NAME)] $(DEFAULT)Cleaning object files in "
 	@printf "($(RED)$(OBJ_DIR)$(DEFAULT))..."
 	@$(RM) $(OBJ_DIR)
-	@printf "\r%100s\r$(MAGENTA)[$(NAME)] $(YELLOW)Objects clean success "
+	@printf "\r%100s\r$(MAGENTA)[$(NAME)] $(YELLOW)Object files cleaning OK "
 	@printf "🧹🧹$(DEFAULT)\n"
 
 fclean: clean
 	@printf "$(MAGENTA)[$(NAME)] $(DEFAULT)Cleaning up "
 	@printf "($(RED)$(NAME)$(DEFAULT))..."
 	@$(RM) $(NAME)
-	@printf "\r%100s\r$(MAGENTA)[$(NAME)] $(YELLOW)Full clean success "
+	@printf "\r%100s\r$(MAGENTA)[$(NAME)] $(YELLOW)Full clean OK "
 	@printf "🧹🧹$(DEFAULT)\n"
 
 re: fclean all

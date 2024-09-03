@@ -14,8 +14,7 @@ ServerException::ServerException(
 	if (this->msg_.find('%') != std::string::npos)
 		this->msg_.replace(this->msg_.find('%'), 1, arg);
 	if (err_num != 0)
-		this->msg_ +=
-			" : (" + ft::toString(err_num) + ") " + strerror(err_num);
+		this->msg_ += " : (" + ft::toString(err_num) + ") " + strerror(err_num);
 }
 
 char const *ServerException::what(void) const throw()

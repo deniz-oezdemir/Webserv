@@ -21,17 +21,21 @@ class ServerConfig
 
 	std::ifstream &getFile(void);
 	bool		   isConfigOK(void) const;
+
 	// Parse the configuration file and store the values in the map. If isTest
 	// and/or isTestPrint is true, it will print the error messages without
 	// stopping the program.
 	void parseFile(bool isTest = false, bool isTestPrint = false);
 	void printConfig(void);
+
 	// Get the value of a key in the general configuration map.
 	std::string getGeneralConfigValue(std::string const &key) const;
+
 	// Get all servers stored in a vector of maps.
 	bool getAllServersConfig(
 		std::vector<std::map<std::string, ConfigValue> > &serversConfig
 	) const;
+
 	// Get the value of a key in a server[serverIndex] configuration map.
 	bool getServerConfigValue(
 		unsigned int	   serverIndex,

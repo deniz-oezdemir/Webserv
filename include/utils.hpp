@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-// Fortytwo namespace contains utility functions.
+// Fourty-two namespace contains utility functions.
 namespace ft
 {
 
@@ -49,12 +49,12 @@ typename C::iterator find(C &container, T const &value)
 template <typename Iterator, typename T>
 Iterator find(Iterator begin, Iterator end, T const &value)
 {
-    for (Iterator it = begin; it != end; ++it)
-    {
-        if (*it == value)
-            return it;
-    }
-    return end;
+	for (Iterator it = begin; it != end; ++it)
+	{
+		if (*it == value)
+			return it;
+	}
+	return end;
 }
 
 } // namespace ft

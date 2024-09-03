@@ -5,19 +5,19 @@
 #include <sstream>
 #include <string>
 
-// INFO: Logger class is used to log messages to the console. Depending on the level
-// set, it will log the message or not.
-// WARNING: Always you should finish the "<<" overload with std::endl or
-// std::flush, and please start the message with a capital letter.
-// Example:
-// To use cout:
-// Logger::Log(Logger::INFO) << "Some text" << someVar << std::endl;
-// To use cerr:
-// Logger::Log(Logger::ERROR, true) << "Some text" << someVar << std::endl;
-// NOTE: Logging levels:
-// [DEBUG] For debugging purposes to track the flow of the program.
-// [INFO] For general information about the program, useful to the user.
-// [ERROR] For errors in the server, a function crash, or a file not found, etc
+/*
+ * INFO: Logger class is used to log messages to the console. Depending on the
+ * level set, it will log the message or not. 
+ * WARNING: Always you should finish
+ * the "<<" overload with std::endl or std::flush, and please start the message
+ * with a capital letter. Example: To use cout: Logger::Log(Logger::INFO) <<
+ * "Some text" << someVar << std::endl; To use cerr: Logger::Log(Logger::ERROR,
+ * true) << "Some text" << someVar << std::endl; 
+ * NOTE: Logging levels: [DEBUG]
+ * For debugging purposes to track the flow of the program. [INFO] For general
+ * information about the program, useful to the user. [ERROR] For errors in the
+ * server, a function crash, or a file not found, etc
+ */
 class Logger
 {
   public:

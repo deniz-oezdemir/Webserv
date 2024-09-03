@@ -1,4 +1,9 @@
 #include "../include/Server.hpp"
+#include "HttpRequest.hpp"
+#include "RequestParser.hpp"
+#include "colors.hpp"
+#include <iostream>
+#include <stdexcept>
 
 Server::Server(int port) : port_(port)
 {
