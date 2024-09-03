@@ -25,8 +25,6 @@ void Logger::setLevel(std::string const &level)
 		_level = Logger::DEBUG;
 	else if (level == "info")
 		_level = Logger::INFO;
-	else if (level == "warm")
-		_level = Logger::WARN;
 	else if (level == "error")
 		_level = Logger::ERROR;
 }
@@ -47,11 +45,20 @@ Logger::Level Logger::getLevel(std::string const &level)
 		return Logger::DEBUG;
 	else if (level == "info")
 		return Logger::INFO;
-	else if (level == "warn")
-		return Logger::WARN;
 	else if (level == "error")
 		return Logger::ERROR;
 	return Logger::INFO;
+}
+
+std::string Logger::getLevel(Level const &level)
+{
+	 if (level == Logger::DEBUG)
+    return "DEBUG";
+  else if (level == Logger::INFO)
+    return "INFO";
+  else if (level == Logger::ERROR)
+    return "ERROR";
+  return "INFO";
 }
 
 // _prepareLog is a private function that prepares the log message with the
@@ -70,8 +77,9 @@ void Logger::_prepareLog(Level const &level)
 		buffTime[0] = '\0';
 
 	std::string const color(this->_getColor(this->_currentLevel));
+	std::string const strLevel(this->getLevel(this->_currentLevel));
 	this->_stream << CYAN "[" << buffTime << "] " << PURPLE "<WebServ> "
-				  << color;
+				  << color << "[" << strLevel << "] ";
 }
 
 std::string const Logger::_getColor(Level const &level) const
@@ -80,8 +88,6 @@ std::string const Logger::_getColor(Level const &level) const
 		return CYAN;
 	else if (level == Logger::INFO)
 		return WHITE;
-	else if (level == Logger::WARN)
-		return YELLOW;
 	else if (level == Logger::ERROR)
 		return RED;
 	return BLUE;
