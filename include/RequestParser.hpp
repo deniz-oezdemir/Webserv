@@ -34,5 +34,5 @@ class RequestParser
 	static void checkHttpVersion(std::string &httpVersion);
 
 	// Headers checks
-	// TODO: check Host header is present
+	void checkHeaders(const std::map<std::string, std::string> &headers);
 };

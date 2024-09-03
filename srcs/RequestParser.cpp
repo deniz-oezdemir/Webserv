@@ -152,3 +152,45 @@ void RequestParser::checkHttpVersion(std::string &httpVersion)
 		throw HttpException(HTTP_501_CODE, HTTP_501_REASON);
 	}
 }
+
+// TODO: check that only list containing headers are allowed to appear more than
+// once
+void RequestParser::checkHeaders(
+	const std::map<std::string, std::string> &headers
+)
+{
+	bool hasHost = false;
+
+	for (std::map<std::string, std::string>::const_iterator it =
+			 headers.begin();
+		 it != headers.end();
+		 ++it)
+	{
+		// Only the Host header is allowed empty values
+		if (it->first.empty() || (it->first != "Host" && it->second.empty()))
+		{
+			Logger::log(Logger::INFO)
+				<< "Header has emtpy value and is not Host. Header: "
+				<< it->first << std::endl;
+			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+		}
+
+		// Host header may appear only once
+		if (it->first == "Host")
+		{
+			if (hasHost)
+			{
+				Logger::log(Logger::INFO)
+					<< "Repeated Host header." << std::endl;
+				throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+			}
+			hasHost = true;
+		}
+	}
+
+	if (!hasHost)
+	{
+		Logger::log(Logger::INFO) << "Absent Host header." << std::endl;
+		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+	}
+}
