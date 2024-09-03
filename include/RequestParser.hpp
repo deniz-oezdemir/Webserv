@@ -1,6 +1,7 @@
 #pragma once
 #include "HttpException.hpp"
 #include "HttpRequest.hpp"
+#include "Logger.hpp"
 #include "macros.hpp"
 #include <algorithm>
 #include <cstddef>

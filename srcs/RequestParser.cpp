@@ -96,8 +96,9 @@ void RequestParser::checkMethod(std::string &method)
 {
 	std::string array[] = HTTP_ACCEPTED_METHODS;
 	size_t		arraySize = sizeof(array) / sizeof(std::string);
-	if (std::find(array, array + arraySize, method) != array + arraySize)
+	if (std::find(array, array + arraySize, method) == array + arraySize)
 	{
+		std::cerr << "method: " << method << " not found!" << std::endl;
 		throw HttpException(HTTP_501_CODE, HTTP_501_REASON);
 	}
 }
