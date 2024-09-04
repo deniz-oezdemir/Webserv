@@ -15,6 +15,24 @@ ConfigValue::ConfigValue(
 {
 }
 
+ConfigValue::ConfigValue(ConfigValue const &src)
+{
+	*this = src;
+}
+
+ConfigValue::~ConfigValue(void) {}
+
+ConfigValue &ConfigValue::operator=(ConfigValue const &src)
+{
+	if (this != &src)
+	{
+		this->type_ = src.type_;
+		this->vectorValue_ = src.vectorValue_;
+		this->mapValue_ = src.mapValue_;
+	}
+	return *this;
+}
+
 ConfigValue::valueType ConfigValue::getType(void) const
 {
 	return this->type_;

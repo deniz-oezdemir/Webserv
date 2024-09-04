@@ -11,19 +11,21 @@ class WebServ
 {
   public:
 	WebServ();
-	WebServ(WebServ const &src);
 	WebServ(std::vector<std::map<std::string, ConfigValue> > const &servers);
 	~WebServ();
-
-	WebServ &operator=(WebServ const &src);
 
 	void start(void);
 
   private:
+	WebServ(WebServ const &src);
+	WebServ &operator=(WebServ const &src);
+
 	unsigned int		numServers_;
 	std::vector<pollfd> pollFds_;
 	std::vector<Server> servers_;
 
-	void handleClient_(int clientFd);
-	void acceptConnection_(void);
+	void initPollFds_(void);
+	bool isPollFdServer_(int &fd);
+	void handleClient_(size_t &index);
+	void acceptConnection_(size_t &index);
 };

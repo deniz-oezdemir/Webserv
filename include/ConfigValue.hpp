@@ -19,6 +19,9 @@ class ConfigValue
 	ConfigValue(void);
 	ConfigValue(std::vector<std::string> const &value);
 	ConfigValue(std::map<std::string, std::vector<std::string> > const &value);
+	ConfigValue(ConfigValue const &src);
+	~ConfigValue(void);
+	ConfigValue &operator=(ConfigValue const &src);
 
 	valueType						getType(void) const;
 	std::vector<std::string> const &getVector(void) const;

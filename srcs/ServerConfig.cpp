@@ -668,6 +668,12 @@ bool ServerConfig::getAllServersConfig(
 	return true;
 }
 
+std::vector<std::map<std::string, ConfigValue> > const
+		&ServerConfig::getAllServersConfig(void) const
+{
+	 return this->serversConfig_;
+}
+
 // Get the value of a key in a server[serverIndex] configuration map.
 bool ServerConfig::getServerConfigValue(
 	unsigned int	   serverIndex,

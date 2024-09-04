@@ -36,6 +36,9 @@ class ServerConfig
 		std::vector<std::map<std::string, ConfigValue> > &serversConfig
 	) const;
 
+	std::vector<std::map<std::string, ConfigValue> > const &getAllServersConfig(void
+	) const;
+
 	// Get the value of a key in a server[serverIndex] configuration map.
 	bool getServerConfigValue(
 		unsigned int	   serverIndex,

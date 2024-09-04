@@ -1,5 +1,5 @@
 #include "Logger.hpp"
-#include "Server.hpp"
+#include "WebServ.hpp"
 #include "ServerConfig.hpp"
 #include "ServerInput.hpp"
 #include "colors.hpp"
@@ -35,8 +35,8 @@ int main(int argc, char *argv[])
 		}
 		Logger::setLevel(config.getGeneralConfigValue("error_log"));
 
-		Server server(PORT);
-		server.start();
+		WebServ manager(config.getAllServersConfig());
+		manager.start();
 	}
 	catch (std::exception &e)
 	{
