@@ -15,10 +15,16 @@ ServerEngine::ServerEngine(
 	: numServers_(servers.size())
 {
 	this->servers_.reserve(this->numServers_);
+	Logger::log(Logger::INFO)
+		<< "Initializing the Server Engine with " << this->numServers_
+		<< " servers..." << std::endl;
 	for (size_t i = 0; i < this->numServers_; ++i)
 	{
 		this->servers_.push_back(Server(servers[i], i));
 		this->servers_[i].initServer();
+		Logger::log(Logger::INFO) << "Server " << i + 1 << " | " << "Listen:\t"
+								  << this->servers_[i].getIPV4() << ':'
+								  << this->servers_[i].getPort() << std::endl;
 	}
 }
 
@@ -29,6 +35,8 @@ void ServerEngine::initPollFds_(void)
 	// Initialize pollFds_ vector
 	pollFds_.clear();
 	pollFds_.reserve(this->numServers_);
+
+	Logger::log(Logger::DEBUG) << "Initializing pollFds_ vector" << std::endl;
 
 	// Create pollfd struct for the server socket and add it to the vector
 	for (size_t i = 0; i < this->numServers_; ++i)
@@ -50,6 +58,7 @@ bool ServerEngine::isPollFdServer_(int &fd)
 
 void ServerEngine::acceptConnection_(size_t &index)
 {
+	Logger::log(Logger::DEBUG) << "Accepting client connection on the server[" << index << ']' << std::endl;
 	sockaddr_in serverAddr = this->servers_[index].getServerAddr();
 	int			addrLen = sizeof(serverAddr);
 	int			clientFd = accept(
@@ -67,6 +76,7 @@ void ServerEngine::acceptConnection_(size_t &index)
 		}
 		return;
 	}
+	Logger::log(Logger::DEBUG) << "Client connection accepted" << std::endl;
 
 	// Set the client socket to non-blocking mode
 	int flags = fcntl(clientFd, F_GETFL, 0);
@@ -86,12 +96,14 @@ void ServerEngine::acceptConnection_(size_t &index)
 		close(clientFd);
 		return;
 	}
+	Logger::log(Logger::DEBUG) << "Client socket set to non-blocking mode" << std::endl;
 
 	pollfd clientPollFd = {clientFd, POLLIN, 0};
 	pollFds_.push_back(clientPollFd);
+	Logger::log(Logger::DEBUG) << "Client connection added to pollFds_[" << index << "]" << std::endl;
 }
 
-//TODO: Create a dynamic buffer, read in a loop until the end of the request
+// TODO: Create a dynamic buffer, read in a loop until the end of the request
 void ServerEngine::handleClient_(size_t &index)
 {
 	static size_t const bufferSize = 4096;
@@ -159,6 +171,7 @@ void ServerEngine::handleClient_(size_t &index)
 void ServerEngine::start()
 {
 	this->initPollFds_();
+	Logger::log(Logger::INFO) << "Starting the Server Engine" << std::endl;
 	while (true)
 	{
 		int pollCount = poll(pollFds_.data(), pollFds_.size(), -1);
@@ -169,12 +182,15 @@ void ServerEngine::start()
 				<< strerror(errno) << std::endl;
 			continue;
 		}
+		Logger::log(Logger::DEBUG)
+			<< "poll() returned " << pollCount << " events" << std::endl;
 
 		for (size_t i = 0; i < pollFds_.size(); ++i)
 		{
 			// Check if fd is ready for reading
 			if (pollFds_[i].revents & POLLIN)
 			{
+				Logger::log(Logger::DEBUG) << "pollFds_[" << i << "] is ready for read" << std::endl;
 				// If the file descriptor is the server socket, accept a new
 				// client connection
 				if (this->isPollFdServer_(pollFds_[i].fd))

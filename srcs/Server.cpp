@@ -208,7 +208,7 @@ unsigned int Server::getPort(void) const
 	return port_;
 }
 
-std::string Server::getIpV4(void) const
+std::string Server::getIPV4(void) const
 {
 	return ipV4_;
 }

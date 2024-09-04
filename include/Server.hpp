@@ -22,7 +22,7 @@ class Server
 
 	// Getters
 	unsigned int							 getPort(void) const;
-	std::string								 getIpV4(void) const;
+	std::string								 getIPV4(void) const;
 	unsigned long							 getClientMaxBodySize(void) const;
 	std::string								 getRoot(void) const;
 	std::vector<std::string>				 getIndex(void) const;
