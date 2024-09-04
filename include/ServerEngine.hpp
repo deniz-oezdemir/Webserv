@@ -7,18 +7,18 @@
 #include <poll.h>
 #include <string>
 
-class WebServ
+class ServerEngine
 {
   public:
-	WebServ();
-	WebServ(std::vector<std::map<std::string, ConfigValue> > const &servers);
-	~WebServ();
+	ServerEngine();
+	ServerEngine(std::vector<std::map<std::string, ConfigValue> > const &servers);
+	~ServerEngine();
 
 	void start(void);
 
   private:
-	WebServ(WebServ const &src);
-	WebServ &operator=(WebServ const &src);
+	ServerEngine(ServerEngine const &src);
+	ServerEngine &operator=(ServerEngine const &src);
 
 	unsigned int		numServers_;
 	std::vector<pollfd> pollFds_;

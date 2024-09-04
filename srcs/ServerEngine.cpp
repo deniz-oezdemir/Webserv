@@ -1,4 +1,4 @@
-#include "WebServ.hpp"
+#include "ServerEngine.hpp"
 #include "HttpRequest.hpp"
 #include "Logger.hpp"
 #include "RequestParser.hpp"
@@ -7,9 +7,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-WebServ::WebServ() : numServers_(0) {}
+ServerEngine::ServerEngine() : numServers_(0) {}
 
-WebServ::WebServ(std::vector<std::map<std::string, ConfigValue> > const &servers)
+ServerEngine::ServerEngine(
+	std::vector<std::map<std::string, ConfigValue> > const &servers
+)
 	: numServers_(servers.size())
 {
 	this->servers_.reserve(this->numServers_);
@@ -20,9 +22,9 @@ WebServ::WebServ(std::vector<std::map<std::string, ConfigValue> > const &servers
 	}
 }
 
-WebServ::~WebServ() {}
+ServerEngine::~ServerEngine() {}
 
-void WebServ::initPollFds_(void)
+void ServerEngine::initPollFds_(void)
 {
 	// Initialize pollFds_ vector
 	pollFds_.clear();
@@ -36,7 +38,7 @@ void WebServ::initPollFds_(void)
 	}
 }
 
-bool WebServ::isPollFdServer_(int &fd)
+bool ServerEngine::isPollFdServer_(int &fd)
 {
 	for (size_t i = 0; i < this->numServers_; ++i)
 	{
@@ -46,7 +48,7 @@ bool WebServ::isPollFdServer_(int &fd)
 	return false;
 }
 
-void WebServ::acceptConnection_(size_t &index)
+void ServerEngine::acceptConnection_(size_t &index)
 {
 	sockaddr_in serverAddr = this->servers_[index].getServerAddr();
 	int			addrLen = sizeof(serverAddr);
@@ -89,7 +91,8 @@ void WebServ::acceptConnection_(size_t &index)
 	pollFds_.push_back(clientPollFd);
 }
 
-void WebServ::handleClient_(size_t &index)
+//TODO: Create a dynamic buffer, read in a loop until the end of the request
+void ServerEngine::handleClient_(size_t &index)
 {
 	static size_t const bufferSize = 4096;
 	char				buffer[bufferSize];
@@ -153,7 +156,7 @@ void WebServ::handleClient_(size_t &index)
 	}
 }
 
-void WebServ::start()
+void ServerEngine::start()
 {
 	this->initPollFds_();
 	while (true)
@@ -187,7 +190,7 @@ void WebServ::start()
 			}
 			if (pollFds_[i].revents & (POLLERR | POLLHUP | POLLNVAL))
 			{
-			 std::string error("");
+				std::string error("");
 				if (pollFds_[i].revents & POLLERR)
 					error += "POLLERR ";
 				if (pollFds_[i].revents & POLLHUP)
@@ -204,7 +207,7 @@ void WebServ::start()
 					this->pollFds_.erase(this->pollFds_.begin() + i);
 				}
 				// TODO: restartDescriptor from Server class and then update
-				// pollFds_ if it is an serveFd
+				// pollFds_ if it is an serveFd (if it is worth it)
 			}
 		}
 	}

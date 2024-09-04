@@ -14,3 +14,5 @@
 #include "../include/RequestParser.hpp"
 #include "../include/Logger.hpp"
 #include "../include/ServerException.hpp"
+#include "../include/Server.hpp"
+#include "../include/ServerEngine.hpp"
