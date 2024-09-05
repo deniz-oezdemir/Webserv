@@ -6,6 +6,7 @@
 #include <map>
 #include <poll.h>
 #include <string>
+#include <cstring>
 
 class ServerEngine
 {
