@@ -1,5 +1,6 @@
 #include "ServerEngine.hpp"
 #include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
 #include "Logger.hpp"
 #include "RequestParser.hpp"
 #include "utils.hpp"
@@ -10,7 +11,7 @@
 ServerEngine::ServerEngine() : numServers_(0) {}
 
 ServerEngine::ServerEngine(
-	std::vector<std::map<std::string, ConfigValue> > const &servers
+	std::vector<std::map<std::string, ConfigValue>> const &servers
 )
 	: numServers_(servers.size())
 {
@@ -138,41 +139,51 @@ void ServerEngine::handleClient_(size_t &index)
 
 	Logger::log(Logger::DEBUG) << "Read " << bytesRead << " bytes" << std::endl;
 	// Parse the request
+	HttpRequest *request = NULL;
 	try
 	{
 		std::string requestStr(buffer, bytesRead);
-		HttpRequest request = RequestParser::parseRequest(requestStr);
+		request = new HttpRequest(RequestParser::parseRequest(requestStr));
 		std::cout << "Hello from server. Your message was: " << buffer;
 
 		std::cout << std::endl
 				  << "Request received: " << std::endl
-				  << request << std::endl;
+				  << *request << std::endl;
 	}
 	catch (std::exception &e)
 	{
 		std::cerr << RED BOLD "Error:\t" RESET RED << e.what() << RESET
 				  << std::endl;
 	}
-	std::string response = "Have a good day.\n";
-	int			retCode
-		= send(pollFds_[index].fd, response.c_str(), response.size(), 0);
-	if (retCode < 0)
+
+	if (request != NULL)
 	{
-		Logger::log(Logger::ERROR, true)
-			<< "Failed to send response to client: (" << ft::toString(errno)
-			<< ") " << strerror(errno) << std::endl;
-		close(pollFds_[index].fd);
-		pollFds_.erase(pollFds_.begin() + index);
-		return;
-	}
-	else if (retCode == 0)
-	{
-		Logger::log(Logger::DEBUG)
-			<< "Client disconnected pollFds_[" << index
-			<< "], closing socket and deleting it from pollFds_" << std::endl;
-		close(pollFds_[index].fd);
-		pollFds_.erase(pollFds_.begin() + index);
-		return;
+		std::string response = createResponse(*request);
+		Logger::log(Logger::DEBUG) << "Sending response" << std::endl;
+		int retCode
+			= send(pollFds_[index].fd, response.c_str(), response.size(), 0);
+		if (retCode < 0)
+		{
+			Logger::log(Logger::ERROR, true)
+				<< "Failed to send response to client: (" << ft::toString(errno)
+				<< ") " << strerror(errno) << std::endl;
+			close(pollFds_[index].fd);
+			pollFds_.erase(pollFds_.begin() + index);
+			delete request;
+			return;
+		}
+		else if (retCode == 0)
+		{
+			Logger::log(Logger::DEBUG)
+				<< "Client disconnected pollFds_[" << index
+				<< "], closing socket and deleting it from pollFds_"
+				<< std::endl;
+			close(pollFds_[index].fd);
+			pollFds_.erase(pollFds_.begin() + index);
+			delete request;
+			return;
+		}
+		delete request;
 	}
 }
 
@@ -248,4 +259,55 @@ void ServerEngine::start()
 			}
 		}
 	}
+}
+
+// Simple response to GET index.html, expand to handle different GET requests
+// Add support for POST and DELETE requests
+std::string ServerEngine::createResponse(const HttpRequest &request)
+{
+	HttpResponse response;
+
+	// Check if the request is for /index.html
+	if (request.getMethod() == "GET" && request.getTarget() == "/index.html")
+	{
+		// Read the index.html file
+		std::ifstream file("website/index.html");
+		if (file.is_open())
+		{
+			std::stringstream buffer;
+			buffer << file.rdbuf();
+			std::string body = buffer.str();
+
+			// Set the response
+			response.setStatusCode(200);
+			response.setReasonPhrase("OK");
+			response.setHeader("Content-Type", "text/html; charset=UTF-8");
+			response.setHeader("Content-Length", std::to_string(body.size()));
+			response.setBody(body);
+		}
+		else
+		{
+			// File not found
+			response.setStatusCode(404);
+			response.setReasonPhrase("Not Found");
+			response.setHeader("Content-Type", "text/html; charset=UTF-8");
+			std::string body
+				= "<html><body><h1>404 Not Found</h1></body></html>";
+			response.setHeader("Content-Length", std::to_string(body.size()));
+			response.setBody(body);
+		}
+	}
+	else
+	{
+		// Method not allowed
+		response.setStatusCode(405);
+		response.setReasonPhrase("Method Not Allowed");
+		response.setHeader("Content-Type", "text/html; charset=UTF-8");
+		std::string body
+			= "<html><body><h1>405 Method Not Allowed</h1></body></html>";
+		response.setHeader("Content-Length", std::to_string(body.size()));
+		response.setBody(body);
+	}
+
+	return response.toString();
 }
