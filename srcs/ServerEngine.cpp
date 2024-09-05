@@ -264,13 +264,25 @@ void ServerEngine::start()
 std::string ServerEngine::createResponse(const HttpRequest &request)
 {
 	if (request.getMethod() == "GET")
+	{
+		Logger::log(Logger::DEBUG) << "Handling GET" << std::endl;
 		return handleGetRequest(request);
+	}
 	else if (request.getMethod() == "POST")
+	{
+		Logger::log(Logger::DEBUG) << "Handling POST" << std::endl;
 		return handlePostRequest(request);
+	}
 	else if (request.getMethod() == "DELETE")
+	{
+		Logger::log(Logger::DEBUG) << "Handling DELETE" << std::endl;
 		return handleDeleteRequest(request);
+	}
 	else
+	{
+		Logger::log(Logger::DEBUG) << "Handling Unallowed" << std::endl;
 		return handleUnallowedRequest();
+	}
 }
 
 // location hardcoded here, needed in HttpRequest request -> add to parsing?
@@ -284,8 +296,9 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 
 	// Read the index.html file
 	std::ifstream file(filepath);
-	if (file.is_open())
+	POST if (file.is_open())
 	{
+		Logger::log(Logger::DEBUG) << "Handling GET: file opened" << std::endl;
 		std::stringstream buffer;
 		buffer << file.rdbuf();
 		std::string body = buffer.str();
@@ -301,7 +314,8 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 	}
 	else
 	{
-		// File not found
+		Logger::log(Logger::DEBUG)
+			<< "Handling GET: file not found" << std::endl;
 		response.setStatusCode(404);
 		response.setReasonPhrase("Not Found");
 		response.setHeader("Server", "Webserv/0.1");
@@ -312,6 +326,7 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 		response.setHeader("Connection", "keep-alive");
 		response.setBody(body);
 	}
+	Logger::log(Logger::DEBUG) << "Handling GET: responding" << std::endl;
 	return response.toString();
 }
 
@@ -319,6 +334,7 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 std::string ServerEngine::handlePostRequest(const HttpRequest &request)
 {
 	(void)request;
+	Logger::log(Logger::DEBUG) << "Handling POST: responding" << std::endl;
 	return "POST test\n";
 }
 
@@ -326,10 +342,12 @@ std::string ServerEngine::handlePostRequest(const HttpRequest &request)
 std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
 {
 	(void)request;
-	return "Delete test\n";
+	Logger::log(Logger::DEBUG) << "Handling DELETE: responding" << std::endl;
+	return "DELETE test\n";
 }
 
-// already handled in checkMethod() but should be handled with a response here
+// already handled in checkMethod() but should it be handled with a response?
+// needs testing when usage implemented
 std::string ServerEngine::handleUnallowedRequest()
 {
 	HttpResponse response;
