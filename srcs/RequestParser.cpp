@@ -2,17 +2,17 @@
 #include "Logger.hpp"
 #include "macros.hpp"
 #include <algorithm>
-#include <sstream>
 #include <cstddef>
 #include <iostream>
+#include <sstream>
 
 HttpRequest RequestParser::parseRequest(std::string str)
 {
-	std::string						   method;
-	std::string						   httpVersion;
-	std::string						   uri;
-	std::map<std::string, std::string> headers;
-	std::vector<char>				   body;
+	std::string								method;
+	std::string								httpVersion;
+	std::string								uri;
+	std::multimap<std::string, std::string> headers;
+	std::vector<char>						body;
 
 	// Replace all occurrences of "\r\n" with "\n" in the HTTP request
 	std::string::size_type pos = 0;
@@ -51,7 +51,9 @@ HttpRequest RequestParser::parseRequest(std::string str)
 				headerValue = headerValue.substr(firstNonSpacePos);
 			}
 
-			headers[headerName] = headerValue;
+			headers.insert(
+				std::pair<std::string, std::string>(headerName, headerValue)
+			);
 		}
 	}
 
@@ -162,12 +164,12 @@ void RequestParser::checkHttpVersion(std::string &httpVersion)
 // TODO: check that only list containing headers are allowed to appear more than
 // once. This might impy using std::multimap
 void RequestParser::checkHeaders(
-	const std::map<std::string, std::string> &headers
+	const std::multimap<std::string, std::string> &headers
 )
 {
 	bool hasHost = false;
 
-	for (std::map<std::string, std::string>::const_iterator it
+	for (std::multimap<std::string, std::string>::const_iterator it
 		 = headers.begin();
 		 it != headers.end();
 		 ++it)
@@ -202,9 +204,9 @@ void RequestParser::checkHeaders(
 }
 
 void RequestParser::checkBody(
-	const std::string						 &method,
-	const std::map<std::string, std::string> &headers,
-	const std::string						 &body
+	const std::string							  &method,
+	const std::multimap<std::string, std::string> &headers,
+	const std::string							  &body
 )
 {
 	if ((method == "GET" || method == "DELETE") && !body.empty())
@@ -216,7 +218,8 @@ void RequestParser::checkBody(
 	}
 
 	if (headers.count("Content-Length") > 0
-		&& (unsigned long)std::atol(headers.at("Content-Length").c_str())
+		&& (unsigned long
+		   )std::atol(headers.find("Content-Length")->second.c_str())
 			   != body.size())
 	{
 		Logger::log(
@@ -226,7 +229,7 @@ void RequestParser::checkBody(
 	}
 
 	if (headers.count("Transfer-Encoding") > 0
-		&& headers.at("Transfer-Encoding") == "chunked")
+		&& headers.find("Transfer-Encoding")->second == "chunked")
 	{
 		// TODO: Check that the body is in the chunked transfer coding format
 		// Logger::log(
