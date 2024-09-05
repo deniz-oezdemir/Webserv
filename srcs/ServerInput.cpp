@@ -26,10 +26,10 @@ std::map<std::string, int> const ServerInput::createFlagMap_()
 }
 
 ServerInput::ServerInput()
-	: flags_(this->NONE), filePath_("./default.config"){};
+	: flags_(this->NONE), filepath_("./default.config"){};
 
 ServerInput::ServerInput(int argc, char **argv)
-	: flags_(this->NONE), filePath_("./default.config")
+	: flags_(this->NONE), filepath_("./default.config")
 {
 	for (int i = 1; i < argc; ++i)
 		this->parseArg_(argv[i], i, argc);
@@ -45,7 +45,7 @@ ServerInput &ServerInput::operator=(ServerInput const &src)
 	if (this != &src)
 	{
 		this->flags_ = src.flags_;
-		this->filePath_ = src.filePath_;
+		this->filepath_ = src.filepath_;
 	}
 	return *this;
 };
@@ -59,7 +59,7 @@ void ServerInput::parseArg_(std::string const &arg, int index, int argc)
 	if (arg[0] == '-')
 		this->setFlag_(arg);
 	else if (index == argc - 1)
-		this->filePath_ = arg;
+		this->filepath_ = arg;
 	else
 		throw ServerException(
 			"Invalid argument=> %\n\n" + this->getHelpMessage(), 0, arg
@@ -124,7 +124,7 @@ std::string ServerInput::getVersionMessage(void) const
 	ss << RED "Unknown compiler" << RESET;
 #endif
 
-	ss << WHITE "\nConfiguration file path: " YELLOW << this->filePath_ << '\n';
+	ss << WHITE "\nConfiguration file path: " YELLOW << this->filepath_ << '\n';
 	ss << WHITE "Created by " << CYAN BOLD "[johnavar] " << "[jmigoya] "
 	   << "[denizozd] " << RESET;
 
@@ -133,5 +133,5 @@ std::string ServerInput::getVersionMessage(void) const
 
 std::string ServerInput::getFilePath(void) const
 {
-	return this->filePath_;
+	return this->filepath_;
 }

@@ -36,6 +36,9 @@ class ServerConfig
 		std::vector<std::map<std::string, ConfigValue> > &serversConfig
 	) const;
 
+	std::vector<std::map<std::string, ConfigValue> > const &getAllServersConfig(void
+	) const;
+
 	// Get the value of a key in a server[serverIndex] configuration map.
 	bool getServerConfigValue(
 		unsigned int	   serverIndex,
@@ -43,7 +46,6 @@ class ServerConfig
 		ConfigValue		  &value
 	) const;
 
-	std::string								filepath;
 	static std::array<std::string, 4> const validLogLevels;
 
   private:
@@ -75,6 +77,7 @@ class ServerConfig
 	void checkGeneralConfig_(bool isTest, bool isTestPrint);
 	void checkServersConfig_(bool isTest, bool isTestPrint);
 
+	std::string										filepath_;
 	std::ifstream									file_;
 	std::map<std::string, std::string>				generalConfig_;
 	std::vector<std::map<std::string, ConfigValue> > serversConfig_;

@@ -18,7 +18,7 @@ std::array<std::string, 4> const ServerConfig::validLogLevels = {
 };
 
 ServerConfig::ServerConfig(std::string const &filepath)
-	: filepath(filepath), file_(filepath), isConfigOK_(true)
+	: filepath_(filepath), file_(filepath), isConfigOK_(true)
 {
 	if (!this->file_.is_open())
 		throw ServerException("Could not open the file [%]", errno, filepath);
@@ -26,28 +26,28 @@ ServerConfig::ServerConfig(std::string const &filepath)
 }
 
 ServerConfig::ServerConfig(ServerConfig const &src)
-	: filepath(src.filepath), file_(src.filepath), isConfigOK_(src.isConfigOK())
+	: filepath_(src.filepath_), file_(src.filepath_), isConfigOK_(src.isConfigOK())
 {
 	if (!this->file_.is_open())
-		throw ServerException("Could not open the file [%]", errno, filepath);
+		throw ServerException("Could not open the file [%]", errno, filepath_);
 }
 
 ServerConfig &ServerConfig::operator=(ServerConfig const &src)
 {
 	if (this != &src)
 	{
-		this->filepath = src.filepath;
+		this->filepath_ = src.filepath_;
 		this->isConfigOK_ = src.isConfigOK();
 
 		if (this->file_.is_open())
 			this->file_.close();
 
 		this->file_.clear();
-		this->file_.open(this->filepath);
+		this->file_.open(this->filepath_);
 
 		if (!this->file_.is_open())
 			throw ServerException(
-				"Could not open the file [%]", errno, filepath
+				"Could not open the file [%]", errno, filepath_
 			);
 	}
 	return *this;
@@ -101,13 +101,13 @@ void ServerConfig::errorHandler_(
 	if (isTest || isTestPrint)
 	{
 		std::cerr << PURPLE "<WebServ> " << YELLOW "[EMERG] " RESET << message
-				  << " in the configuration file " CYAN << this->filepath << ":"
+				  << " in the configuration file " CYAN << this->filepath_ << ":"
 				  << lineIndex << RESET << std::endl;
 		this->isConfigOK_ = false;
 	}
 	else
 		throw ServerException(
-			message + " in the configuration file " + this->filepath + ":" +
+			message + " in the configuration file " + this->filepath_ + ":" +
 			ft::toString(lineIndex)
 		);
 }
@@ -632,7 +632,7 @@ void ServerConfig::printConfig(void)
 		std::string line;
 
 		std::cout << PURPLE "\n<WebServ> " GREEN "Printing configuration file("
-				  << CYAN << this->filepath << GREEN ")..." RESET "\n\n";
+				  << CYAN << this->filepath_ << GREEN ")..." RESET "\n\n";
 		while (std::getline(this->file_, line))
 			std::cout << line << '\n';
 		std::cout << PURPLE "\n<WebServ> " << GREEN "\t---- End of file ----"
@@ -666,6 +666,12 @@ bool ServerConfig::getAllServersConfig(
 		return false;
 	serversConfig = this->serversConfig_;
 	return true;
+}
+
+std::vector<std::map<std::string, ConfigValue> > const
+		&ServerConfig::getAllServersConfig(void) const
+{
+	 return this->serversConfig_;
 }
 
 // Get the value of a key in a server[serverIndex] configuration map.

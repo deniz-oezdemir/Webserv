@@ -35,7 +35,7 @@ class ServerInput
 	int flags_;
 	// Map to store all type of flags and their respective values.
 	static std::map<std::string, int> const flagMap_;
-	std::string								filePath_;
+	std::string								filepath_;
 
 	void parseArg_(std::string const &arg, int index, int argc);
 	void setFlag_(std::string const &flag);
