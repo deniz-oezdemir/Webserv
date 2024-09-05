@@ -113,11 +113,13 @@ void Server::handleClient(int clientFd)
 				  << "Request received: " << std::endl
 				  << request << std::endl;
 	}
-	catch (std::exception &e)
+	catch (HttpException &e)
 	{
 		std::cerr << RED BOLD "Error:\t" RESET RED << e.what() << RESET
 				  << std::endl;
 	}
+	catch (std::exception())
+	{}
 	std::string response = "Have a good day.\n";
 	send(clientFd, response.c_str(), response.size(), 0);
 }
