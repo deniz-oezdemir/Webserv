@@ -1,5 +1,6 @@
 #include "ServerEngine.hpp"
 #include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
 #include "Logger.hpp"
 #include "RequestParser.hpp"
 #include "utils.hpp"
@@ -10,7 +11,7 @@
 ServerEngine::ServerEngine() : numServers_(0) {}
 
 ServerEngine::ServerEngine(
-	std::vector<std::map<std::string, ConfigValue> > const &servers
+	std::vector<std::map<std::string, ConfigValue>> const &servers
 )
 	: numServers_(servers.size())
 {
@@ -138,41 +139,51 @@ void ServerEngine::handleClient_(size_t &index)
 
 	Logger::log(Logger::DEBUG) << "Read " << bytesRead << " bytes" << std::endl;
 	// Parse the request
+	HttpRequest *request = NULL;
 	try
 	{
 		std::string requestStr(buffer, bytesRead);
-		HttpRequest request = RequestParser::parseRequest(requestStr);
+		request = new HttpRequest(RequestParser::parseRequest(requestStr));
 		std::cout << "Hello from server. Your message was: " << buffer;
 
 		std::cout << std::endl
 				  << "Request received: " << std::endl
-				  << request << std::endl;
+				  << *request << std::endl;
 	}
 	catch (std::exception &e)
 	{
 		std::cerr << RED BOLD "Error:\t" RESET RED << e.what() << RESET
 				  << std::endl;
 	}
-	std::string response = "Have a good day.\n";
-	int			retCode
-		= send(pollFds_[index].fd, response.c_str(), response.size(), 0);
-	if (retCode < 0)
+
+	if (request != NULL)
 	{
-		Logger::log(Logger::ERROR, true)
-			<< "Failed to send response to client: (" << ft::toString(errno)
-			<< ") " << strerror(errno) << std::endl;
-		close(pollFds_[index].fd);
-		pollFds_.erase(pollFds_.begin() + index);
-		return;
-	}
-	else if (retCode == 0)
-	{
-		Logger::log(Logger::DEBUG)
-			<< "Client disconnected pollFds_[" << index
-			<< "], closing socket and deleting it from pollFds_" << std::endl;
-		close(pollFds_[index].fd);
-		pollFds_.erase(pollFds_.begin() + index);
-		return;
+		std::string response = createResponse(*request);
+		Logger::log(Logger::DEBUG) << "Sending response" << std::endl;
+		int retCode
+			= send(pollFds_[index].fd, response.c_str(), response.size(), 0);
+		if (retCode < 0)
+		{
+			Logger::log(Logger::ERROR, true)
+				<< "Failed to send response to client: (" << ft::toString(errno)
+				<< ") " << strerror(errno) << std::endl;
+			close(pollFds_[index].fd);
+			pollFds_.erase(pollFds_.begin() + index);
+			delete request;
+			return;
+		}
+		else if (retCode == 0)
+		{
+			Logger::log(Logger::DEBUG)
+				<< "Client disconnected pollFds_[" << index
+				<< "], closing socket and deleting it from pollFds_"
+				<< std::endl;
+			close(pollFds_[index].fd);
+			pollFds_.erase(pollFds_.begin() + index);
+			delete request;
+			return;
+		}
+		delete request;
 	}
 }
 
@@ -248,4 +259,121 @@ void ServerEngine::start()
 			}
 		}
 	}
+}
+
+std::string ServerEngine::createResponse(const HttpRequest &request)
+{
+	if (request.getMethod() == "GET")
+	{
+		Logger::log(Logger::DEBUG) << "Handling GET" << std::endl;
+		return handleGetRequest(request);
+	}
+	else if (request.getMethod() == "POST")
+	{
+		Logger::log(Logger::DEBUG) << "Handling POST" << std::endl;
+		return handlePostRequest(request);
+	}
+	else if (request.getMethod() == "DELETE")
+	{
+		Logger::log(Logger::DEBUG) << "Handling DELETE" << std::endl;
+		return handleDeleteRequest(request);
+	}
+	else
+	{
+		Logger::log(Logger::DEBUG) << "Handling Unallowed" << std::endl;
+		return handleUnallowedRequest();
+	}
+}
+
+// location hardcoded here, needed in HttpRequest request -> add to parsing?
+// (map with target, location would be handy)
+std::string ServerEngine::handleGetRequest(const HttpRequest &request)
+{
+	HttpResponse response;
+
+	std::string location = "website";
+	std::string filepath = location + request.getTarget();
+
+	// Read the index.html file
+	std::ifstream file(filepath);
+	POST if (file.is_open())
+	{
+		Logger::log(Logger::DEBUG) << "Handling GET: file opened" << std::endl;
+		std::stringstream buffer;
+		buffer << file.rdbuf();
+		std::string body = buffer.str();
+		// Set the response
+		response.setStatusCode(200);
+		response.setReasonPhrase("OK");
+		response.setHeader("Server", "Webserv/0.1");
+		response.setHeader("Date", createTimestamp());
+		response.setHeader("Content-Type", "text/html; charset=UTF-8");
+		response.setHeader("Content-Length", std::to_string(body.size()));
+		response.setHeader("Connection", "keep-alive");
+		response.setBody(body);
+	}
+	else
+	{
+		Logger::log(Logger::DEBUG)
+			<< "Handling GET: file not found" << std::endl;
+		response.setStatusCode(404);
+		response.setReasonPhrase("Not Found");
+		response.setHeader("Server", "Webserv/0.1");
+		response.setHeader("Date", createTimestamp());
+		response.setHeader("Content-Type", "text/html; charset=UTF-8");
+		std::string body = "<html><body><h1>404 Not Found</h1></body></html>";
+		response.setHeader("Content-Length", std::to_string(body.size()));
+		response.setHeader("Connection", "keep-alive");
+		response.setBody(body);
+	}
+	Logger::log(Logger::DEBUG) << "Handling GET: responding" << std::endl;
+	return response.toString();
+}
+
+// to be implemented
+std::string ServerEngine::handlePostRequest(const HttpRequest &request)
+{
+	(void)request;
+	Logger::log(Logger::DEBUG) << "Handling POST: responding" << std::endl;
+	return "POST test\n";
+}
+
+// to be implemented
+std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
+{
+	(void)request;
+	Logger::log(Logger::DEBUG) << "Handling DELETE: responding" << std::endl;
+	return "DELETE test\n";
+}
+
+// already handled in checkMethod() but should it be handled with a response?
+// needs testing when usage implemented
+std::string ServerEngine::handleUnallowedRequest()
+{
+	HttpResponse response;
+	response.setStatusCode(405);
+	response.setReasonPhrase("Method Not Allowed");
+	response.setHeader("Content-Type", "text/html; charset=UTF-8");
+	response.setHeader("Server", "Webserv/0.1");
+	response.setHeader("Date", createTimestamp());
+	std::string body
+		= "<html><body><h1>405 Method Not Allowed</h1></body></html>";
+	response.setHeader("Content-Length", std::to_string(body.size()));
+	response.setHeader("Connection", "keep-alive");
+	response.setBody(body);
+	return response.toString();
+}
+
+std::string ServerEngine::createTimestamp()
+{
+	time_t	   now = time(0);
+	struct tm *tstruct = localtime(&now);
+	if (tstruct == nullptr)
+	{
+		throw std::runtime_error("Failed to get local time");
+	}
+
+	char buf[80];
+	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", tstruct);
+	return std::string(buf);
 }

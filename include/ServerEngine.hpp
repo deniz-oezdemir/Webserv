@@ -1,18 +1,20 @@
 #pragma once
 
 #include "ConfigValue.hpp"
+#include "HttpRequest.hpp"
 #include "Server.hpp"
-
+#include <cstring>
+#include <fstream>
 #include <map>
 #include <poll.h>
 #include <string>
-#include <cstring>
 
 class ServerEngine
 {
   public:
 	ServerEngine();
-	ServerEngine(std::vector<std::map<std::string, ConfigValue> > const &servers);
+	ServerEngine(std::vector<std::map<std::string, ConfigValue>> const &servers
+	);
 	~ServerEngine();
 
 	void start(void);
@@ -29,4 +31,12 @@ class ServerEngine
 	bool isPollFdServer_(int &fd);
 	void handleClient_(size_t &index);
 	void acceptConnection_(size_t &index);
+
+	std::string createResponse(const HttpRequest &request);
+	std::string handleGetRequest(const HttpRequest &request);
+	std::string handlePostRequest(const HttpRequest &request);
+	std::string handleDeleteRequest(const HttpRequest &request);
+	std::string handleUnallowedRequest();
+
+	std::string createTimestamp();
 };
