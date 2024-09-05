@@ -261,53 +261,101 @@ void ServerEngine::start()
 	}
 }
 
-// Simple response to GET index.html, expand to handle different GET requests
-// Add support for POST and DELETE requests
 std::string ServerEngine::createResponse(const HttpRequest &request)
+{
+	if (request.getMethod() == "GET")
+		return handleGetRequest(request);
+	else if (request.getMethod() == "POST")
+		return handlePostRequest(request);
+	else if (request.getMethod() == "DELETE")
+		return handleDeleteRequest(request);
+	else
+		return handleUnallowedRequest();
+}
+
+// location hardcoded here, needed in HttpRequest request -> add to parsing?
+// (map with target, location would be handy)
+std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 {
 	HttpResponse response;
 
-	// Check if the request is for /index.html
-	if (request.getMethod() == "GET" && request.getTarget() == "/index.html")
-	{
-		// Read the index.html file
-		std::ifstream file("website/index.html");
-		if (file.is_open())
-		{
-			std::stringstream buffer;
-			buffer << file.rdbuf();
-			std::string body = buffer.str();
+	std::string location = "website";
+	std::string filepath = location + request.getTarget();
 
-			// Set the response
-			response.setStatusCode(200);
-			response.setReasonPhrase("OK");
-			response.setHeader("Content-Type", "text/html; charset=UTF-8");
-			response.setHeader("Content-Length", std::to_string(body.size()));
-			response.setBody(body);
-		}
-		else
-		{
-			// File not found
-			response.setStatusCode(404);
-			response.setReasonPhrase("Not Found");
-			response.setHeader("Content-Type", "text/html; charset=UTF-8");
-			std::string body
-				= "<html><body><h1>404 Not Found</h1></body></html>";
-			response.setHeader("Content-Length", std::to_string(body.size()));
-			response.setBody(body);
-		}
+	// Read the index.html file
+	std::ifstream file(filepath);
+	if (file.is_open())
+	{
+		std::stringstream buffer;
+		buffer << file.rdbuf();
+		std::string body = buffer.str();
+		// Set the response
+		response.setStatusCode(200);
+		response.setReasonPhrase("OK");
+		response.setHeader("Server", "Webserv/0.1");
+		response.setHeader("Date", createTimestamp());
+		response.setHeader("Content-Type", "text/html; charset=UTF-8");
+		response.setHeader("Content-Length", std::to_string(body.size()));
+		response.setHeader("Connection", "keep-alive");
+		response.setBody(body);
 	}
 	else
 	{
-		// Method not allowed
-		response.setStatusCode(405);
-		response.setReasonPhrase("Method Not Allowed");
+		// File not found
+		response.setStatusCode(404);
+		response.setReasonPhrase("Not Found");
+		response.setHeader("Server", "Webserv/0.1");
+		response.setHeader("Date", createTimestamp());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
-		std::string body
-			= "<html><body><h1>405 Method Not Allowed</h1></body></html>";
+		std::string body = "<html><body><h1>404 Not Found</h1></body></html>";
 		response.setHeader("Content-Length", std::to_string(body.size()));
+		response.setHeader("Connection", "keep-alive");
 		response.setBody(body);
 	}
-
 	return response.toString();
+}
+
+// to be implemented
+std::string ServerEngine::handlePostRequest(const HttpRequest &request)
+{
+	(void)request;
+	return "POST test\n";
+}
+
+// to be implemented
+std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
+{
+	(void)request;
+	return "Delete test\n";
+}
+
+// already handled in checkMethod() but should be handled with a response here
+std::string ServerEngine::handleUnallowedRequest()
+{
+	HttpResponse response;
+	response.setStatusCode(405);
+	response.setReasonPhrase("Method Not Allowed");
+	response.setHeader("Content-Type", "text/html; charset=UTF-8");
+	response.setHeader("Server", "Webserv/0.1");
+	response.setHeader("Date", createTimestamp());
+	std::string body
+		= "<html><body><h1>405 Method Not Allowed</h1></body></html>";
+	response.setHeader("Content-Length", std::to_string(body.size()));
+	response.setHeader("Connection", "keep-alive");
+	response.setBody(body);
+	return response.toString();
+}
+
+std::string ServerEngine::createTimestamp()
+{
+	time_t	   now = time(0);
+	struct tm *tstruct = localtime(&now);
+	if (tstruct == nullptr)
+	{
+		throw std::runtime_error("Failed to get local time");
+	}
+
+	char buf[80];
+	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", tstruct);
+	return std::string(buf);
 }

@@ -33,4 +33,10 @@ class ServerEngine
 	void acceptConnection_(size_t &index);
 
 	std::string createResponse(const HttpRequest &request);
+	std::string handleGetRequest(const HttpRequest &request);
+	std::string handlePostRequest(const HttpRequest &request);
+	std::string handleDeleteRequest(const HttpRequest &request);
+	std::string handleUnallowedRequest();
+
+	std::string createTimestamp();
 };

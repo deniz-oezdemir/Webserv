@@ -22,7 +22,10 @@ void HttpResponse::setReasonPhrase(const std::string &phrase)
 
 void HttpResponse::setHeader(const std::string &key, const std::string &value)
 {
-	headers_[key] = value;
+	headers_.push_back(std::make_pair(key, value));
+
+	// map
+	// headers_[key] = value;
 }
 
 std::string HttpResponse::toString() const
@@ -34,7 +37,7 @@ std::string HttpResponse::toString() const
 				+ "\r\n";
 
 	// Headers
-	std::map<std::string, std::string>::const_iterator it;
+	std::vector<std::pair<std::string, std::string>>::const_iterator it;
 	for (it = headers_.begin(); it != headers_.end(); ++it)
 	{
 		response += it->first + ": " + it->second + "\r\n";

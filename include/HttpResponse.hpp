@@ -2,6 +2,8 @@
 
 #include <map>
 #include <string>
+#include <utility>
+#include <vector>
 
 class HttpResponse
 {
@@ -17,8 +19,9 @@ class HttpResponse
 	std::string toString() const;
 
   private:
-	int								   statusCode_;
-	std::string						   reasonPhrase_;
-	std::map<std::string, std::string> headers_;
-	std::string						   body_;
+	int			statusCode_;
+	std::string reasonPhrase_;
+	// vector of pairs as unordered map only introduced with C++11
+	std::vector<std::pair<std::string, std::string>> headers_;
+	std::string										 body_;
 };
