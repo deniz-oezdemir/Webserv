@@ -4,7 +4,6 @@
 #include "HttpRequest.hpp"
 #include "Server.hpp"
 #include <cstring>
-#include <fstream>
 #include <map>
 #include <poll.h>
 #include <string>
@@ -13,7 +12,7 @@ class ServerEngine
 {
   public:
 	ServerEngine();
-	ServerEngine(std::vector<std::map<std::string, ConfigValue>> const &servers
+	ServerEngine(std::vector<std::map<std::string, ConfigValue> > const &servers
 	);
 	~ServerEngine();
 
@@ -31,6 +30,8 @@ class ServerEngine
 	bool isPollFdServer_(int &fd);
 	void handleClient_(size_t &index);
 	void acceptConnection_(size_t &index);
+	void restartServer_(size_t &index);
+	void pollFdError_(size_t &index);
 
 	std::string createResponse(const HttpRequest &request);
 	std::string handleGetRequest(const HttpRequest &request);

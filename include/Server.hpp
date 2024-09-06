@@ -19,6 +19,8 @@ class Server
 	Server &operator=(const Server &rhs);
 
 	void	initServer(void);
+	void	closeServer(void);
+	void	resetServer(void);
 
 	// Getters
 	unsigned int							 getPort(void) const;

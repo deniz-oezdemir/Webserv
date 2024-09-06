@@ -37,7 +37,7 @@ std::string HttpResponse::toString() const
 				+ "\r\n";
 
 	// Headers
-	std::vector<std::pair<std::string, std::string>>::const_iterator it;
+	std::vector<std::pair<std::string, std::string> >::const_iterator it;
 	for (it = headers_.begin(); it != headers_.end(); ++it)
 	{
 		response += it->first + ": " + it->second + "\r\n";
