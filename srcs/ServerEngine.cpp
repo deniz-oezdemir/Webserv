@@ -6,12 +6,13 @@
 #include "utils.hpp"
 
 #include <fcntl.h>
+#include <fstream>
 #include <unistd.h>
 
 ServerEngine::ServerEngine() : numServers_(0) {}
 
 ServerEngine::ServerEngine(
-	std::vector<std::map<std::string, ConfigValue>> const &servers
+	std::vector<std::map<std::string, ConfigValue> > const &servers
 )
 	: numServers_(servers.size())
 {
@@ -29,7 +30,32 @@ ServerEngine::ServerEngine(
 	}
 }
 
-ServerEngine::~ServerEngine() {}
+ServerEngine::~ServerEngine()
+{
+	Logger::log(Logger::DEBUG)
+		<< "Shutting down the server engine" << std::endl;
+	for (size_t i = 0; i < pollFds_.size(); ++i)
+	{
+		if (!this->isPollFdServer_(pollFds_[i].fd) && pollFds_[i].fd != -1)
+		{
+			close(pollFds_[i].fd);
+			pollFds_[i].fd = -1;
+		}
+	}
+}
+
+/* The serverFd is closed and initialized again, than the pollFds_ vector is
+updated with the new file descriptor. */
+void ServerEngine::restartServer(size_t &index)
+{
+	Logger::log(Logger::INFO)
+		<< "Restarting server[" << index << "]" << std::endl;
+	this->servers_[index].resetServer();
+	pollfd serverPollFd = {servers_[index].getServerFd(), POLLIN, 0};
+	pollFds_[index] = serverPollFd;
+	Logger::log(Logger::INFO)
+		<< "Server[" << index << "] restarted" << std::endl;
+}
 
 void ServerEngine::initPollFds_(void)
 {

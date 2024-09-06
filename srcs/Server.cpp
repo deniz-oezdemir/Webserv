@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "ServerException.hpp"
 #include "utils.hpp"
+#include "Logger.hpp"
 
 #include <fcntl.h>
 #include <netdb.h>
@@ -57,7 +58,12 @@ Server &Server::operator=(const Server &src)
 
 Server::~Server(void)
 {
-	close(serverFd_);
+	// Close the server socket if it is open and set the file descriptor to -1
+	// to indicate that the socket is closed
+	if (serverFd_ >= 0)
+	{
+    this->closeServer();
+	}
 }
 
 void Server::initServer(void)
@@ -65,6 +71,23 @@ void Server::initServer(void)
 	createSocket_();
 	bindSocket_();
 	listenSocket_();
+}
+
+void Server::closeServer(void)
+{
+	Logger::log(Logger::DEBUG) << "Closing server socket" << std::endl;
+	if (serverFd_ >= 0)
+	{
+		close(serverFd_);
+		serverFd_ = -1;
+	}
+}
+
+void Server::resetServer(void)
+{
+	closeServer();
+	Logger::log(Logger::DEBUG) << "initializing server socket" << std::endl;
+	initServer();
 }
 
 void Server::createSocket_()
