@@ -110,7 +110,9 @@ void RequestParser::checkMethod(std::string &method)
 	{
 		Logger::log(Logger::INFO)
 			<< "Method not found: " << method << std::endl;
-		throw HttpException(HTTP_501_CODE, HTTP_501_REASON);
+		// commented out below as 501 handled with response to client by
+		// ServerEngine::handleNotImplementedRequest
+		// throw HttpException(HTTP_501_CODE, HTTP_501_REASON);
 	}
 }
 
