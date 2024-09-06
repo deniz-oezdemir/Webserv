@@ -36,7 +36,7 @@ class ServerEngine
 	std::string handleGetRequest(const HttpRequest &request);
 	std::string handlePostRequest(const HttpRequest &request);
 	std::string handleDeleteRequest(const HttpRequest &request);
-	std::string handleUnallowedRequest();
+	std::string handleNotImplementedRequest();
 
 	std::string createTimestamp();
 };

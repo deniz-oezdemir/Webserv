@@ -280,8 +280,8 @@ std::string ServerEngine::createResponse(const HttpRequest &request)
 	}
 	else
 	{
-		Logger::log(Logger::DEBUG) << "Handling Unallowed" << std::endl;
-		return handleUnallowedRequest();
+		Logger::log(Logger::DEBUG) << "Handling Not Implemented" << std::endl;
+		return handleNotImplementedRequest();
 	}
 }
 
@@ -321,7 +321,10 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 		response.setHeader("Server", "Webserv/0.1");
 		response.setHeader("Date", createTimestamp());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
-		std::string body = "<html><body><h1>404 Not Found</h1></body></html>";
+		std::string body = "<!DOCTYPE html>\n<html>\n<head><title>404 Not "
+						   "Found</title></head>\n<center><h1>404 Not "
+						   "Found</h1></center>\n<hr><center>Webserv</"
+						   "center>\n</body>\n</html>\n";
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		response.setHeader("Connection", "keep-alive");
 		response.setBody(body);
@@ -346,20 +349,25 @@ std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
 	return "DELETE test\n";
 }
 
-// already handled in checkMethod() but should it be handled with a response?
-// needs testing when usage implemented
-std::string ServerEngine::handleUnallowedRequest()
+// commented out similar functionality via exception by
+// RequestParser::checkMethod() as it should be handled with a 501 response to
+// the client
+std::string ServerEngine::handleNotImplementedRequest()
 {
 	HttpResponse response;
-	response.setStatusCode(405);
-	response.setReasonPhrase("Method Not Allowed");
-	response.setHeader("Content-Type", "text/html; charset=UTF-8");
+	response.setStatusCode(501);
+	response.setReasonPhrase("Not Implemented");
 	response.setHeader("Server", "Webserv/0.1");
 	response.setHeader("Date", createTimestamp());
-	std::string body
-		= "<html><body><h1>405 Method Not Allowed</h1></body></html>";
+	response.setHeader("Content-Type", "text/html; charset=UTF-8");
+	std::string body = "<!DOCTYPE html>\n<html>\n<head><title>501 Not "
+					   "Implemented</title></head>\n<center><h1>501 Not "
+					   "Implemented</h1></center>\n<hr><center>Webserv</"
+					   "center>\n</body>\n</html>\n";
 	response.setHeader("Content-Length", std::to_string(body.size()));
-	response.setHeader("Connection", "keep-alive");
+	// nginx typically closes the TCP connection after sending a 501 response,
+	// do we want to implement it?
+	response.setHeader("Connection", "close");
 	response.setBody(body);
 	return response.toString();
 }
