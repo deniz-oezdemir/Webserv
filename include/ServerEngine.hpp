@@ -17,7 +17,6 @@ class ServerEngine
 	~ServerEngine();
 
 	void start(void);
-	void restartServer(size_t &index);
 
   private:
 	ServerEngine(ServerEngine const &src);
@@ -31,6 +30,8 @@ class ServerEngine
 	bool isPollFdServer_(int &fd);
 	void handleClient_(size_t &index);
 	void acceptConnection_(size_t &index);
+	void restartServer_(size_t &index);
+	void pollFdError_(size_t &index);
 
 	std::string createResponse(const HttpRequest &request);
 	std::string handleGetRequest(const HttpRequest &request);

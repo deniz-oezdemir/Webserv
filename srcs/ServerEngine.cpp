@@ -46,7 +46,7 @@ ServerEngine::~ServerEngine()
 
 /* The serverFd is closed and initialized again, than the pollFds_ vector is
 updated with the new file descriptor. */
-void ServerEngine::restartServer(size_t &index)
+void ServerEngine::restartServer_(size_t &index)
 {
 	Logger::log(Logger::INFO)
 		<< "Restarting server[" << index << "]" << std::endl;
@@ -213,6 +213,43 @@ void ServerEngine::handleClient_(size_t &index)
 	}
 }
 
+void ServerEngine::pollFdError_(size_t &index)
+{
+	std::string error("");
+	if (pollFds_[index].revents & POLLERR)
+		error += "|POLLERR|";
+	if (pollFds_[index].revents & POLLHUP)
+		error += "|POLLHUP|";
+	if (pollFds_[index].revents & POLLNVAL)
+		error += "|POLLNVAL|";
+
+	if (error == "|POLLHUP|")
+	{
+		Logger::log(Logger::DEBUG)
+			<< "Client disconnected on pollFds_[" << index
+			<< "]: " << pollFds_[index].fd << std::endl;
+	}
+	else
+	{
+		Logger::log(Logger::ERROR, true)
+			<< "Descriptor error on pollFds_[" << index
+			<< "]: " << pollFds_[index].fd << " : (" << error << ") "
+			<< std::endl;
+	}
+	if (!this->isPollFdServer_(this->pollFds_[index].fd))
+	{
+		Logger::log(Logger::DEBUG)
+			<< "Closing and deleting client socket: pollFds_[" << index
+			<< "]: " << pollFds_[index].fd << std::endl;
+		close(pollFds_[index].fd);
+		this->pollFds_.erase(this->pollFds_.begin() + index);
+	}
+	else
+	{
+		restartServer_(index);
+	}
+}
+
 void ServerEngine::start()
 {
 	this->initPollFds_();
@@ -236,36 +273,8 @@ void ServerEngine::start()
 			// connection was broken(pollhup)
 			if (pollFds_[i].revents & (POLLERR | POLLHUP | POLLNVAL))
 			{
-				std::string error("");
-				if (pollFds_[i].revents & POLLERR)
-					error += "|POLLERR|";
-				if (pollFds_[i].revents & POLLHUP)
-					error += "|POLLHUP|";
-				if (pollFds_[i].revents & POLLNVAL)
-					error += "|POLLNVAL|";
-
-				if (error == "|POLLHUP|")
-					Logger::log(Logger::DEBUG)
-						<< "Client disconnected on pollFds_[" << i
-						<< "]: " << pollFds_[i].fd << std::endl;
-				else
-					Logger::log(Logger::ERROR, true)
-						<< "Descriptor error on pollFds_[" << i
-						<< "]: " << pollFds_[i].fd << " : (" << error << ") "
-						<< std::endl;
-
-				if (!this->isPollFdServer_(this->pollFds_[i].fd))
-				{
-					Logger::log(Logger::DEBUG)
-						<< "Closing and deleting client socket: pollFds_[" << i
-						<< "]: " << pollFds_[i].fd << std::endl;
-					close(pollFds_[i].fd);
-					this->pollFds_.erase(this->pollFds_.begin() + i);
-				}
-				// TODO: restart server descriptor from Server class and then
-				// update pollFds_ if it is an serveFd (if it is worth it)
+				pollFdError_(i);
 			}
-			// Check if fd is ready for reading
 			else if (pollFds_[i].revents & POLLIN)
 			{
 				Logger::log(Logger::DEBUG)
