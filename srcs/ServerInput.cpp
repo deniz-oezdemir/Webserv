@@ -105,23 +105,23 @@ std::string ServerInput::getVersionMessage(void) const
 {
 	std::stringstream ss;
 
-	ss << YELLOW BOLD "WebServ " << RESET ULINE CYAN "v0.0.1" << "\n" RESET;
+	ss << YELLOW BOLD "WebServ " << RESET ULINE CYAN "v0.3" << RESET;
 	if (this->hasThisFlag(ServerInput::V_LITE))
 		return ss.str();
 
 #ifdef __clang__
-	ss << WHITE "Compiled with" << YELLOW " Clang "
+	ss << WHITE "\nCompiled with" << YELLOW " Clang "
 	   << WHITE "version " CYAN BOLD << __clang_major__ << "."
 	   << __clang_minor__ << "." << __clang_patchlevel__ << RESET;
 #elif defined(__GNUC__)
-	ss << WHITE "Compiled with " << YELLOW " GCC " << WHITE " version "
+	ss << WHITE "\nCompiled with " << YELLOW " GCC " << WHITE " version "
 	   << CYAN ULINE << __GNUC__ << "." << __GNUC_MINOR__ << "."
 	   << __GNUC_PATCHLEVEL__ << RESET;
 #elif defined(_MSC_VER)
-	ss << WHITE "Compiled with " << YELLOW "MSVC " << WHITE "version " CYAN BOLD
+	ss << WHITE "\nCompiled with " << YELLOW "MSVC " << WHITE "version " CYAN BOLD
 	   << _MSC_VER << RESET;
 #else
-	ss << RED "Unknown compiler" << RESET;
+	ss << RED "\nUnknown compiler" << RESET;
 #endif
 
 	ss << WHITE "\nConfiguration file path: " YELLOW << this->filepath_ << '\n';
