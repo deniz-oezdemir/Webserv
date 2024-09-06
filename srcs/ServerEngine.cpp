@@ -296,7 +296,7 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 
 	// Read the index.html file
 	std::ifstream file(filepath);
-	POST if (file.is_open())
+	if (file.is_open())
 	{
 		Logger::log(Logger::DEBUG) << "Handling GET: file opened" << std::endl;
 		std::stringstream buffer;
