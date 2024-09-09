@@ -148,6 +148,11 @@ void Server::createSocket_()
 			close(serverFd_);
 		throw;
 	}
+<<<<<<< HEAD
+=======
+	std::string response = "Have a good day.\n";
+	send(clientFd, response.c_str(), response.size(), 0);
+>>>>>>> 1330289 (fix: update HttpRequest and RequestParser logic)
 }
 
 // If the server is the first server block in the configuration file

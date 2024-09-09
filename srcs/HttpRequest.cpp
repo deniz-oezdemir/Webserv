@@ -116,8 +116,9 @@ std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
 		 it != bodyCpy.end();
 		 it++)
 	{
-		os << *it << std::endl;
+		os << *it;
 	}
+	os << std::endl;
 
 	return os;
 }
@@ -132,7 +133,7 @@ void HttpRequest::normalizeRequest(
 {
 	method_ = method;
 	httpVersion_ = httpVersion;
-	target_ = inputHeaders.find("Host")->second + '/' + uri;
+	target_ = inputHeaders.find("Host")->second + uri;
 	body_ = body;
 
 	for (std::multimap<std::string, std::string>::iterator it

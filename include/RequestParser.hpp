@@ -1,11 +1,17 @@
 #pragma once
-#include "HttpException.hpp"
+
 #include "HttpRequest.hpp"
 
-// RequestParser checks the syntax of the received request. It does not check
-// the validity of the fields. For example, a URI might pass all syntax
-// checks and still not correspond with any valid target in the server.
-// On succes, RequestParser returns a HttpRequest object.
+/* @class RequestParser
+ * @brief Parses and validates the syntax of HTTP requests.
+ *
+ * The RequestParser class is responsible for checking the syntax of the
+ * received HTTP request. It ensures that the request adheres to the HTTP/1.1
+ * specification in terms of structure and format. However, it does not validate
+ * the actual content of the fields. For example, a URI might pass all syntax
+ * checks but still not correspond to any valid target on the server. On
+ * successful parsing, RequestParser returns an HttpRequest object.
+ */
 class RequestParser
 {
   public:

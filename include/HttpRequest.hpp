@@ -4,7 +4,17 @@
 #include <string>
 #include <vector>
 
-// TODO: implement normalization on initialization
+/**
+ * @class HttpRequest
+ * @brief Represents an HTTP request with all necessary information for
+ * handling.
+ *
+ * The HttpRequest class encapsulates all the required information of an HTTP
+ * request, including the method, HTTP version, URI, headers, and body. It is
+ * designed to be constructed by the RequestParser after a request passes all
+ * parsing tests. The class ensures consistency by normalizing itself upon
+ * initialization, adhering to the HTTP/1.1 specification.
+ */
 class HttpRequest
 {
   public:

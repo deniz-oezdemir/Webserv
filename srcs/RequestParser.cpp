@@ -1,4 +1,5 @@
 #include "../include/RequestParser.hpp"
+#include "../include/HttpException.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
 #include <algorithm>
@@ -83,11 +84,12 @@ HttpRequest RequestParser::parseRequest(std::string str)
 	std::string bodyLine;
 	while (std::getline(requestStream, bodyLine))
 	{
-		if (!bodyLine.empty() && bodyLine[bodyLine.size() - 1] == '\r')
-		{
-			bodyLine.erase(bodyLine.size() - 1); // Remove the trailing '\r'
-		}
+		// if (!bodyLine.empty() && bodyLine[bodyLine.size() - 1] == '\r')
+		// {
+		// 	bodyLine.erase(bodyLine.size() - 1); // Remove the trailing '\r'
+		// }
 		body.insert(body.end(), bodyLine.begin(), bodyLine.end());
+		body.push_back('\n'); // Preserve the newline character
 	}
 
 	checkStartLine(startLine, &method, &uri, &httpVersion);
@@ -204,7 +206,7 @@ void RequestParser::checkHeaders(
 		 ++it)
 	{
 		// Only the Host header is allowed empty values
-		if (it->first.empty() || (it->first != "Host" && it->second.empty()))
+		if (it->second.empty() && it->first != "Host")
 		{
 			Logger::log(Logger::INFO)
 				<< "Header has emtpy value and is not Host. Header: "
@@ -260,9 +262,9 @@ void RequestParser::checkBody(
 {
 	if ((method == "GET" || method == "DELETE") && !body.empty())
 	{
-		Logger::log(
-			Logger::INFO, "Body should be empty for GET or DELETE requests."
-		) << std::endl;
+		// TODO: check again this rule
+		Logger::log(Logger::INFO)
+			<< "Body should be empty for GET or DELETE requests." << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 
@@ -271,9 +273,8 @@ void RequestParser::checkBody(
 		   )std::atol(headers.find("Content-Length")->second.c_str())
 			   != body.size())
 	{
-		Logger::log(
-			Logger::INFO, "Content-Length does not match actual body length."
-		) << std::endl;
+		Logger::log(Logger::INFO)
+			<< "Content-Length does not match actual body length." << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 
@@ -282,10 +283,5 @@ void RequestParser::checkBody(
 			   != std::string::npos)
 	{
 		// TODO: Check that the body is in the chunked transfer coding format
-		// Logger::log(
-		// 	Logger::INFO,
-		// 	"Transfer-Encoding is chunked, body should be in chunked transfer "
-		// 	"coding format"
-		// );
 	}
 }
