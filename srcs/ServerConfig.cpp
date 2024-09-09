@@ -165,7 +165,7 @@ void ServerConfig::setListenDirective_(
 		if (ft::isStrOfDigits(tokens[1]))
 		{
 			// Check if the port number is valid.
-			if (!ft::isUint16(tokens[1]))
+			if (!ft::isUShort(tokens[1]))
 				throw std::invalid_argument("Invalid port number");
 			port = tokens[1];
 		}
@@ -177,7 +177,7 @@ void ServerConfig::setListenDirective_(
 			ft::split(tmp, tokens[1], ":");
 			// Check if the argument is host:port, check if the port number is
 			// valid and if the IP address is valid
-			if (tmp.size() == 2 && ft::isUint16(tmp[1]) &&
+			if (tmp.size() == 2 && ft::isUShort(tmp[1]) &&
 				ft::isValidIPv4(tmp[0]))
 			{
 				host = tmp[0];

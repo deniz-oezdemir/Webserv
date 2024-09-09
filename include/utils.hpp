@@ -24,14 +24,14 @@ std::vector<std::string> &split(
 	std::string const		 &delimiters = " \t\n"
 );
 bool isStrOfDigits(std::string const &str);
-// isUint16 checks if a string is a valid unsigned short, useful to check the
+// isUShort checks if a string is a valid unsigned short, useful to check the
 // port number.
-bool isUint16(std::string const &str);
-// strToUint16 converts a string to an unsigned short..
-bool	 strToUint16(std::string const &str, unsigned short &value);
-uint16_t strToUint16(std::string const &str);
+bool isUShort(std::string const &str);
+// strToUShort converts a string to an unsigned short..
+bool		   strToUShort(std::string const &str, unsigned short &value);
+unsigned short strToUShort(std::string const &str);
 // isValidIPv4 checks if a string is a valid IPv4 address.
-bool isValidIPv4(std::string const &str);
+bool		  isValidIPv4(std::string const &str);
 unsigned long stringToULong(std::string const &str);
 
 template <typename C, typename T>

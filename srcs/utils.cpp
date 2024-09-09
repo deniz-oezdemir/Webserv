@@ -44,7 +44,7 @@ bool isStrOfDigits(std::string const &str)
 	return str.find_first_not_of("0123456789") == std::string::npos;
 }
 
-bool isUint16(std::string const &str)
+bool isUShort(std::string const &str)
 {
 	if (str.length() > 5)
 		return false;
@@ -57,7 +57,7 @@ bool isUint16(std::string const &str)
 	return value <= USHRT_MAX;
 }
 
-bool strToUint16(std::string const &str, unsigned short &result)
+bool strToUShort(std::string const &str, unsigned short &result)
 {
 	if (str.empty())
 		throw ServerException("Empty string passed to stringToULong");
@@ -73,7 +73,7 @@ bool strToUint16(std::string const &str, unsigned short &result)
 	return true;
 }
 
-uint16_t strToUint16(std::string const &str)
+unsigned short strToUShort(std::string const &str)
 {
 	if (str.empty())
 		throw ServerException("Empty string passed to stringToULong");
@@ -85,7 +85,7 @@ uint16_t strToUint16(std::string const &str)
 		throw ServerException("Invalid string passed to stringToUint16: %", errno, str);
 	if (value == USHRT_MAX || errno == ERANGE)
 		throw ServerException("Overflow in stringToUint16: " +  str);
-	return static_cast<uint16_t>(value);
+	return static_cast<unsigned short>(value);
 }
 
 bool isValidIPv4(std::string const &str)

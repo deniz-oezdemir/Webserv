@@ -18,9 +18,9 @@ class Server
 
 	Server &operator=(const Server &rhs);
 
-	void	initServer(void);
-	void	closeServer(void);
-	void	resetServer(void);
+	void initServer(void);
+	void closeServer(void);
+	void resetServer(void);
 
 	// Getters
 	unsigned int							 getPort(void) const;
@@ -51,7 +51,7 @@ class Server
   private:
 	Server(void);
 	// Config Values
-	uint16_t							port_;
+	unsigned short						port_;
 	std::string						   &ipV4_;
 	unsigned long						clientMaxBodySize_;
 	std::string						   &root_;
