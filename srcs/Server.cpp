@@ -11,7 +11,7 @@ Server::Server(
 	std::map<std::string, ConfigValue> const &server,
 	unsigned int							  index
 )
-	: port_(ft::strToUint16(server.at("listen").getMapValue("port")[0])),
+	: port_(ft::strToUShort(server.at("listen").getMapValue("port")[0])),
 	  ipV4_(const_cast<std::string &>(server.at("listen").getMapValue("host")[0]
 	  )),
 	  clientMaxBodySize_(
