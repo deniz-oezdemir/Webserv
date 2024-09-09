@@ -28,9 +28,11 @@ bool isStrOfDigits(std::string const &str);
 // port number.
 bool isUint16(std::string const &str);
 // strToUint16 converts a string to an unsigned short..
-bool strToUint16(std::string const &str, unsigned short &value);
+bool	 strToUint16(std::string const &str, unsigned short &value);
+uint16_t strToUint16(std::string const &str);
 // isValidIPv4 checks if a string is a valid IPv4 address.
 bool isValidIPv4(std::string const &str);
+unsigned long stringToULong(std::string const &str);
 
 template <typename C, typename T>
 typename C::iterator find(C &container, T const &value)

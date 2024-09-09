@@ -26,10 +26,10 @@ std::map<std::string, int> const ServerInput::createFlagMap_()
 }
 
 ServerInput::ServerInput()
-	: flags_(this->NONE), filePath_("./default.config"){};
+	: flags_(this->NONE), filepath_("./default.config"){};
 
 ServerInput::ServerInput(int argc, char **argv)
-	: flags_(this->NONE), filePath_("./default.config")
+	: flags_(this->NONE), filepath_("./default.config")
 {
 	for (int i = 1; i < argc; ++i)
 		this->parseArg_(argv[i], i, argc);
@@ -45,7 +45,7 @@ ServerInput &ServerInput::operator=(ServerInput const &src)
 	if (this != &src)
 	{
 		this->flags_ = src.flags_;
-		this->filePath_ = src.filePath_;
+		this->filepath_ = src.filepath_;
 	}
 	return *this;
 };
@@ -59,7 +59,7 @@ void ServerInput::parseArg_(std::string const &arg, int index, int argc)
 	if (arg[0] == '-')
 		this->setFlag_(arg);
 	else if (index == argc - 1)
-		this->filePath_ = arg;
+		this->filepath_ = arg;
 	else
 		throw ServerException(
 			"Invalid argument=> %\n\n" + this->getHelpMessage(), 0, arg
@@ -105,26 +105,26 @@ std::string ServerInput::getVersionMessage(void) const
 {
 	std::stringstream ss;
 
-	ss << YELLOW BOLD "WebServ " << RESET ULINE CYAN "v0.0.1" << "\n" RESET;
+	ss << YELLOW BOLD "WebServ " << RESET ULINE CYAN "v0.3" << RESET;
 	if (this->hasThisFlag(ServerInput::V_LITE))
 		return ss.str();
 
 #ifdef __clang__
-	ss << WHITE "Compiled with" << YELLOW " Clang "
+	ss << WHITE "\nCompiled with" << YELLOW " Clang "
 	   << WHITE "version " CYAN BOLD << __clang_major__ << "."
 	   << __clang_minor__ << "." << __clang_patchlevel__ << RESET;
 #elif defined(__GNUC__)
-	ss << WHITE "Compiled with " << YELLOW " GCC " << WHITE " version "
+	ss << WHITE "\nCompiled with " << YELLOW " GCC " << WHITE " version "
 	   << CYAN ULINE << __GNUC__ << "." << __GNUC_MINOR__ << "."
 	   << __GNUC_PATCHLEVEL__ << RESET;
 #elif defined(_MSC_VER)
-	ss << WHITE "Compiled with " << YELLOW "MSVC " << WHITE "version " CYAN BOLD
+	ss << WHITE "\nCompiled with " << YELLOW "MSVC " << WHITE "version " CYAN BOLD
 	   << _MSC_VER << RESET;
 #else
-	ss << RED "Unknown compiler" << RESET;
+	ss << RED "\nUnknown compiler" << RESET;
 #endif
 
-	ss << WHITE "\nConfiguration file path: " YELLOW << this->filePath_ << '\n';
+	ss << WHITE "\nConfiguration file path: " YELLOW << this->filepath_ << '\n';
 	ss << WHITE "Created by " << CYAN BOLD "[johnavar] " << "[jmigoya] "
 	   << "[denizozd] " << RESET;
 
@@ -133,5 +133,5 @@ std::string ServerInput::getVersionMessage(void) const
 
 std::string ServerInput::getFilePath(void) const
 {
-	return this->filePath_;
+	return this->filepath_;
 }
