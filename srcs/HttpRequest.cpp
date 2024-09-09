@@ -4,13 +4,13 @@
 HttpRequest::HttpRequest(
 	std::string								&method,
 	std::string								&httpVersion,
-	std::string								&target,
+	std::string								&uri,
 	std::multimap<std::string, std::string> &headers,
 	std::vector<char>						&body
 )
-	: method_(method), httpVersion_(httpVersion), target_(target),
-	  headers_(headers), body_(body)
 {
+	normalizeRequest(method, httpVersion, uri, headers, body);
+
 	return;
 }
 
@@ -45,7 +45,10 @@ void HttpRequest::setTarget(std::string &newTarget)
 	target_ = newTarget;
 }
 
-void HttpRequest::setHeaders(std::multimap<std::string, std::string> &newHeaders
+void HttpRequest::setHeaders(
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > &newHeaders
+	// clang-format on
 )
 {
 	headers_ = newHeaders;
@@ -71,8 +74,10 @@ const std::string &HttpRequest::getTarget(void) const
 	return target_;
 }
 
-const std::multimap<std::string, std::string> &HttpRequest::getHeaders(void
-) const
+// clang-format off
+const std::map<std::string, std::vector<std::string> > &
+// clang-format on
+HttpRequest::getHeaders(void) const
 {
 	return headers_;
 }
@@ -88,14 +93,22 @@ std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
 	os << "HTTP version: " << rhs.getHttpVersion() << std::endl;
 	os << "Target: " << rhs.getTarget() << std::endl;
 	os << "HEADERS:" << std::endl;
-	const std::multimap<std::string, std::string> &headersCpy
+	// clang-format off
+	const std::map<std::string, std::vector<std::string> > &headersCpy
 		= rhs.getHeaders();
-	for (std::multimap<std::string, std::string>::const_iterator it
+	for (std::map<std::string, std::vector<std::string> >::const_iterator it
 		 = headersCpy.begin();
-		 it != headersCpy.end();
-		 it++)
+		// clang-format on
+		it != headersCpy.end();
+		it++)
 	{
-		os << it->first << " : " << it->second << std::endl;
+		if (it->second.size() == 1)
+		{
+			os << it->first << " : " << it->second[0] << std::endl;
+		}
+		else
+		{
+		}
 	}
 	os << "BODY:" << std::endl;
 	const std::vector<char> &bodyCpy = rhs.getBody();
@@ -107,4 +120,47 @@ std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
 	}
 
 	return os;
+}
+
+void HttpRequest::normalizeRequest(
+	std::string								&method,
+	std::string								&httpVersion,
+	std::string								&uri,
+	std::multimap<std::string, std::string> &inputHeaders,
+	std::vector<char>						&body
+)
+{
+	method_ = method;
+	httpVersion_ = httpVersion;
+	target_ = inputHeaders.find("Host")->second + '/' + uri;
+	body_ = body;
+
+	for (std::multimap<std::string, std::string>::iterator it
+		 = inputHeaders.begin();
+		 it != inputHeaders.end();
+		 ++it)
+	{
+		std::vector<std::string> newVector;
+		if (inputHeaders.count(it->first) == 1)
+		{
+			// TODO: check if the request header came with list or other
+			// type, like HEADER: value1, value2
+			newVector.push_back(it->second);
+			headers_[it->first] = newVector;
+		}
+		else if (inputHeaders.count(it->first) > 1)
+		{
+			std::pair<
+				std::multimap<std::string, std::string>::iterator,
+				std::multimap<std::string, std::string>::iterator>
+				matches = inputHeaders.equal_range(it->first);
+			for (; matches.first != matches.second; ++matches.first)
+			{
+				// TODO: check if the request header came with list or other
+				// type, like HEADER: value1, value2
+				newVector.push_back(matches.first->second);
+			}
+			headers_[it->first] = newVector;
+		}
+	}
 }

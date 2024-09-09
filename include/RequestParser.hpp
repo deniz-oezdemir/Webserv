@@ -29,12 +29,15 @@ class RequestParser
 	static void checkHttpVersion(std::string &httpVersion);
 
 	// Headers checks
-	void checkHeaders(const std::multimap<std::string, std::string> &headers);
+	static void
+	checkHeaders(const std::multimap<std::string, std::string> &headers);
 
 	// Body checks
-	void checkBody(
+	static void checkBody(
 		const std::string							  &method,
 		const std::multimap<std::string, std::string> &headers,
-		const std::string							  &body
+		const std::vector<char>						  &body
 	);
+
+	static const std::string repeatableHeaders[20];
 };

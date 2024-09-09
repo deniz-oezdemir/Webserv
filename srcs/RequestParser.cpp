@@ -5,6 +5,29 @@
 #include <cstddef>
 #include <iostream>
 #include <sstream>
+#include <vector>
+
+const std::string RequestParser::repeatableHeaders[20]
+	= {"Accept",
+	   "Accept-Charset",
+	   "Accept-Encoding",
+	   "Accept-Language",
+	   "Allow",
+	   "Cache-Control",
+	   "Connection",
+	   "Content-Encoding",
+	   "Content-Language",
+	   "Expect",
+	   "Pragma",
+	   "Proxy-Authenticate",
+	   "TE",
+	   "Trailer",
+	   "Transfer-Encoding",
+	   "Upgrade",
+	   "Vary",
+	   "Via",
+	   "Warning",
+	   "WWW-Authenticate"};
 
 HttpRequest RequestParser::parseRequest(std::string str)
 {
@@ -24,12 +47,11 @@ HttpRequest RequestParser::parseRequest(std::string str)
 
 	std::istringstream requestStream(str.c_str());
 
-	// Parse the start line
+	// Extract the start line
 	std::string startLine;
 	std::getline(requestStream, startLine, '\n');
-	checkStartLine(startLine, &method, &uri, &httpVersion);
 
-	// Parse the headers
+	// Extract the headers
 	std::string headerLine;
 	while (std::getline(requestStream, headerLine) && !headerLine.empty())
 	{
@@ -57,7 +79,7 @@ HttpRequest RequestParser::parseRequest(std::string str)
 		}
 	}
 
-	// Parse the body
+	// Extract the body
 	std::string bodyLine;
 	while (std::getline(requestStream, bodyLine))
 	{
@@ -68,8 +90,11 @@ HttpRequest RequestParser::parseRequest(std::string str)
 		body.insert(body.end(), bodyLine.begin(), bodyLine.end());
 	}
 
-	HttpRequest req(method, httpVersion, uri, headers, body);
+	checkStartLine(startLine, &method, &uri, &httpVersion);
+	checkHeaders(headers);
+	checkBody(method, headers, body);
 
+	HttpRequest req(method, httpVersion, uri, headers, body);
 	return req;
 }
 
@@ -169,7 +194,9 @@ void RequestParser::checkHeaders(
 	const std::multimap<std::string, std::string> &headers
 )
 {
-	bool hasHost = false;
+	bool													hasHost = false;
+	std::map<std::string, int>								headerCounts;
+	std::multimap<std::string, std::string>::const_iterator it;
 
 	for (std::multimap<std::string, std::string>::const_iterator it
 		 = headers.begin();
@@ -196,6 +223,26 @@ void RequestParser::checkHeaders(
 			}
 			hasHost = true;
 		}
+		// Check if non-repeatable header appears more than once
+		if (headers.count(it->first) > 0)
+		{
+			headerCounts[it->first]++;
+			if (headerCounts[it->first] > 1)
+			{
+				// TODO: turn into method
+				for (int i = 0; i < 20; ++i)
+				{
+					if (repeatableHeaders[i] == it->first)
+					{
+						continue;
+					}
+				}
+				Logger::log(Logger::INFO)
+					<< "Non-repeatable header appears more than once. Header: "
+					<< it->first << std::endl;
+				throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+			}
+		}
 	}
 
 	if (!hasHost)
@@ -208,14 +255,14 @@ void RequestParser::checkHeaders(
 void RequestParser::checkBody(
 	const std::string							  &method,
 	const std::multimap<std::string, std::string> &headers,
-	const std::string							  &body
+	const std::vector<char>						  &body
 )
 {
 	if ((method == "GET" || method == "DELETE") && !body.empty())
 	{
 		Logger::log(
 			Logger::INFO, "Body should be empty for GET or DELETE requests."
-		);
+		) << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 
@@ -226,12 +273,13 @@ void RequestParser::checkBody(
 	{
 		Logger::log(
 			Logger::INFO, "Content-Length does not match actual body length."
-		);
+		) << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 
 	if (headers.count("Transfer-Encoding") > 0
-		&& headers.find("Transfer-Encoding")->second == "chunked")
+		&& headers.find("Transfer-Encoding")->second.find("chunked")
+			   != std::string::npos)
 	{
 		// TODO: Check that the body is in the chunked transfer coding format
 		// Logger::log(

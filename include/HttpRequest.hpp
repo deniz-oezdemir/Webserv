@@ -11,7 +11,7 @@ class HttpRequest
 	HttpRequest(
 		std::string								&method,
 		std::string								&httpVersion,
-		std::string								&target,
+		std::string								&uri,
 		std::multimap<std::string, std::string> &headers,
 		std::vector<char>						&body
 	);
@@ -22,25 +22,47 @@ class HttpRequest
 	void setMethod(std::string &newMethod);
 	void setHttpVersion(std::string &newHttpVersion);
 	void setTarget(std::string &newTarget);
-	void setHeaders(std::multimap<std::string, std::string> &newHeaders);
+	// clang-format off
+	void setHeaders(std::map<std::string, std::vector<std::string> > &newHeaders
+				 );
+	// clang-format on
 	void setBody(std::vector<char> &newBody);
 
 	// Getters
-	const std::string							  &getMethod(void) const;
-	const std::string							  &getHttpVersion(void) const;
-	const std::string							  &getTarget(void) const;
-	const std::multimap<std::string, std::string> &getHeaders(void) const;
-	const std::vector<char>						  &getBody(void) const;
+	const std::string &getMethod(void) const;
+	const std::string &getHttpVersion(void) const;
+	const std::string &getTarget(void) const;
+	// clang-format off
+	const std::map<std::string, std::vector<std::string> > &getHeaders(void
+	) const;
+	// clang-format on
+	const std::vector<char> &getBody(void) const;
 
 	// Overloaded Operators
 	HttpRequest &operator=(const HttpRequest &rhs);
 
   private:
-	std::string								method_;
-	std::string								httpVersion_;
-	std::string								target_;
-	std::multimap<std::string, std::string> headers_;
-	std::vector<char>						body_;
+	/**
+	 * This method is used to normalize the HTTP request. It checks that all
+	 * fields follow the correct syntax according to the HTTP/1.1 specification.
+	 * It also sets the target of the request by combining the Host header and
+	 * the URI.
+	 */
+	void normalizeRequest(
+		std::string								&method,
+		std::string								&httpVersion,
+		std::string								&uri,
+		std::multimap<std::string, std::string> &headers,
+		std::vector<char>						&body
+	);
+
+	std::string method_;
+	std::string httpVersion_;
+	std::string target_;
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > headers_;
+	// clang-format on
+	std::vector<char> body_;
 };
 
 std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs);
