@@ -16,3 +16,4 @@
 #include "../include/ServerException.hpp"
 #include "../include/Server.hpp"
 #include "../include/ServerEngine.hpp"
+#include "../include/HttpException.hpp"

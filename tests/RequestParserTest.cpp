@@ -4,13 +4,11 @@ std::string createRequestString(
 	const std::string							  &method,
 	const std::string							  &uri,
 	const std::string							  &httpVersion,
-	const std::string							  &host,
 	const std::multimap<std::string, std::string> &headers,
 	const std::vector<char>						  &body
 )
 {
 	std::string requestStr = method + " " + uri + " " + httpVersion + "\r\n";
-	requestStr += "Host: " + host + "\r\n";
 
 	for (std::multimap<std::string, std::string>::const_iterator it
 		 = headers.begin();
@@ -39,6 +37,9 @@ Test(RequestParser, testStartLine)
 	std::string								target(host + uri);
 	std::multimap<std::string, std::string> headers;
 	headers.insert(
+		std::pair<std::string, std::string>("Host", host)
+	);
+	headers.insert(
 		std::pair<std::string, std::string>("User-Agent", "telnet/12.21")
 	);
 	headers.insert(std::pair<std::string, std::string>("Accept", "*/*"));
@@ -46,7 +47,7 @@ Test(RequestParser, testStartLine)
 
 	// Create request string
 	std::string requestStr
-		= createRequestString(method, uri, httpVersion, host, headers, body);
+		= createRequestString(method, uri, httpVersion, headers, body);
 
 	// Parse request
 	HttpRequest request = RequestParser::parseRequest(requestStr);
@@ -71,6 +72,9 @@ Test(RequestParser, testHeaders)
 	std::string								target(host + uri);
 	std::multimap<std::string, std::string> headers;
 	headers.insert(
+		std::pair<std::string, std::string>("Host", host)
+	);
+	headers.insert(
 		std::pair<std::string, std::string>("Content-Type", "application/json")
 	);
 	headers.insert(
@@ -80,7 +84,7 @@ Test(RequestParser, testHeaders)
 
 	// Create request string
 	std::string requestStr
-		= createRequestString(method, uri, httpVersion, host, headers, body);
+		= createRequestString(method, uri, httpVersion, headers, body);
 	std::cout << "request string: " << std::endl << requestStr << std::endl;
 
 	// Parse request
@@ -114,6 +118,9 @@ Test(RequestParser, testBody)
 	std::string								target(host + uri);
 	std::multimap<std::string, std::string> headers;
 	headers.insert(
+		std::pair<std::string, std::string>("Host", host)
+	);
+	headers.insert(
 		std::pair<std::string, std::string>("User-Agent", "telnet/12.21")
 	);
 	headers.insert(std::pair<std::string, std::string>("Accept", "*/*"));
@@ -131,7 +138,7 @@ Test(RequestParser, testBody)
 
 	// Create request string
 	std::string requestStr
-		= createRequestString(method, uri, httpVersion, host, headers, body);
+		= createRequestString(method, uri, httpVersion, headers, body);
 	// std::cout << "request string: " << std::endl << requestStr << std::endl;
 	std::string reqBodyStr(body.begin(), body.end());
 
@@ -149,4 +156,64 @@ Test(RequestParser, testBody)
 	);
 
 	delete[] argv;
+}
+
+Test(RequestParser, testInvalidMethod)
+{
+	std::string method("INVALID_METHOD");
+	std::string httpVersion("HTTP/1.1");
+	std::string uri("/localhost:8080");
+	std::string host("www.example.com");
+	std::multimap<std::string, std::string> headers;
+	std::vector<char> body;
+
+	std::string requestStr
+		= createRequestString(method, uri, httpVersion, headers, body);
+
+	cr_assert_throw(RequestParser::parseRequest(requestStr), HttpException);
+}
+
+Test(RequestParser, testInvalidHttpVersion)
+{
+	std::string method("GET");
+	std::string httpVersion("INVALID_HTTP_VERSION");
+	std::string uri("/localhost:8080");
+	std::string host("www.example.com");
+	std::multimap<std::string, std::string> headers;
+	std::vector<char> body;
+
+	std::string requestStr
+		= createRequestString(method, uri, httpVersion, headers, body);
+
+	cr_assert_throw(RequestParser::parseRequest(requestStr), HttpException);
+}
+
+Test(RequestParser, testInvalidURI)
+{
+	std::string method("GET");
+	std::string httpVersion("INVALID_HTTP_VERSION");
+	std::string uri("localhost:8080");
+	std::string host("www.example.com");
+	std::multimap<std::string, std::string> headers;
+	std::vector<char> body;
+
+	std::string requestStr
+		= createRequestString(method, uri, httpVersion, headers, body);
+
+	cr_assert_throw(RequestParser::parseRequest(requestStr), HttpException);
+}
+
+Test(RequestParser, testMissingHostHeader)
+{
+	std::string method("GET");
+	std::string httpVersion("HTTP/1.1");
+	std::string uri("/localhost:8080");
+	std::string host("");
+	std::multimap<std::string, std::string> headers;
+	std::vector<char> body;
+
+	std::string requestStr
+		= createRequestString(method, uri, httpVersion, headers, body);
+
+	cr_assert_throw(RequestParser::parseRequest(requestStr), HttpException);
 }
