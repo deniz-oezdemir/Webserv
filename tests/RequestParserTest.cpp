@@ -47,7 +47,6 @@ Test(RequestParser, testStartLine)
 	// Create request string
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, host, headers, body);
-	std::cout << "request string: " << std::endl << requestStr << std::endl;
 
 	// Parse request
 	HttpRequest request = RequestParser::parseRequest(requestStr);
@@ -93,6 +92,7 @@ Test(RequestParser, testHeaders)
 		 it != headers.end();
 		 ++it)
 	{
+		// TODO: add test for multiple values in the value vector
 		cr_assert_str_eq(
 			request.getHeaders().at(it->first)[0].c_str(), it->second.c_str()
 		);
@@ -117,34 +117,36 @@ Test(RequestParser, testBody)
 		std::pair<std::string, std::string>("User-Agent", "telnet/12.21")
 	);
 	headers.insert(std::pair<std::string, std::string>("Accept", "*/*"));
-    headers.insert(std::pair<std::string, std::string>("Content-Type", "application/json"));
-	
+	headers.insert(
+		std::pair<std::string, std::string>("Content-Type", "application/json")
+	);
+
 	// Body
-    std::string bodyStr = "{\n"
-                          "    \"name\": \"John Doe\",\n"
-                          "    \"email\": \"john.doe@example.com\",\n"
-                          "    \"age\": 30\n"
-                          "	}";
-    std::vector<char> body(bodyStr.begin(), bodyStr.end());
+	std::string		  bodyStr = "{\n"
+								"    \"name\": \"John Doe\",\n"
+								"    \"email\": \"john.doe@example.com\",\n"
+								"    \"age\": 30\n"
+								"	}";
+	std::vector<char> body(bodyStr.begin(), bodyStr.end());
 
 	// Create request string
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, host, headers, body);
 	// std::cout << "request string: " << std::endl << requestStr << std::endl;
-    std::string reqBodyStr(body.begin(), body.end());
-    std::cout << "Request body: " << std::endl << reqBodyStr << std::endl;
+	std::string reqBodyStr(body.begin(), body.end());
 
 	// Parse request
 	HttpRequest request = RequestParser::parseRequest(requestStr);
-	
-    // Print the actual body returned by request.getBody()
-    std::vector<char> actualBody = request.getBody();
-    std::string actualBodyStr(actualBody.begin(), actualBody.end());
-    std::cout << "Actual body: " << std::endl << actualBodyStr << std::endl;
+
+	// Print the actual body returned by request.getBody()
+	std::vector<char> actualBody = request.getBody();
+	std::string		  actualBodyStr(actualBody.begin(), actualBody.end());
 
 	// Assertions for body
-	cr_assert_eq(request.getBody(), body);
+	cr_assert(
+		std::equal(body.begin(), body.end(), request.getBody().begin()),
+		"The request body does not match the expected body."
+	);
 
 	delete[] argv;
 }
-
