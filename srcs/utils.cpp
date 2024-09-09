@@ -73,7 +73,7 @@ bool strToUint16(std::string const &str, unsigned short &result)
 	return true;
 }
 
-uint16_t strToUint16(std::string const &str)
+unsigned short strToUint16(std::string const &str)
 {
 	if (str.empty())
 		throw ServerException("Empty string passed to stringToULong");
@@ -85,7 +85,7 @@ uint16_t strToUint16(std::string const &str)
 		throw ServerException("Invalid string passed to stringToUint16: %", errno, str);
 	if (value == USHRT_MAX || errno == ERANGE)
 		throw ServerException("Overflow in stringToUint16: " +  str);
-	return static_cast<uint16_t>(value);
+	return static_cast<unsigned short>(value);
 }
 
 bool isValidIPv4(std::string const &str)
