@@ -1,4 +1,5 @@
 #include "../include/RequestParser.hpp"
+#include "../include/HttpException.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
 #include <algorithm>
