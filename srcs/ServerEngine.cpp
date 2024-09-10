@@ -320,16 +320,25 @@ std::string ServerEngine::createResponse(const HttpRequest &request)
 	}
 }
 
-// location hardcoded here, needed in HttpRequest request -> add to parsing?
-// (map with target, location would be handy)
 std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 {
+	std::cout << request << std::endl;
+
+	// Get root path from config of server
+	std::string rootdir = servers_[0].getRoot();
+	// Combine root path with uri from request
+	std::string filepath = rootdir + request.getUri();
+
+	std::cout << request.getUri() << std::endl;
+
+	//TODO: combine both paragraphs below
+	//@Sebas: what does isThisLocation expect? file is never found
+	if (servers_[0].isThisLocation(request.getUri()))
+		Logger::log(Logger::DEBUG) << "File is on server" <<std::endl;
+	else
+		Logger::log(Logger::DEBUG) << "File is not on server" <<std::endl;
+
 	HttpResponse response;
-
-	std::string location = "website";
-	std::string filepath = location + request.getTarget();
-
-	// Read the index.html file
 	std::ifstream file(filepath);
 	if (file.is_open())
 	{
