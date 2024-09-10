@@ -1,5 +1,4 @@
-TRACE /index.html HTTP/1.1
+GET /nofile.html HTTP/1.1
 Accept: */*
 Host: www.example.com
 User-Agent: telnet/12.21
-
