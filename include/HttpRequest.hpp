@@ -32,6 +32,7 @@ class HttpRequest
 	void setMethod(std::string &newMethod);
 	void setHttpVersion(std::string &newHttpVersion);
 	void setTarget(std::string &newTarget);
+	void setUri(std::string &newUri);
 	// clang-format off
 	void setHeaders(std::map<std::string, std::vector<std::string> > &newHeaders
 				 );
@@ -42,6 +43,7 @@ class HttpRequest
 	const std::string &getMethod(void) const;
 	const std::string &getHttpVersion(void) const;
 	const std::string &getTarget(void) const;
+	const std::string &getUri(void) const;
 	// clang-format off
 	const std::map<std::string, std::vector<std::string> > &getHeaders(void
 	) const;
@@ -69,6 +71,7 @@ class HttpRequest
 	std::string method_;
 	std::string httpVersion_;
 	std::string target_;
+	std::string uri_;
 	// clang-format off
 	std::map<std::string, std::vector<std::string> > headers_;
 	// clang-format on
