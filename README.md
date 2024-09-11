@@ -70,19 +70,9 @@ make test T=SpecificTestName
 | ---------------------- | ---------------------------------------------------------------------------------------------------- |
 | `root`                 | Sets the root directory for requests matching the `location` block.                                  |
 | `index`                | Specifies the default file to serve if the request is a directory.                                   |
-| `auth_basic`           | Enables basic HTTP authentication and sets the authentication realm.                                 |
-| `auth_basic_user_file` | Defines the file containing usernames and passwords for basic authentication.                        |
 | `limit_except`         | Restricts allowed HTTP methods for the specified location.                                           |
 | `return`               | Sets up HTTP redirection for the specified location.                                                 |
 | `autoindex`            | Enables or disables directory listing for the specified location.                                    |
 | `client_max_body_size` | Limits the maximum size of the client request body for a specific location.                          |
 | `upload_pass`          | Specifies the directory where uploaded files should be saved.                                        |
 | `cgi`                  | Specifies the CGI extension script and the binary path to execute. e.g., `cgi .py /usr/bin/python3`. |
-
-##### \*\* Match Types
-
-| Match Type             | Description                                                                                   |
-| ---------------------- | --------------------------------------------------------------------------------------------- |
-| **Exact Match**        | Matches the location exactly as specified. e.g, `location = /example { ... }`.                |
-| **Prefix Match**       | Matches the beginning of the request URI. e.g, `location /prefix { ... }`.                    |
-| **Regular Expression** | Matches using a regular expression pattern. e.g, `location ~ \.jpg$ { ... }` for image files. |
