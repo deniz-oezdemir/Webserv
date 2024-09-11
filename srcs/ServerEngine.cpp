@@ -12,7 +12,7 @@
 ServerEngine::ServerEngine() : numServers_(0) {}
 
 ServerEngine::ServerEngine(
-	std::vector<std::map<std::string, ConfigValue> > const &servers
+	std::vector<std::map<std::string, ConfigValue>> const &servers
 )
 	: numServers_(servers.size())
 {
@@ -320,16 +320,29 @@ std::string ServerEngine::createResponse(const HttpRequest &request)
 	}
 }
 
-// location hardcoded here, needed in HttpRequest request -> add to parsing?
-// (map with target, location would be handy)
 std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 {
-	HttpResponse response;
+	std::cout << request << std::endl;
 
-	std::string location = "website";
-	std::string filepath = location + request.getTarget();
+	// Get root path from config of server
+	std::string rootdir = servers_[0].getRoot();
+	// Combine root path with uri from request
+	std::string filepath = rootdir + request.getUri();
 
-	// Read the index.html file
+	Logger::log(Logger::DEBUG) << "Filepath: " << filepath << std::endl;
+
+	// TODO: combine both paragraphs below
+	// TODO: implement check for file/directory, coordinate with Seba
+	// @Seba: what does isThisLocation expect?
+	// file is not for any of root, uri, filepath when running tests for
+	// ServerEngine
+	// @Seba: maybe because we do not start the server when testing?
+	if (servers_[0].isThisLocation(filepath))
+		Logger::log(Logger::DEBUG) << "File is on server" << std::endl;
+	else
+		Logger::log(Logger::DEBUG) << "File is not on server" << std::endl;
+
+	HttpResponse  response;
 	std::ifstream file(filepath);
 	if (file.is_open())
 	{

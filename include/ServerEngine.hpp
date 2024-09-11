@@ -12,11 +12,14 @@ class ServerEngine
 {
   public:
 	ServerEngine();
-	ServerEngine(std::vector<std::map<std::string, ConfigValue> > const &servers
+	ServerEngine(std::vector<std::map<std::string, ConfigValue>> const &servers
 	);
 	~ServerEngine();
 
 	void start(void);
+
+	// TODO: move createResponse() to private as only public for testing
+	std::string createResponse(const HttpRequest &request);
 
   private:
 	ServerEngine(ServerEngine const &src);
@@ -33,7 +36,6 @@ class ServerEngine
 	void restartServer_(size_t &index);
 	void pollFdError_(size_t &index);
 
-	std::string createResponse(const HttpRequest &request);
 	std::string handleGetRequest(const HttpRequest &request);
 	std::string handlePostRequest(const HttpRequest &request);
 	std::string handleDeleteRequest(const HttpRequest &request);

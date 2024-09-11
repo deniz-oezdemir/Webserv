@@ -11,17 +11,17 @@ BLUE        := \033[0;94m
 MAGENTA     := \033[0;95m
 CYAN        := \033[0;96m
 WHITE       := \033[0;97m
-	
+
 ################################################################################
 ##                                  WEBSERV                                   ##
 ################################################################################
 
 # Add here the name of the file that contain an specific group of tests.
 TESTS							:= ServerInput ServerConfig utils HttpRequest RequestParser \
-										 Logger ServerException
+										 Logger ServerException ServerEngine
 CXX								:= c++
 RM								:= rm -rf
-	
+
 ################################################################################
 ##                                DIRECTORIES                                 ##
 ################################################################################
@@ -37,7 +37,7 @@ vpath %.o $(OBJ_DIR)
 SOURCE						:= $(shell find $(SRC_DIR) -name '*.cpp' -exec basename {} \;)
 SOURCE						:= $(filter-out main.cpp, $(SOURCE))
 OBJECTS						:= $(addprefix $(OBJ_DIR)/, $(SOURCE:.cpp=.o))
-	
+
 ################################################################################
 ##                                   FLAGS                                    ##
 ################################################################################
@@ -89,6 +89,10 @@ Logger: $(OBJECTS) LoggerTest.cpp
 
 .PHONY: Logger
 ServerException: $(OBJECTS) ServerExceptionTest.cpp
+	@$(call run, "$^")
+
+.PHONY: ServerEngine
+ServerEngine: $(OBJECTS) ServerEngineTest.cpp
 	@$(call run, "$^")
 
 $(OBJECTS):

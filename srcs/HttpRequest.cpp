@@ -45,6 +45,10 @@ void HttpRequest::setTarget(std::string &newTarget)
 	target_ = newTarget;
 }
 
+void HttpRequest::setUri(std::string &newUri) {
+	uri_ = newUri;
+}
+
 void HttpRequest::setHeaders(
 	// clang-format off
 	std::map<std::string, std::vector<std::string> > &newHeaders
@@ -74,6 +78,10 @@ const std::string &HttpRequest::getTarget(void) const
 	return target_;
 }
 
+const std::string &HttpRequest::getUri(void) const {
+	return uri_;
+}
+
 // clang-format off
 const std::map<std::string, std::vector<std::string> > &
 // clang-format on
@@ -92,6 +100,7 @@ std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
 	os << "Method: " << rhs.getMethod() << std::endl;
 	os << "HTTP version: " << rhs.getHttpVersion() << std::endl;
 	os << "Target: " << rhs.getTarget() << std::endl;
+	os << "URI: " << rhs.getUri() << std::endl;
 	os << "HEADERS:" << std::endl;
 	// clang-format off
 	const std::map<std::string, std::vector<std::string> > &headersCpy
@@ -134,6 +143,7 @@ void HttpRequest::normalizeRequest(
 	method_ = method;
 	httpVersion_ = httpVersion;
 	target_ = inputHeaders.find("Host")->second + uri;
+	uri_ = uri;
 	body_ = body;
 
 	for (std::multimap<std::string, std::string>::iterator it
