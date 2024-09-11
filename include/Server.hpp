@@ -31,6 +31,9 @@ class Server
 	std::vector<std::string>				 getServerName(void) const;
 	std::map<std::string, ConfigValue> const getServerConfig(void) const;
 
+	// Setters
+	void setRoot(const std::string &root);
+
 	unsigned int	   getServerIndex(void) const;
 	int const		  &getServerFd(void) const;
 	sockaddr_in const &getServerAddr(void) const;

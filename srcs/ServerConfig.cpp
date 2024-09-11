@@ -693,3 +693,12 @@ bool ServerConfig::getServerConfigValue(
 	}
 	return false;
 }
+
+void ServerConfig::setRootToAllServers(std::string const &root)
+{
+	std::vector<std::map<std::string, ConfigValue> >::iterator it(
+		this->serversConfig_.begin()
+	);
+	for (; it != this->serversConfig_.end(); ++it)
+		it->find("root")->second.setVector(std::vector<std::string>(1, root));
+}

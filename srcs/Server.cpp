@@ -1,7 +1,7 @@
 #include "Server.hpp"
+#include "Logger.hpp"
 #include "ServerException.hpp"
 #include "utils.hpp"
-#include "Logger.hpp"
 
 #include <fcntl.h>
 #include <netdb.h>
@@ -62,7 +62,7 @@ Server::~Server(void)
 	// to indicate that the socket is closed
 	if (serverFd_ >= 0)
 	{
-    this->closeServer();
+		this->closeServer();
 	}
 }
 
@@ -333,4 +333,9 @@ bool Server::getThisLocationValue(
 		return false;
 	}
 	return true;
+}
+
+void Server::setRoot(const std::string &root)
+{
+	root_ = root;
 }
