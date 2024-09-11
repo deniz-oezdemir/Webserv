@@ -12,7 +12,7 @@
 ServerEngine::ServerEngine() : numServers_(0) {}
 
 ServerEngine::ServerEngine(
-	std::vector<std::map<std::string, ConfigValue> > const &servers
+	std::vector<std::map<std::string, ConfigValue>> const &servers
 )
 	: numServers_(servers.size())
 {
@@ -329,16 +329,20 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 	// Combine root path with uri from request
 	std::string filepath = rootdir + request.getUri();
 
-	std::cout << request.getUri() << std::endl;
+	Logger::log(Logger::DEBUG) << "Filepath: " << filepath << std::endl;
 
-	//TODO: combine both paragraphs below
-	//@Sebas: what does isThisLocation expect? file is never found
-	if (servers_[0].isThisLocation(request.getUri()))
-		Logger::log(Logger::DEBUG) << "File is on server" <<std::endl;
+	// TODO: combine both paragraphs below
+	// TODO: implement check for file/directory, coordinate with Seba
+	// @Seba: what does isThisLocation expect?
+	// file is not for any of root, uri, filepath when running tests for
+	// ServerEngine
+	// @Seba: maybe because we do not start the server when testing?
+	if (servers_[0].isThisLocation(filepath))
+		Logger::log(Logger::DEBUG) << "File is on server" << std::endl;
 	else
-		Logger::log(Logger::DEBUG) << "File is not on server" <<std::endl;
+		Logger::log(Logger::DEBUG) << "File is not on server" << std::endl;
 
-	HttpResponse response;
+	HttpResponse  response;
 	std::ifstream file(filepath);
 	if (file.is_open())
 	{
