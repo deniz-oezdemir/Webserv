@@ -36,8 +36,8 @@ class ServerConfig
 		std::vector<std::map<std::string, ConfigValue> > &serversConfig
 	) const;
 
-	std::vector<std::map<std::string, ConfigValue> > const &getAllServersConfig(void
-	) const;
+	std::vector<std::map<std::string, ConfigValue> > const &
+	getAllServersConfig(void) const;
 
 	// Get the value of a key in a server[serverIndex] configuration map.
 	bool getServerConfigValue(
@@ -53,6 +53,9 @@ class ServerConfig
 
 	void initGeneralConfig_(void);
 	void initServersConfig_(void);
+	void initLocationConfig_(
+		std::map<std::string, std::vector<std::string> > &location
+	);
 	bool checkValues_(
 		std::vector<std::string> const &line,
 		unsigned int					maxSize,

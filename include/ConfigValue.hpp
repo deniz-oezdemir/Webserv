@@ -33,6 +33,8 @@ class ConfigValue
 	std::vector<std::string> const &getMapValue(std::string const &key) const;
 	void setVector(std::vector<std::string> const &value);
 	void setMap(std::map<std::string, std::vector<std::string> > const &value);
+	void
+	pushBackMapValue(std::string const &key, std::string const &value);
 
   private:
 	valueType										type_;
