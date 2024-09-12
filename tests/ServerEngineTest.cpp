@@ -38,22 +38,25 @@ Test(ServerEngine, handleGetRequest_FileExists)
 	ServerConfig config("test_default.config");
 	config.parseFile(false, false);
 
-	// Create a ServerEngine object
-	ServerEngine serverEngine(config.getAllServersConfig());
-	// serverEngine.start();
+	{
+		// Create a ServerEngine object
+		ServerEngine serverEngine(config.getAllServersConfig());
+		// serverEngine.start();
 
-	// Call the handleGetRequest method
-	std::string response = serverEngine.createResponse(request);
+		// Call the handleGetRequest method
+		std::string response = serverEngine.createResponse(request);
 
-	std::cout << "\n\nTest Response:\n" << response << std::endl;
-	// Assert the expected response
-	cr_assert(
-		response.find("200 OK") != std::string::npos, "Expected 200 OK response"
-	);
-	cr_assert(
-		response.find("<!DOCTYPE html>") != std::string::npos,
-		"Expected HTML content in response"
-	);
+		std::cout << "\n\nTest Response:\n" << response << std::endl;
+		// Assert the expected response
+		cr_assert(
+			response.find("200 OK") != std::string::npos,
+			"Expected 200 OK response"
+		);
+		cr_assert(
+			response.find("<!DOCTYPE html>") != std::string::npos,
+			"Expected HTML content in response"
+		);
+	}
 }
 
 // Test for handling GET request when file is not found
@@ -67,24 +70,25 @@ Test(ServerEngine, handleGetRequest_FileNotFound)
 
 	ServerConfig config("test_default.config");
 	config.parseFile(false, false);
+	{
+		// Create a ServerEngine object
+		ServerEngine serverEngine(config.getAllServersConfig());
+		// serverEngine.start();
 
-	// Create a ServerEngine object
-	ServerEngine serverEngine(config.getAllServersConfig());
-	// serverEngine.start();
+		// Call the handleGetRequest method
+		std::string response = serverEngine.createResponse(request);
 
-	// Call the handleGetRequest method
-	std::string response = serverEngine.createResponse(request);
-
-	std::cout << "\n\nTest Response:\n" << response << std::endl;
-	// Assert the expected response
-	cr_assert(
-		response.find("404 Not Found") != std::string::npos,
-		"Expected 404 Not Found response"
-	);
-	cr_assert(
-		response.find("<!DOCTYPE html>") != std::string::npos,
-		"Expected HTML content in response"
-	);
+		std::cout << "\n\nTest Response:\n" << response << std::endl;
+		// Assert the expected response
+		cr_assert(
+			response.find("404 Not Found") != std::string::npos,
+			"Expected 404 Not Found response"
+		);
+		cr_assert(
+			response.find("<!DOCTYPE html>") != std::string::npos,
+			"Expected HTML content in response"
+		);
+	}
 }
 
 // Test for handling GET request with unsupported method
@@ -99,23 +103,60 @@ Test(ServerEngine, handleGetRequest_NotImplemented)
 	ServerConfig config("test_default.config");
 	config.parseFile(false, false);
 
-	// Create a ServerEngine object
-	ServerEngine serverEngine(config.getAllServersConfig());
-	// serverEngine.start();
+	{
+		// Create a ServerEngine object
+		ServerEngine serverEngine(config.getAllServersConfig());
+		// serverEngine.start();
 
-	std::cout << "\nTest Method:\n" << request.getMethod() << "\n" << std::endl;
+		std::cout << "\nTest Method:\n"
+				  << request.getMethod() << "\n"
+				  << std::endl;
 
-	// Call the handleGetRequest method
-	std::string response = serverEngine.createResponse(request);
+		// Call the handleGetRequest method
+		std::string response = serverEngine.createResponse(request);
 
-	std::cout << "\n\nTest Response:\n" << response << std::endl;
-	// Assert the expected response
-	cr_assert(
-		response.find("501 Not Implemented") != std::string::npos,
-		"Expected 501 Not Implemented response"
-	);
-	cr_assert(
-		response.find("<!DOCTYPE html>") != std::string::npos,
-		"Expected HTML content in response"
-	);
+		std::cout << "\n\nTest Response:\n" << response << std::endl;
+		// Assert the expected response
+		cr_assert(
+			response.find("501 Not Implemented") != std::string::npos,
+			"Expected 501 Not Implemented response"
+		);
+		cr_assert(
+			response.find("<!DOCTYPE html>") != std::string::npos,
+			"Expected HTML content in response"
+		);
+	}
+}
+
+// Test for handling DELETE request
+Test(ServerEngine, handleDeleteRequest)
+{
+	// Create a request string for DELETE method
+	std::string requestStr = readFile("deleteRequest.txt");
+
+	// Parse the request string into an HttpRequest object
+	HttpRequest request = RequestParser::parseRequest(requestStr);
+
+	ServerConfig config("test_default.config");
+	config.parseFile(false, false);
+
+	{
+		// Create a ServerEngine object
+		ServerEngine serverEngine(config.getAllServersConfig());
+		// serverEngine.start(); // This line is commented out
+
+		// Call the handleDeleteRequest method
+		std::string response = serverEngine.createResponse(request);
+
+		std::cout << "\n\nTest Response:\n" << response << std::endl;
+		// Assert the expected response
+		cr_assert(
+			response.find("200 OK") != std::string::npos,
+			"Expected 200 OK response"
+		);
+		cr_assert(
+			response.find("<!DOCTYPE html>") != std::string::npos,
+			"Expected HTML content in response"
+		);
+	}
 }
