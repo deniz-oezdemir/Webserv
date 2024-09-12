@@ -3,6 +3,7 @@
 #include "Logger.hpp"
 #include "macros.hpp"
 #include <algorithm>
+#include <cctype>
 #include <cstddef>
 #include <iostream>
 #include <sstream>
@@ -52,7 +53,7 @@ HttpRequest RequestParser::parseRequest(std::string str)
 	std::string startLine;
 	std::getline(requestStream, startLine, '\n');
 
-	// Extract the headers
+	// Extract the headers and do syntax check on individual headers
 	std::string headerLine;
 	while (std::getline(requestStream, headerLine) && !headerLine.empty())
 	{
@@ -61,13 +62,15 @@ HttpRequest RequestParser::parseRequest(std::string str)
 			headerLine.erase(headerLine.size() - 1); // Remove the trailing '\r'
 		}
 
+		checkSingleHeader(headerLine);
+
 		std::size_t colonPos = headerLine.find(':');
 		if (colonPos != std::string::npos)
 		{
 			std::string headerName = headerLine.substr(0, colonPos);
 			std::string headerValue = headerLine.substr(colonPos + 1);
 
-			// Trim leading spaces
+			// Trim leading spaces TODO: remove trailing spaces??
 			std::size_t firstNonSpacePos = headerValue.find_first_not_of(' ');
 			if (firstNonSpacePos != std::string::npos)
 			{
@@ -137,9 +140,6 @@ void RequestParser::checkMethod(std::string &method)
 	{
 		Logger::log(Logger::INFO)
 			<< "Method not found: " << method << std::endl;
-		// commented out below as 501 handled with response to client by
-		// ServerEngine::handleNotImplementedRequest
-		// throw HttpException(HTTP_501_CODE, HTTP_501_REASON);
 	}
 }
 
@@ -190,6 +190,111 @@ void RequestParser::checkHttpVersion(std::string &httpVersion)
 	}
 }
 
+// check header name only contains allowed characters
+bool RequestParser::isValidHeaderName(std::string headerName)
+{
+	for (std::string::iterator it = headerName.begin(); it != headerName.end();
+		 ++it)
+	{
+		if (std::isalnum(*it) == 0 && *it != '-' && *it != '_' && *it != '.')
+			return false;
+	}
+	return true;
+}
+
+// check header value does not contain control characters and that special
+// characters are properly escaped
+bool RequestParser::isValidHeaderValue(std::string headerValue)
+{
+	// TODO: check this rule and understand tokens. Check if needed
+	// std::string specialChars = "()<>@,;:\"/[]?={} \t";
+	std::string specialChars = "";
+
+	for (std::string::const_iterator it = headerValue.begin();
+		 it != headerValue.end();
+		 ++it)
+	{
+		if (std::iscntrl(*it))
+			return false;
+
+		// Check for unescaped special characters
+		if (specialChars.find(*it) != std::string::npos)
+		{
+			if (it == headerValue.begin())
+			{
+				return false;
+			}
+			else if (*(it - 1) != '\\')
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+/**
+ * @brief Checks each header for syntax errors that should trigger an error
+ * response from the server. These syntax errors include:
+ * - Invalid characters in header name or value
+ * - Unescaped special characters in header value
+ * - Improper formatting such as:
+ *   - Missing the colon (:) between header name and value
+ *   - Leading or trailing whitespace in header name
+ *
+ *   NOTE: empty list imtems are ignored. E.g., HEADER: value1,,value2,,
+ */
+void RequestParser::checkSingleHeader(std::string &headerLine)
+{
+	std::string headerName;
+	std::string headerValue;
+
+	std::string::size_type colonPos = headerLine.find(':');
+	if (colonPos == std::string::npos)
+	{
+		Logger::log(Logger::INFO)
+			<< "Header does not contain colon (:). Header: " << headerLine
+			<< std::endl;
+		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+	}
+	headerName = headerLine.substr(0, colonPos);
+	headerValue = headerLine.substr(colonPos + 1);
+
+	// Trim leading and trailing whitespace from headerName
+	size_t start = headerName.find_first_not_of(" \t");
+	size_t end = headerName.find_last_not_of(" \t");
+	if (start != 0 || end != headerName.size() - 1)
+	{
+		Logger::log(Logger::INFO)
+			<< "Header name has leading or trailing whitespace. Header name: "
+			<< headerName << std::endl;
+		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+	}
+
+	// Trim leading and trailing whitespace from headerValue
+	start = headerValue.find_first_not_of(" \t");
+	end = headerValue.find_last_not_of(" \t");
+	if (start != std::string::npos && end != std::string::npos)
+	{
+		headerValue = headerValue.substr(start, end - start + 1);
+	}
+
+	if (!isValidHeaderName(headerName))
+	{
+		Logger::log(Logger::INFO)
+			<< "Header name is malformed. Header name: " << headerName
+			<< std::endl;
+		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+	}
+	if (!isValidHeaderValue(headerValue))
+	{
+		Logger::log(Logger::INFO)
+			<< "Header value is malformed. Header value: " << headerValue
+			<< std::endl;
+		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+	}
+}
+
 void RequestParser::checkHeaders(
 	const std::multimap<std::string, std::string> &headers
 )
@@ -229,7 +334,7 @@ void RequestParser::checkHeaders(
 			headerCounts[it->first]++;
 			if (headerCounts[it->first] > 1)
 			{
-				// TODO: turn into method
+				// TODO: turn into method check repeated header or smth
 				for (int i = 0; i < 20; ++i)
 				{
 					if (repeatableHeaders[i] == it->first)

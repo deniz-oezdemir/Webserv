@@ -37,6 +37,9 @@ class RequestParser
 	// Headers checks
 	static void
 	checkHeaders(const std::multimap<std::string, std::string> &headers);
+	static void checkSingleHeader(std::string &headerLine);
+	static bool isValidHeaderName(std::string headerName);
+	static bool isValidHeaderValue(std::string headerValue);
 
 	// Body checks
 	static void checkBody(

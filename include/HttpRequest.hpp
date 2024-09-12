@@ -60,18 +60,20 @@ class HttpRequest
 	 * It also sets the target of the request by combining the Host header and
 	 * the URI.
 	 */
-	void normalizeRequest(
+	void normalizeRequest_(
 		std::string								&method,
 		std::string								&httpVersion,
 		std::string								&uri,
 		std::multimap<std::string, std::string> &headers,
 		std::vector<char>						&body
 	);
+	std::vector<std::string> splitHeaderValue_(const std::string &headerValue);
 
 	std::string method_;
 	std::string httpVersion_;
 	std::string target_;
 	std::string uri_;
+	std::string host_;
 	// clang-format off
 	std::map<std::string, std::vector<std::string> > headers_;
 	// clang-format on

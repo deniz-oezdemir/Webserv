@@ -1,5 +1,6 @@
 #include "../include/HttpRequest.hpp"
 #include <ostream>
+#include <sstream>
 
 HttpRequest::HttpRequest(
 	std::string								&method,
@@ -9,7 +10,7 @@ HttpRequest::HttpRequest(
 	std::vector<char>						&body
 )
 {
-	normalizeRequest(method, httpVersion, uri, headers, body);
+	normalizeRequest_(method, httpVersion, uri, headers, body);
 
 	return;
 }
@@ -45,7 +46,8 @@ void HttpRequest::setTarget(std::string &newTarget)
 	target_ = newTarget;
 }
 
-void HttpRequest::setUri(std::string &newUri) {
+void HttpRequest::setUri(std::string &newUri)
+{
 	uri_ = newUri;
 }
 
@@ -78,7 +80,8 @@ const std::string &HttpRequest::getTarget(void) const
 	return target_;
 }
 
-const std::string &HttpRequest::getUri(void) const {
+const std::string &HttpRequest::getUri(void) const
+{
 	return uri_;
 }
 
@@ -132,7 +135,31 @@ std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
 	return os;
 }
 
-void HttpRequest::normalizeRequest(
+// used for comma-separated HTTP request header values
+std::vector<std::string>
+HttpRequest::splitHeaderValue_(const std::string &headerValue)
+{
+	std::vector<std::string> values;
+	std::string				 value;
+	std::istringstream		 stream(headerValue);
+	while (std::getline(stream, value, ','))
+	{
+		// Trim leading and trailing whitespace
+		size_t start = value.find_first_not_of(" \t");
+		size_t end = value.find_last_not_of(" \t");
+		if (start != std::string::npos && end != std::string::npos)
+		{
+			value = value.substr(start, end - start + 1);
+			if (!value.empty())
+			{
+				values.push_back(value);
+			}
+		}
+	}
+	return values;
+}
+
+void HttpRequest::normalizeRequest_(
 	std::string								&method,
 	std::string								&httpVersion,
 	std::string								&uri,
@@ -142,8 +169,9 @@ void HttpRequest::normalizeRequest(
 {
 	method_ = method;
 	httpVersion_ = httpVersion;
-	target_ = inputHeaders.find("Host")->second + uri;
 	uri_ = uri;
+	host_ = inputHeaders.find("Host")->second;
+	target_ = host_ + uri_;
 	body_ = body;
 
 	for (std::multimap<std::string, std::string>::iterator it
@@ -152,25 +180,27 @@ void HttpRequest::normalizeRequest(
 		 ++it)
 	{
 		std::vector<std::string> newVector;
-		if (inputHeaders.count(it->first) == 1)
+		if (inputHeaders.count(it->first) == 1) // only one ocurrance
 		{
-			// TODO: check if the request header came with list or other
-			// type, like HEADER: value1, value2
-			newVector.push_back(it->second);
+			newVector = splitHeaderValue_(it->second);
 			headers_[it->first] = newVector;
 		}
-		else if (inputHeaders.count(it->first) > 1)
+		else if (inputHeaders.count(it->first) > 1) // header repeated
 		{
 			std::pair<
 				std::multimap<std::string, std::string>::iterator,
 				std::multimap<std::string, std::string>::iterator>
-				matches = inputHeaders.equal_range(it->first);
+						matches = inputHeaders.equal_range(it->first);
+			std::string appendedValues;
 			for (; matches.first != matches.second; ++matches.first)
 			{
-				// TODO: check if the request header came with list or other
-				// type, like HEADER: value1, value2
-				newVector.push_back(matches.first->second);
+				if (!appendedValues.empty())
+				{
+					appendedValues += ","; // Add comma between values
+				}
+				appendedValues += matches.first->second;
 			}
+			newVector = splitHeaderValue_(appendedValues);
 			headers_[it->first] = newVector;
 		}
 	}
