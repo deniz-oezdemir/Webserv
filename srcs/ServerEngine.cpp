@@ -381,20 +381,64 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 	return response.toString();
 }
 
-// to be implemented
+// TODO: implement check for file/directory, coordinate with Seba
+std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
+{
+	(void)request;
+	std::cout << request << std::endl;
+
+	// Get root path from config of server
+	std::string rootdir = servers_[0].getRoot();
+	// Combine root path with uri from request
+	std::string filepath = rootdir + request.getUri();
+
+	Logger::log(Logger::DEBUG) << "Filepath: " << filepath << std::endl;
+
+	HttpResponse response;
+
+	if (remove(filepath.c_str()) == 0)
+	{
+		std::string body
+			= "<!DOCTYPE html>\n<html>\n<head><title>200 OK</title></head>\n"
+			  "<body><h1>File deleted.</h1></body>\n</html>\n";
+		response.setStatusCode(200);
+		response.setReasonPhrase("OK");
+		response.setHeader("Server", "Webserv/0.1");
+		response.setHeader("Date", createTimestamp());
+		response.setHeader("Content-Type", "text/html; charset=UTF-8");
+		response.setHeader("Content-Length", std::to_string(body.size()));
+		response.setHeader("Connection", "keep-alive");
+		response.setBody(body);
+		Logger::log(Logger::INFO)
+			<< "DELETE " << request.getUri() << " -> 200 OK" << std::endl;
+	}
+	else
+	{
+		std::string body = "<!DOCTYPE html>\n<html>\n<head><title>404 Not "
+						   "Found</title></head>\n"
+						   "<body><h1>File not found.</h1></body>\n</html>\n";
+		response.setStatusCode(404);
+		response.setReasonPhrase("Not Found");
+		response.setHeader("Server", "Webserv/0.1");
+		response.setHeader("Date", createTimestamp());
+		response.setHeader("Content-Type", "text/html; charset=UTF-8");
+		response.setHeader("Content-Length", std::to_string(body.size()));
+		response.setHeader("Connection", "keep-alive");
+		response.setBody(body);
+		Logger::log(Logger::INFO) << "DELETE " << request.getUri()
+								  << " -> 404 Not Found" << std::endl;
+	}
+
+	Logger::log(Logger::DEBUG) << "Handling DELETE: responding" << std::endl;
+	return response.toString();
+}
+
+// TODO: implement
 std::string ServerEngine::handlePostRequest(const HttpRequest &request)
 {
 	(void)request;
 	Logger::log(Logger::DEBUG) << "Handling POST: responding" << std::endl;
 	return "POST test\n";
-}
-
-// to be implemented
-std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
-{
-	(void)request;
-	Logger::log(Logger::DEBUG) << "Handling DELETE: responding" << std::endl;
-	return "DELETE test\n";
 }
 
 // commented out similar functionality via exception by
