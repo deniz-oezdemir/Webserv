@@ -22,7 +22,7 @@ class HttpRequest
 		std::string								&method,
 		std::string								&httpVersion,
 		std::string								&uri,
-		std::multimap<std::string, std::string> &headers,
+		std::map<std::string, std::vector<std::string> > &headers,
 		std::vector<char>						&body
 	);
 	HttpRequest(const HttpRequest &src);
@@ -64,7 +64,7 @@ class HttpRequest
 		std::string								&method,
 		std::string								&httpVersion,
 		std::string								&uri,
-		std::multimap<std::string, std::string> &headers,
+		std::map<std::string, std::vector<std::string> > &headers,
 		std::vector<char>						&body
 	);
 	std::vector<std::string> splitHeaderValue_(const std::string &headerValue);

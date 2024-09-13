@@ -6,7 +6,7 @@ HttpRequest::HttpRequest(
 	std::string								&method,
 	std::string								&httpVersion,
 	std::string								&uri,
-	std::multimap<std::string, std::string> &headers,
+	std::map<std::string, std::vector<std::string> > &headers,
 	std::vector<char>						&body
 )
 {
@@ -163,45 +163,15 @@ void HttpRequest::normalizeRequest_(
 	std::string								&method,
 	std::string								&httpVersion,
 	std::string								&uri,
-	std::multimap<std::string, std::string> &inputHeaders,
+	std::map<std::string, std::vector<std::string> > &inputHeaders,
 	std::vector<char>						&body
 )
 {
 	method_ = method;
 	httpVersion_ = httpVersion;
 	uri_ = uri;
-	host_ = inputHeaders.find("Host")->second;
+	host_ = inputHeaders.at("Host")[0];
 	target_ = host_ + uri_;
+	headers_ = inputHeaders;
 	body_ = body;
-
-	for (std::multimap<std::string, std::string>::iterator it
-		 = inputHeaders.begin();
-		 it != inputHeaders.end();
-		 ++it)
-	{
-		std::vector<std::string> newVector;
-		if (inputHeaders.count(it->first) == 1) // only one ocurrance
-		{
-			newVector = splitHeaderValue_(it->second);
-			headers_[it->first] = newVector;
-		}
-		else if (inputHeaders.count(it->first) > 1) // header repeated
-		{
-			std::pair<
-				std::multimap<std::string, std::string>::iterator,
-				std::multimap<std::string, std::string>::iterator>
-						matches = inputHeaders.equal_range(it->first);
-			std::string appendedValues;
-			for (; matches.first != matches.second; ++matches.first)
-			{
-				if (!appendedValues.empty())
-				{
-					appendedValues += ","; // Add comma between values
-				}
-				appendedValues += matches.first->second;
-			}
-			newVector = splitHeaderValue_(appendedValues);
-			headers_[it->first] = newVector;
-		}
-	}
 }
