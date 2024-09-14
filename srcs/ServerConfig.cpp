@@ -7,6 +7,7 @@
 #include <iostream>
 #include <stack>
 #include <string>
+#include <sys/stat.h>
 
 // Array of valid log levels to check if the log level set in the configuration
 // file is valid.
@@ -94,7 +95,9 @@ void ServerConfig::initServersConfig_(void)
 }
 
 void ServerConfig::initLocationConfig_(
+	// clang-format off
 	std::map<std::string, std::vector<std::string> > &location
+	// clang-format on
 )
 {
 	location["root"] = std::vector<std::string>();
@@ -106,7 +109,6 @@ void ServerConfig::initLocationConfig_(
 	location["upload_store"] = std::vector<std::string>();
 	location["cgi"] = std::vector<std::string>();
 }
-
 
 // Handle the error message, if isTest or isTestPrint is true, print the error
 // message without stopping the program. Otherwise, throw an exception.
@@ -163,6 +165,139 @@ bool ServerConfig::checkValues_(
 		return false;
 	}
 	return true;
+}
+
+bool ServerConfig::isValidErrorCode_(std::string const &code)
+{
+	if (code.size() != 3)
+		return false;
+	if (!ft::isStrOfDigits(code))
+		return false;
+	unsigned short errorCode(ft::strToUShort(code));
+	if (errorCode < 300 || errorCode > 599)
+		return false;
+	return true;
+}
+
+bool ServerConfig::isURI_(std::string const &uri)
+{
+	if (uri.size() < 2)
+		return false;
+	if (uri[0] != '/')
+		return false;
+	return true;
+}
+
+bool  ServerConfig::isURL_(std::string const &url)
+{
+	if (url.size() < 8)
+		return false;
+	if (url.substr(0, 7) != "http://" && url.substr(0, 8) != "https://")
+		return false;
+	if (url.find('.', url.find("://") + 3) == std::string::npos)
+		return false;
+	if (url.find('.', url.find("www.") + 4) == std::string::npos)
+		return false;
+	return true;
+}
+
+bool ServerConfig::isExecutable_(std::string const &path)
+{
+	struct stat fileStat;
+
+	if (stat(path.c_str(), &fileStat) == 0)
+	{
+		if (fileStat.st_mode & S_IXUSR)
+			return true;
+	}
+	return false;
+}
+
+bool ServerConfig::isDirectory_(std::string const &path)
+{
+	struct stat fileStat;
+
+	if (stat(path.c_str(), &fileStat) == 0)
+	{
+		if (S_ISDIR(fileStat.st_mode))
+			return true;
+	}
+	return false;
+}
+
+bool ServerConfig::checkDirective_(std::vector<std::string> const &tokens)
+{
+	if (tokens[0] == "limit_except")
+		return this->checkLimitExcept_(tokens);
+	else if (tokens[0] == "autoindex")
+		return this->checkAutoIndex_(tokens);
+	else if (tokens[0] == "return")
+		return this->checkReturn_(tokens);
+	else if (tokens[0] == "cgi")
+		return this->checkCgi_(tokens);
+	else if (tokens[0] == "upload_store")
+		return this->checkUploadStore_(tokens);
+	else if (tokens[0] == "client_max_body_size")
+		return ft::isStrOfDigits(tokens[1]) && tokens.size() == 2;
+	else if (tokens[0] == "root")
+		return this->checkRoot_(tokens);
+	return false;
+}
+
+bool ServerConfig::checkLimitExcept_(std::vector<std::string> const &tokens)
+{
+	std::vector<std::string>::const_iterator it(tokens.begin() + 1);
+	for (; it < tokens.end(); ++it)
+	{
+		if (*it != "GET" && *it != "POST" && *it != "DELETE" && *it != "PUT")
+			return false;
+	}
+	return true;
+}
+
+bool ServerConfig::checkAutoIndex_(std::vector<std::string> const &tokens)
+{
+	if (tokens.size() == 2 && (tokens[1] == "on" || tokens[1] == "off"))
+		return true;
+	return false;
+}
+
+bool ServerConfig::checkReturn_(std::vector<std::string> const &tokens)
+{
+	if ((tokens.size() == 2 && this->isValidErrorCode_(tokens[1]))
+		|| (tokens.size() == 3 && this->isValidErrorCode_(tokens[1])
+			&& (this->isURI_(tokens[2]) || this->isURL_(tokens[2]))))
+		return true;
+	return false;
+}
+
+bool ServerConfig::checkCgi_(std::vector<std::string> const &tokens)
+{
+	if (tokens.size() == 3 && tokens[1].find('.') != std::string::npos
+		&& this->isExecutable_(tokens[2]))
+		return true;
+	return false;
+}
+
+bool ServerConfig::checkUploadStore_(std::vector<std::string> const &tokens)
+{
+	if (tokens.size() == 2 && this->isURI_(tokens[1]))
+		return true;
+	return false;
+}
+
+bool ServerConfig::checkClientMaxBodySize_(std::vector<std::string> const &tokens)
+{
+	if (tokens.size() == 2 && ft::isStrOfDigits(tokens[1]))
+		return true;
+	return false;
+}
+
+bool ServerConfig::checkRoot_(std::vector<std::string> const &tokens)
+{
+	if (tokens.size() == 2 && this->isDirectory_(tokens[1]))
+		return true;
+	return false;
 }
 
 // Set the host and port in the listen directive. If the argument is a port
@@ -261,14 +396,31 @@ void ServerConfig::parseLocationBlock_(
 				tokens[tokens.size() - 1].erase(
 					tokens[tokens.size() - 1].size() - 1
 				);
-				location[tokens[0]]
-					= std::vector<std::string>(tokens.begin() + 1, tokens.end());
+				if (this->checkDirective_(tokens))
+				{
+					location[tokens[0]] = std::vector<std::string>(
+						tokens.begin() + 1, tokens.end()
+					);
+				}
+				else
+				{
+					this->errorHandler_(
+						"Invalid value [" + tokens[1] + "] for " + tokens[0]
+						+ " directive",
+						lineIndex,
+						isTest,
+						isTestPrint
+					);
+				}
 			}
 			else
 			{
-				this->errorHandler_("Invalid directive [" + tokens[0]
-					+ "] in location block", lineIndex, isTest, isTestPrint
-				    );
+				this->errorHandler_(
+					"Invalid directive [" + tokens[0] + "] in location block",
+					lineIndex,
+					isTest,
+					isTestPrint
+				);
 			}
 		}
 		else
@@ -424,8 +576,8 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 			if (this->checkValues_(tokens, 2, lineIndex, isTest, isTestPrint))
 			{
 				tokens[1].erase(tokens[1].size() - 1);
-				if (tokens[0] == "client_max_body_size"
-					&& !ft::isStrOfDigits(tokens[1]))
+				if ((tokens[0] == "client_max_body_size" || tokens[0] == "root")
+					&& !this->checkDirective_(tokens))
 					this->errorHandler_(
 						"Invalid value [" + tokens[1] + "] for " + tokens[0]
 							+ " directive, expected a port nu mber",

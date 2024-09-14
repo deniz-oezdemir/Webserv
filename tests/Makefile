@@ -87,8 +87,12 @@ RequestParser: $(OBJECTS) RequestParserTest.cpp
 Logger: $(OBJECTS) LoggerTest.cpp
 	@$(call run, "$^")
 
-.PHONY: Logger
+.PHONY: ServerException
 ServerException: $(OBJECTS) ServerExceptionTest.cpp
+	@$(call run, "$^")
+
+.PHONY: ServerConfig
+ServerConfig: $(OBJECTS) ServerExceptionTest.cpp
 	@$(call run, "$^")
 
 $(OBJECTS):
