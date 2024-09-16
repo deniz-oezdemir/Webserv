@@ -2,7 +2,7 @@
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
 #include "Logger.hpp"
-#include "RequestParser.hpp"
+#include "request_parser/RequestParser.hpp"
 #include "utils.hpp"
 
 #include <fcntl.h>
@@ -12,7 +12,9 @@
 ServerEngine::ServerEngine() : numServers_(0) {}
 
 ServerEngine::ServerEngine(
-	std::vector<std::map<std::string, ConfigValue>> const &servers
+	// clang-format off
+	std::vector<std::map<std::string, ConfigValue> > const &servers
+	// clang-format on
 )
 	: numServers_(servers.size())
 {
@@ -398,7 +400,7 @@ std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
 }
 
 // commented out similar functionality via exception by
-// RequestParser::checkMethod() as it should be handled with a 501 response to
+// RequestParser::checkMethod_() as it should be handled with a 501 response to
 // the client
 std::string ServerEngine::handleNotImplementedRequest()
 {

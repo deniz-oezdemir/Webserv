@@ -12,8 +12,10 @@ class ServerEngine
 {
   public:
 	ServerEngine();
-	ServerEngine(std::vector<std::map<std::string, ConfigValue>> const &servers
+	// clang-format off
+	ServerEngine(std::vector<std::map<std::string, ConfigValue> > const &servers
 	);
+	// clang-format on
 	~ServerEngine();
 
 	void start(void);
