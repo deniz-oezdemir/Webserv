@@ -1,10 +1,21 @@
 #include "request_parser/BodyParser.hpp"
-#include <cstdlib>
-#include <map>
+#include "HttpException.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
-#include "HttpException.hpp"
+#include <cstdlib>
+#include <map>
 
+/**
+ * @brief Parses the body of the HTTP request from the given request stream.
+ *
+ * This function reads the body from the provided request stream and stores it
+ * in the provided body vector. It also preserves newline characters.
+ *
+ * @param requestStream The input stream containing the HTTP request body.
+ * @param method The HTTP method of the request (e.g., GET, POST).
+ * @param headers The headers of the HTTP request.
+ * @param body A pointer to a vector where the parsed body will be stored.
+ */
 void BodyParser::parseBody(
 	std::istream	  &requestStream,
 	const std::string &method,
@@ -25,6 +36,20 @@ void BodyParser::parseBody(
 	checkBody_(method, headers, *body);
 }
 
+/**
+ * @brief Checks the parsed body for specific conditions.
+ *
+ * This function performs several checks on the parsed body:
+ * - Ensures that the body is empty for GET or DELETE requests.
+ * - Verifies that the Content-Length header matches the actual body length.
+ * - Checks for the presence of the Transfer-Encoding header and ensures that
+ *   the body is in the chunked transfer coding format if necessary.
+ *
+ * @param method The HTTP method of the request (e.g., GET, POST).
+ * @param headers The headers of the HTTP request.
+ * @param body The parsed body of the HTTP request.
+ * @throws HttpException if any of the checks fail.
+ */
 void BodyParser::checkBody_(
 	const std::string &method,
 	// clang-format off
