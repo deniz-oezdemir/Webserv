@@ -7,9 +7,9 @@
    - [ ] Check: Set-Cookie header may be repeated and is a special case
    - [ ] Implement: measure body length and set in private attr, and compare with header if any and also add check in response handler for if it exceeds limit in config file
    - [ ] Implement: host_ var in HttpRequest
-   - [ ] Implement: add check for header with wrong separator (, or ;) 
 
    ## In Progress
+   - [ ] Implement: add check for header with wrong separator (, or ;) 
 
    ## Done
    - [x] Implement: accept HTTP headers with multiple values

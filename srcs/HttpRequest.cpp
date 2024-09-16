@@ -1,6 +1,5 @@
 #include "../include/HttpRequest.hpp"
 #include <ostream>
-#include <sstream>
 
 HttpRequest::HttpRequest(
 	std::string &method,
