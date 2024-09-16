@@ -450,16 +450,21 @@ std::string ServerEngine::handlePostRequest(const HttpRequest &request)
 // the client
 std::string ServerEngine::handleNotImplementedRequest()
 {
+	// Get root path from config of server
+	std::string rootdir = servers_[0].getRoot();
+
+	Logger::log(Logger::DEBUG) << "Rootdir: " << rootdir << std::endl;
 	HttpResponse response;
 	response.setStatusCode(501);
 	response.setReasonPhrase("Not Implemented");
 	response.setHeader("Server", "Webserv/0.1");
 	response.setHeader("Date", createTimestamp());
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
-	std::string body = "<!DOCTYPE html>\n<html>\n<head><title>501 Not "
-					   "Implemented</title></head>\n<center><h1>501 Not "
-					   "Implemented</h1></center>\n<hr><center>Webserv</"
-					   "center>\n</body>\n</html>\n";
+
+	// TODO: replace hardcoded /404.html with file from config? check
+	// with Seba if needed
+	std::string body = readFile(rootdir + "/501.html");
+
 	response.setHeader("Content-Length", std::to_string(body.size()));
 	// nginx typically closes the TCP connection after sending a 501 response,
 	// do we want to implement it?
