@@ -1,1 +1,1 @@
-test file to be copied to root to deleted by DELTE request
+test file to be deleted by DELTE request

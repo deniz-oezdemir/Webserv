@@ -18,7 +18,7 @@ WHITE       := \033[0;97m
 
 # Add here the name of the file that contain an specific group of tests.
 TESTS							:= ServerInput ServerConfig utils HttpRequest RequestParser \
-										 Logger ServerException ServerEngine
+										 Logger ServerException ServerEngineGet ServerEngineDelete
 CXX								:= c++
 RM								:= rm -rf
 
@@ -91,8 +91,12 @@ Logger: $(OBJECTS) LoggerTest.cpp
 ServerException: $(OBJECTS) ServerExceptionTest.cpp
 	@$(call run, "$^")
 
-.PHONY: ServerEngine
-ServerEngine: $(OBJECTS) ServerEngineTest.cpp
+.PHONY: ServerEngineGet
+ServerEngineGet: $(OBJECTS) ServerEngineGetTest.cpp
+	@$(call run, "$^")
+
+.PHONY: ServerEngineDelete
+ServerEngineDelete: $(OBJECTS) ServerEngineDeleteTest.cpp
 	@$(call run, "$^")
 
 $(OBJECTS):

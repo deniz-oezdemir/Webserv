@@ -1,8 +1,8 @@
-#include "ServerEngine.hpp"
 #include "HttpRequest.hpp"
 #include "Logger.hpp"
 #include "RequestParser.hpp"
 #include "ServerConfig.hpp"
+#include "ServerEngine.hpp"
 #include <criterion/criterion.h>
 #include <fstream>
 #include <sstream>
@@ -35,8 +35,9 @@ Test(ServerEngine, handleGetRequest_FileExists)
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
 
-	ServerConfig config("test_default.config");
+	ServerConfig config("../default.config");
 	config.parseFile(false, false);
+	config.setRootToAllServers("../www/website");
 
 	{
 		// Create a ServerEngine object
@@ -68,8 +69,10 @@ Test(ServerEngine, handleGetRequest_FileNotFound)
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
 
-	ServerConfig config("test_default.config");
+	ServerConfig config("../default.config");
 	config.parseFile(false, false);
+	config.setRootToAllServers("../www/website");
+
 	{
 		// Create a ServerEngine object
 		ServerEngine serverEngine(config.getAllServersConfig());
@@ -100,8 +103,9 @@ Test(ServerEngine, handleGetRequest_NotImplemented)
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
 
-	ServerConfig config("test_default.config");
+	ServerConfig config("../default.config");
 	config.parseFile(false, false);
+	config.setRootToAllServers("../www/website");
 
 	{
 		// Create a ServerEngine object
@@ -120,39 +124,6 @@ Test(ServerEngine, handleGetRequest_NotImplemented)
 		cr_assert(
 			response.find("501 Not Implemented") != std::string::npos,
 			"Expected 501 Not Implemented response"
-		);
-		cr_assert(
-			response.find("<!DOCTYPE html>") != std::string::npos,
-			"Expected HTML content in response"
-		);
-	}
-}
-
-// Test for handling DELETE request
-Test(ServerEngine, handleDeleteRequest)
-{
-	// Create a request string for DELETE method
-	std::string requestStr = readFile("deleteRequest.txt");
-
-	// Parse the request string into an HttpRequest object
-	HttpRequest request = RequestParser::parseRequest(requestStr);
-
-	ServerConfig config("test_default.config");
-	config.parseFile(false, false);
-
-	{
-		// Create a ServerEngine object
-		ServerEngine serverEngine(config.getAllServersConfig());
-		// serverEngine.start(); // This line is commented out
-
-		// Call the handleDeleteRequest method
-		std::string response = serverEngine.createResponse(request);
-
-		std::cout << "\n\nTest Response:\n" << response << std::endl;
-		// Assert the expected response
-		cr_assert(
-			response.find("200 OK") != std::string::npos,
-			"Expected 200 OK response"
 		);
 		cr_assert(
 			response.find("<!DOCTYPE html>") != std::string::npos,
