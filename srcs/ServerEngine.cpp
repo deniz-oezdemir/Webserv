@@ -375,6 +375,8 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 		response.setHeader("Date", createTimestamp());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
+		// TODO: replace hardcoded /404.html with file from config? check
+		// with Seba if needed
 		std::string body = readFile(rootdir + "/404.html");
 
 		response.setHeader("Content-Length", std::to_string(body.size()));
@@ -418,9 +420,7 @@ std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
 	}
 	else
 	{
-		std::string body = "<!DOCTYPE html>\n<html>\n<head><title>404 Not "
-						   "Found</title></head>\n"
-						   "<body><h1>File not found.</h1></body>\n</html>\n";
+		std::string body = readFile(rootdir + "/404.html");
 		response.setStatusCode(404);
 		response.setReasonPhrase("Not Found");
 		response.setHeader("Server", "Webserv/0.1");
