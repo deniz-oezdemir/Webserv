@@ -3,9 +3,11 @@
 #include "RequestParser.hpp"
 #include "ServerConfig.hpp"
 #include "ServerEngine.hpp"
+#include <chrono>
 #include <criterion/criterion.h>
 #include <fstream>
 #include <sstream>
+#include <thread>
 
 std::string readFile(const std::string &filePath)
 {
@@ -63,6 +65,8 @@ Test(ServerEngine, handleGetRequest_FileExists)
 // Test for handling GET request when file is not found
 Test(ServerEngine, handleGetRequest_FileNotFound)
 {
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+
 	// Read the request from nofileGetRequest.txt
 	std::string requestStr = readFile("nofileGetRequest.txt");
 
@@ -92,11 +96,14 @@ Test(ServerEngine, handleGetRequest_FileNotFound)
 			"Expected HTML content in response"
 		);
 	}
+	std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 // Test for handling GET request with unsupported method
 Test(ServerEngine, handleGetRequest_NotImplemented)
 {
+	std::this_thread::sleep_for(std::chrono::seconds(2));
+
 	// Create a request string with an unsupported method (e.g., TRACE)
 	std::string requestStr = readFile("traceRequest.txt");
 
@@ -130,4 +137,40 @@ Test(ServerEngine, handleGetRequest_NotImplemented)
 			"Expected HTML content in response"
 		);
 	}
+}
+
+Test(ServerEngine, handleGetRequest_Root)
+{
+	std::this_thread::sleep_for(std::chrono::seconds(3));
+
+	// Read the request from getRequest.txt
+	std::string requestStr = readFile("getRequestRoot.txt");
+
+	// Parse the request string into an HttpRequest object
+	HttpRequest request = RequestParser::parseRequest(requestStr);
+
+	ServerConfig config("../default.config");
+	config.parseFile(false, false);
+	config.setRootToAllServers("../www/website");
+
+	{
+		// Create a ServerEngine object
+		ServerEngine serverEngine(config.getAllServersConfig());
+		// serverEngine.start();
+
+		// Call the handleGetRequest method
+		std::string response = serverEngine.createResponse(request);
+
+		std::cout << "\n\nTest Response:\n" << response << std::endl;
+		// Assert the expected response
+		cr_assert(
+			response.find("200 OK") != std::string::npos,
+			"Expected 200 OK response"
+		);
+		cr_assert(
+			response.find("<!DOCTYPE html>") != std::string::npos,
+			"Expected HTML content in response"
+		);
+	}
+	std::this_thread::sleep_for(std::chrono::seconds(1));
 }

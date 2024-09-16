@@ -327,7 +327,11 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 	// Get root path from config of server
 	std::string rootdir = servers_[0].getRoot();
 	// Combine root path with uri from request
-	std::string filepath = rootdir + request.getUri();
+	std::string filepath;
+	if (request.getUri() == "/")
+		filepath = rootdir + "/index.html";
+	else
+		filepath = rootdir + request.getUri();
 
 	Logger::log(Logger::DEBUG) << "Filepath: " << filepath << std::endl;
 
