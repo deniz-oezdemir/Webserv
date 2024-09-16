@@ -188,6 +188,26 @@ void HeaderParser::checkSingleHeader_(std::string &headerLine)
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 }
+/**
+ * @brief Checks if the given header is allowed to be repeated.
+ * 
+ * This function checks if the specified header is in the list of headers
+ * that are allowed to appear more than once in an HTTP request.
+ * 
+ * @param header The name of the header to check.
+ * @return true if the header is allowed to be repeated, false otherwise.
+ */
+bool HeaderParser::checkRepeatedHeaderAllowed_(std::string header)
+{
+	for (int i = 0; i < REPEATABLEHEADERS_N; ++i)
+	{
+		if (repeatableHeaders[i] == header)
+		{
+			return true;
+		}
+	}
+	return false;
+}
 
 /**
  * @brief Checks the raw headers for specific conditions.
@@ -238,18 +258,13 @@ void HeaderParser::checkRawHeaders_(
 			headerCounts[it->first]++;
 			if (headerCounts[it->first] > 1)
 			{
-				// TODO: turn into method check repeated header or smth
-				for (int i = 0; i < REPEATABLEHEADERS_N; ++i)
+				if (!checkRepeatedHeaderAllowed_(it->first))
 				{
-					if (repeatableHeaders[i] == it->first)
-					{
-						continue;
-					}
+					Logger::log(Logger::INFO)
+						<< "Non-repeatable header appears more than once. Header: "
+						<< it->first << std::endl;
+					throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 				}
-				Logger::log(Logger::INFO)
-					<< "Non-repeatable header appears more than once. Header: "
-					<< it->first << std::endl;
-				throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 			}
 		}
 	}
@@ -261,7 +276,18 @@ void HeaderParser::checkRawHeaders_(
 	}
 }
 
-// used for comma-separated HTTP request header values
+/**
+ * @brief Splits the header value into a vector of strings based on the
+ * separator.
+ *
+ * This function splits the given header value into multiple values based on the
+ * separator, which can be either a comma or a semicolon depending on the header
+ * name. It also trims leading and trailing whitespace from each value.
+ *
+ * @param headerName The name of the header.
+ * @param headerValue The value of the header to be split.
+ * @return std::vector<std::string> A vector containing the split values.
+ */
 std::vector<std::string> HeaderParser::splitHeaderValue_(
 	const std::string &headerName,
 	const std::string &headerValue
@@ -294,6 +320,17 @@ std::vector<std::string> HeaderParser::splitHeaderValue_(
 }
 
 // clang-format off
+
+/**
+ * @brief Unifies the headers from a multimap into a map of vectors.
+ * 
+ * This function converts a multimap of headers into a map where each header name
+ * maps to a vector of its values. It handles both single and repeated headers,
+ * splitting the values as necessary.
+ * 
+ * @param multimap The multimap containing the headers.
+ * @return std::map<std::string, std::vector<std::string>> A map containing the unified headers.
+ */
 std::map<std::string, std::vector<std::string> >
 HeaderParser::unifyHeaders_(std::multimap<std::string, std::string> multimap)
 {

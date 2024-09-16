@@ -20,9 +20,9 @@ class HeaderParser
 	~HeaderParser(void);
 	HeaderParser &operator=(const HeaderParser &rhs);
 
-	// Headers checks
 	static void
 	checkRawHeaders_(const std::multimap<std::string, std::string> &headers);
+	static bool checkRepeatedHeaderAllowed_(std::string header);
 	static void checkSingleHeader_(std::string &headerLine);
 	static bool isValidHeaderName_(std::string headerName);
 	static bool isValidHeaderValue_(std::string headerValue);
@@ -31,7 +31,6 @@ class HeaderParser
 							  headers);
 	// clang-format on
 
-	// HttpRequest creation
 	// clang-format off
 	static std::map<std::string, std::vector<std::string> >
 	unifyHeaders_(std::multimap<std::string, std::string> multimap);
