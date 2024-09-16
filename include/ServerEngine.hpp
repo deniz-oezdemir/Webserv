@@ -42,4 +42,5 @@ class ServerEngine
 	std::string handleNotImplementedRequest();
 
 	std::string createTimestamp();
+	std::string readFile(const std::string &filePath);
 };
