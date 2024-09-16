@@ -91,10 +91,6 @@ Logger: $(OBJECTS) LoggerTest.cpp
 ServerException: $(OBJECTS) ServerExceptionTest.cpp
 	@$(call run, "$^")
 
-.PHONY: ServerConfig
-ServerConfig: $(OBJECTS) ServerExceptionTest.cpp
-	@$(call run, "$^")
-
 $(OBJECTS):
 	@make -C .. -s
 
