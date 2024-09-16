@@ -346,7 +346,8 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 	else
 		Logger::log(Logger::DEBUG) << "File is not on server" << std::endl;
 
-	HttpResponse  response;
+	HttpResponse response;
+	// TODO: replace below with readFile
 	std::ifstream file(filepath);
 	if (file.is_open())
 	{
@@ -373,10 +374,9 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 		response.setHeader("Server", "Webserv/0.1");
 		response.setHeader("Date", createTimestamp());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
-		std::string body = "<!DOCTYPE html>\n<html>\n<head><title>404 Not "
-						   "Found</title></head>\n<center><h1>404 Not "
-						   "Found</h1></center>\n<hr><center>Webserv</"
-						   "center>\n</body>\n</html>\n";
+
+		std::string body = readFile(rootdir + "/404.html");
+
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		response.setHeader("Connection", "keep-alive");
 		response.setBody(body);
@@ -480,4 +480,24 @@ std::string ServerEngine::createTimestamp()
 	char buf[80];
 	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", tstruct);
 	return std::string(buf);
+}
+
+std::string ServerEngine::readFile(const std::string &filePath)
+{
+	std::ifstream file(filePath);
+	if (!file.is_open())
+	{
+		std::cerr << "Error: Could not open file: " << file.is_open() << " "
+				  << filePath << std::endl;
+		return "";
+	}
+
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+	if (buffer.str().empty())
+	{
+		std::cerr << "Error: File " << filePath
+				  << " is empty or could not be read" << std::endl;
+	}
+	return buffer.str();
 }
