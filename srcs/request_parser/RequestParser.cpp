@@ -40,90 +40,14 @@ HttpRequest RequestParser::parseRequest(std::string str)
 	std::getline(requestStream, startLine, '\n');
 	ParseReqFirstLine::checkStartLine(startLine, &method, &uri, &httpVersion);
 
-	// Extract headers
-	rawHeaders = HeaderParser::parseHeaders(requestStream);
-	// Normalize headers
-	headers = unifyHeaders_(rawHeaders);
-	// TODO: check token syntax
+	// Extract, parse and normalize headers
+	HeaderParser::parseHeaders(requestStream, &headers);
 
 	// Extract and check the body
 	BodyParser::parseBody(requestStream, method, headers, &body);
 
 	HttpRequest req(method, httpVersion, uri, headers, body);
 	return req;
-}
-
-// used for comma-separated HTTP request header values
-std::vector<std::string> RequestParser::splitHeaderValue_(
-	const std::string &headerName,
-	const std::string &headerValue
-)
-{
-	char separator = ',';
-	for (int i = 0; i < SEMICOLONSEPARATE_N; i++)
-	{
-		if (semicolonSeparated[i] == headerName)
-			separator = ';';
-	}
-	std::vector<std::string> values;
-	std::string				 value;
-	std::istringstream		 stream(headerValue);
-	while (std::getline(stream, value, separator))
-	{
-		// Trim leading and trailing whitespace
-		size_t start = value.find_first_not_of(" \t");
-		size_t end = value.find_last_not_of(" \t");
-		if (start != std::string::npos && end != std::string::npos)
-		{
-			value = value.substr(start, end - start + 1);
-			if (!value.empty())
-			{
-				values.push_back(value);
-			}
-		}
-	}
-	return values;
-}
-
-// clang-format off
-std::map<std::string, std::vector<std::string> >
-RequestParser::unifyHeaders_(std::multimap<std::string, std::string> multimap)
-{
-	std::map<std::string, std::vector<std::string> > headers;
-	// clang-format on
-
-	for (std::multimap<std::string, std::string>::iterator it
-		 = multimap.begin();
-		 it != multimap.end();
-		 ++it)
-	{
-		std::vector<std::string> newVector;
-		if (multimap.count(it->first) == 1) // only one ocurrance
-		{
-			newVector = splitHeaderValue_(it->first, it->second);
-			headers[it->first] = newVector;
-		}
-		else if (multimap.count(it->first) > 1) // header repeated
-		{
-			std::pair<
-				std::multimap<std::string, std::string>::iterator,
-				std::multimap<std::string, std::string>::iterator>
-						matches = multimap.equal_range(it->first);
-			std::string appendedValues;
-			for (; matches.first != matches.second; ++matches.first)
-			{
-				if (!appendedValues.empty())
-				{
-					appendedValues += ","; // Add comma between values
-				}
-				appendedValues += matches.first->second;
-			}
-			newVector = splitHeaderValue_(it->first, appendedValues);
-			headers[it->first] = newVector;
-		}
-	}
-
-	return headers;
 }
 
 // void RequestParser::

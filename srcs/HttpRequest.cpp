@@ -11,9 +11,9 @@ HttpRequest::HttpRequest(
 	// clang-format on
 	std::vector<char> &body
 )
-	: method_(method), httpVersion_(httpVersion), uri_(uri), headers_(headers),
-	  body_(body)
 {
+	normalizeRequest_(method, httpVersion, uri, headers, body);
+
 	return;
 }
 
@@ -135,4 +135,23 @@ std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
 	os << std::endl;
 
 	return os;
+}
+
+void HttpRequest::normalizeRequest_(
+	std::string &method,
+	std::string &httpVersion,
+	std::string &uri,
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > &inputHeaders,
+	// clang-format on
+	std::vector<char> &body
+)
+{
+	method_ = method;
+	httpVersion_ = httpVersion;
+	uri_ = uri;
+	host_ = inputHeaders.at("Host")[0];
+	target_ = host_ + uri_;
+	headers_ = inputHeaders;
+	body_ = body;
 }

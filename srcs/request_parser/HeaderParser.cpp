@@ -18,8 +18,12 @@
  * parsed headers.
  * @throws HttpException if there are syntax errors in the headers.
  */
-std::multimap<std::string, std::string>
-HeaderParser::parseHeaders(std::istream &requestStream)
+void HeaderParser::parseHeaders(
+	std::istream &requestStream,
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > *headers
+	// clang-format on
+)
 {
 
 	std::multimap<std::string, std::string> rawHeaders;
@@ -34,7 +38,7 @@ HeaderParser::parseHeaders(std::istream &requestStream)
 			headerLine.erase(headerLine.size() - 1); // Remove the trailing '\r'
 		}
 
-		checkSingleHeader(headerLine);
+		checkSingleHeader_(headerLine);
 
 		std::size_t colonPos = headerLine.find(':');
 		if (colonPos != std::string::npos)
@@ -56,9 +60,8 @@ HeaderParser::parseHeaders(std::istream &requestStream)
 		std::getline(requestStream, headerLine);
 	}
 
-	checkRawHeaders(rawHeaders);
-
-	return rawHeaders;
+	checkRawHeaders_(rawHeaders);
+	*headers = unifyHeaders_(rawHeaders);
 }
 
 /**
@@ -70,7 +73,7 @@ HeaderParser::parseHeaders(std::istream &requestStream)
  * @param headerName The header name to validate.
  * @return true if the header name is valid, false otherwise.
  */
-bool HeaderParser::isValidHeaderName(std::string headerName)
+bool HeaderParser::isValidHeaderName_(std::string headerName)
 {
 	for (std::string::iterator it = headerName.begin(); it != headerName.end();
 		 ++it)
@@ -90,7 +93,7 @@ bool HeaderParser::isValidHeaderName(std::string headerName)
  * @param headerValue The header value to validate.
  * @return true if the header value is valid, false otherwise.
  */
-bool HeaderParser::isValidHeaderValue(std::string headerValue)
+bool HeaderParser::isValidHeaderValue_(std::string headerValue)
 {
 	// TODO: check this rule and understand tokens. Check if needed
 	// std::string specialChars = "()<>@,;:\"/[]?={} \t";
@@ -135,7 +138,7 @@ bool HeaderParser::isValidHeaderValue(std::string headerValue)
  * @param headerLine The header line to check.
  * @throws HttpException if there are syntax errors in the header.
  */
-void HeaderParser::checkSingleHeader(std::string &headerLine)
+void HeaderParser::checkSingleHeader_(std::string &headerLine)
 {
 	std::string headerName;
 	std::string headerValue;
@@ -170,14 +173,14 @@ void HeaderParser::checkSingleHeader(std::string &headerLine)
 		headerValue = headerValue.substr(start, end - start + 1);
 	}
 
-	if (!isValidHeaderName(headerName))
+	if (!isValidHeaderName_(headerName))
 	{
 		Logger::log(Logger::INFO)
 			<< "Header name is malformed. Header name: " << headerName
 			<< std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
-	if (!isValidHeaderValue(headerValue))
+	if (!isValidHeaderValue_(headerValue))
 	{
 		Logger::log(Logger::INFO)
 			<< "Header value is malformed. Header value: " << headerValue
@@ -196,7 +199,7 @@ void HeaderParser::checkSingleHeader(std::string &headerLine)
  * @param rawHeaders The multimap of raw headers to check.
  * @throws HttpException if there are errors in the headers.
  */
-void HeaderParser::checkRawHeaders(
+void HeaderParser::checkRawHeaders_(
 	const std::multimap<std::string, std::string> &rawHeaders
 )
 {
@@ -256,4 +259,77 @@ void HeaderParser::checkRawHeaders(
 		Logger::log(Logger::INFO) << "Absent Host header." << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
+}
+
+// used for comma-separated HTTP request header values
+std::vector<std::string> HeaderParser::splitHeaderValue_(
+	const std::string &headerName,
+	const std::string &headerValue
+)
+{
+	char separator = ',';
+	for (int i = 0; i < SEMICOLONSEPARATE_N; i++)
+	{
+		if (semicolonSeparated[i] == headerName)
+			separator = ';';
+	}
+	std::vector<std::string> values;
+	std::string				 value;
+	std::istringstream		 stream(headerValue);
+	while (std::getline(stream, value, separator))
+	{
+		// Trim leading and trailing whitespace
+		size_t start = value.find_first_not_of(" \t");
+		size_t end = value.find_last_not_of(" \t");
+		if (start != std::string::npos && end != std::string::npos)
+		{
+			value = value.substr(start, end - start + 1);
+			if (!value.empty())
+			{
+				values.push_back(value);
+			}
+		}
+	}
+	return values;
+}
+
+// clang-format off
+std::map<std::string, std::vector<std::string> >
+HeaderParser::unifyHeaders_(std::multimap<std::string, std::string> multimap)
+{
+	std::map<std::string, std::vector<std::string> > headers;
+	// clang-format on
+
+	for (std::multimap<std::string, std::string>::iterator it
+		 = multimap.begin();
+		 it != multimap.end();
+		 ++it)
+	{
+		std::vector<std::string> newVector;
+		if (multimap.count(it->first) == 1) // only one ocurrance
+		{
+			newVector = splitHeaderValue_(it->first, it->second);
+			headers[it->first] = newVector;
+		}
+		else if (multimap.count(it->first) > 1) // header repeated
+		{
+			std::pair<
+				std::multimap<std::string, std::string>::iterator,
+				std::multimap<std::string, std::string>::iterator>
+						matches = multimap.equal_range(it->first);
+			std::string appendedValues;
+			for (; matches.first != matches.second; ++matches.first)
+			{
+				if (!appendedValues.empty())
+				{
+					appendedValues += ","; // Add comma between values
+				}
+				appendedValues += matches.first->second;
+			}
+			newVector = splitHeaderValue_(it->first, appendedValues);
+			headers[it->first] = newVector;
+		}
+	}
+
+	return headers;
 }
