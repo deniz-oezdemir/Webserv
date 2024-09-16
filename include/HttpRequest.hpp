@@ -54,21 +54,6 @@ class HttpRequest
 	HttpRequest &operator=(const HttpRequest &rhs);
 
   private:
-	/**
-	 * This method is used to normalize the HTTP request. It checks that all
-	 * fields follow the correct syntax according to the HTTP/1.1 specification.
-	 * It also sets the target of the request by combining the Host header and
-	 * the URI.
-	 */
-	void normalizeRequest_(
-		std::string								&method,
-		std::string								&httpVersion,
-		std::string								&uri,
-		std::map<std::string, std::vector<std::string> > &headers,
-		std::vector<char>						&body
-	);
-	std::vector<std::string> splitHeaderValue_(const std::string &headerValue);
-
 	std::string method_;
 	std::string httpVersion_;
 	std::string target_;

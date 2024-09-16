@@ -25,7 +25,7 @@ class RequestParser
 	RequestParser(const RequestParser &src);
 	RequestParser &operator=(const RequestParser &rhs);
 
-	// HttpRequestcreation
+	// HttpRequest creation
 	// clang-format off
 	static std::map<std::string, std::vector<std::string> >
 	unifyHeaders_(std::multimap<std::string, std::string> multimap);

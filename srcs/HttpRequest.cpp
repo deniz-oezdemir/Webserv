@@ -3,15 +3,17 @@
 #include <sstream>
 
 HttpRequest::HttpRequest(
-	std::string								&method,
-	std::string								&httpVersion,
-	std::string								&uri,
+	std::string &method,
+	std::string &httpVersion,
+	std::string &uri,
+	// clang-format off
 	std::map<std::string, std::vector<std::string> > &headers,
-	std::vector<char>						&body
+	// clang-format on
+	std::vector<char> &body
 )
+	: method_(method), httpVersion_(httpVersion), uri_(uri), headers_(headers),
+	  body_(body)
 {
-	normalizeRequest_(method, httpVersion, uri, headers, body);
-
 	return;
 }
 
@@ -133,45 +135,4 @@ std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
 	os << std::endl;
 
 	return os;
-}
-
-// used for comma-separated HTTP request header values
-std::vector<std::string>
-HttpRequest::splitHeaderValue_(const std::string &headerValue)
-{
-	std::vector<std::string> values;
-	std::string				 value;
-	std::istringstream		 stream(headerValue);
-	while (std::getline(stream, value, ','))
-	{
-		// Trim leading and trailing whitespace
-		size_t start = value.find_first_not_of(" \t");
-		size_t end = value.find_last_not_of(" \t");
-		if (start != std::string::npos && end != std::string::npos)
-		{
-			value = value.substr(start, end - start + 1);
-			if (!value.empty())
-			{
-				values.push_back(value);
-			}
-		}
-	}
-	return values;
-}
-
-void HttpRequest::normalizeRequest_(
-	std::string								&method,
-	std::string								&httpVersion,
-	std::string								&uri,
-	std::map<std::string, std::vector<std::string> > &inputHeaders,
-	std::vector<char>						&body
-)
-{
-	method_ = method;
-	httpVersion_ = httpVersion;
-	uri_ = uri;
-	host_ = inputHeaders.at("Host")[0];
-	target_ = host_ + uri_;
-	headers_ = inputHeaders;
-	body_ = body;
 }
