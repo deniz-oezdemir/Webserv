@@ -104,7 +104,6 @@ Test(RequestParser, testHeaders)
 		 ++it)
 	// clang-format on
 	{
-		// TODO: add test for multiple values in the value vector
 		cr_assert_str_eq(
 			request.getHeaders().at(it->first)[0].c_str(), it->second[0].c_str()
 		);

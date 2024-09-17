@@ -2,14 +2,15 @@
    - [ ] Example task
    - [ ] Change all private methods to use _ at end across whole program
    - [ ] Implement: ensure all header fields get transformed to upper-case for normalization
-   - [ ] Check: what to do with unfolded headers
+   - [ ] Check: what to do with unfolded headers (headers that continue on next line for readability. The next line starts with whitespace. They should be appended.)
    - [ ] Check: URI schemes
    - [ ] Check: Set-Cookie header may be repeated and is a special case
    - [ ] Implement: measure body length and set in private attr, and compare with header if any and also add check in response handler for if it exceeds limit in config file
    - [ ] Implement: host_ var in HttpRequest
+   - [ ] Implement: token syntax 
+        - [ ] Implement: add check for header with wrong separator (, or ;) 
 
    ## In Progress
-   - [ ] Implement: add check for header with wrong separator (, or ;) 
 
    ## Done
    - [x] Implement: accept HTTP headers with multiple values
