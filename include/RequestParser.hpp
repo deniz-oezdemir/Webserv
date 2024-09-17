@@ -1,6 +1,8 @@
 #pragma once
 
 #include "HttpRequest.hpp"
+#include <map>
+#include <vector>
 
 /* @class RequestParser
  * @brief Parses and validates the syntax of HTTP requests.
@@ -24,26 +26,47 @@ class RequestParser
 	RequestParser &operator=(const RequestParser &rhs);
 
 	// Start line checks
-	static void checkStartLine(
+	static void checkStartLine_(
 		std::string &startLine,
 		std::string *method,
 		std::string *uri,
 		std::string *httpVersion
 	);
-	static void checkMethod(std::string &method);
+	static void checkMethod_(std::string &method);
 	static void checkUri(std::string &uri);
 	static void checkHttpVersion(std::string &httpVersion);
 
 	// Headers checks
 	static void
-	checkHeaders(const std::multimap<std::string, std::string> &headers);
+	checkRawHeaders(const std::multimap<std::string, std::string> &headers);
+	static void checkSingleHeader(std::string &headerLine);
+	static bool isValidHeaderName(std::string headerName);
+	static bool isValidHeaderValue(std::string headerValue);
+	// clang-format off
+	static void checkTokenSyntax(std::map<std::string, std::vector<std::string> >
+							  headers);
+	// clang-format on
 
 	// Body checks
 	static void checkBody(
-		const std::string							  &method,
-		const std::multimap<std::string, std::string> &headers,
-		const std::vector<char>						  &body
+		const std::string &method,
+		// clang-format off
+		const std::map<std::string, std::vector<std::string> > &headers,
+		// clang-format on
+		const std::vector<char> &body
+	);
+
+	// HttpRequestcreation
+	// clang-format off
+	static std::map<std::string, std::vector<std::string> >
+	unifyHeaders_(std::multimap<std::string, std::string> multimap);
+	// clang-format on
+	static std::vector<std::string> splitHeaderValue_(
+		const std::string &headerName,
+		const std::string &headerValue
 	);
 
 	static const std::string repeatableHeaders[20];
+	static const std::string semicolonSeparated[5];
+	static const std::map<std::string, std::string> headerAcceptedChars_;
 };

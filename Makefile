@@ -28,21 +28,51 @@ OBJ_DIR						:= obj
 SRC_DIR						:= srcs
 INC_DIR						:= include
 
-vpath %.cpp $(SRC_DIR)
-vpath %.hpp $(INC_DIR)
+vpath %.cpp $(SRC_DIR) $(SRC_DIR)/request_parser
+vpath %.hpp $(INC_DIR) $(INC_DIR)/request_parser
 vpath %.o $(OBJ_DIR)
 
-HEADERS						:= colors.hpp ServerInput.hpp utils.hpp ServerException.hpp \
-										 ServerConfig.hpp ConfigValue.hpp utils.hpp Server.hpp \
-										 HttpRequest.hpp RequestParser.hpp Logger.hpp \
-											HttpException.hpp ServerEngine.hpp \
-											HttpResponse.hpp signals.hpp
-SOURCE						:= main.cpp ServerInput.cpp ServerException.cpp ServerConfig.cpp \
-										 ConfigValue.cpp utils.cpp Server.cpp HttpRequest.cpp \
-											RequestParser.cpp Logger.cpp HttpException.cpp ServerEngine.cpp \
-											HttpResponse.cpp signals.cpp
 
-OBJECTS						:= $(addprefix $(OBJ_DIR)/, $(SOURCE:.cpp=.o))
+HEADERS := 	colors.hpp \
+			ServerInput.hpp \
+			utils.hpp \
+			ServerException.hpp \
+			ServerConfig.hpp \
+			ConfigValue.hpp \
+			utils.hpp \
+			Server.hpp \
+			HttpRequest.hpp \
+			Logger.hpp \
+			HttpException.hpp \
+			ServerEngine.hpp \
+			HttpResponse.hpp \
+			signals.hpp \
+			request_parser/RequestParser.hpp \
+			request_parser/FirstLineParser.hpp \
+			request_parser/HeaderParser.hpp \
+			request_parser/HttpHeaders.hpp \
+			request_parser/BodyParser.hpp \
+
+SOURCE := 	main.cpp \
+			ServerInput.cpp \
+			ServerException.cpp \
+			ServerConfig.cpp \
+			ConfigValue.cpp \
+			utils.cpp \
+			Server.cpp \
+			HttpRequest.cpp \
+			request_parser/RequestParser.cpp \
+			request_parser/FirstLineParser.cpp \
+			request_parser/HeaderParser.cpp \
+			request_parser/HttpHeaders.cpp \
+			request_parser/BodyParser.cpp \
+          	Logger.cpp \
+			HttpException.cpp \
+			ServerEngine.cpp \
+			HttpResponse.cpp \
+			signals.cpp
+
+OBJECTS := $(addprefix $(OBJ_DIR)/, $(notdir $(SOURCE:.cpp=.o)))
 
 ################################################################################
 ##                                   FLAGS                                    ##

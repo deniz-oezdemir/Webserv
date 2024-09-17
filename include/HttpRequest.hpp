@@ -19,11 +19,13 @@ class HttpRequest
 {
   public:
 	HttpRequest(
-		std::string								&method,
-		std::string								&httpVersion,
-		std::string								&uri,
-		std::multimap<std::string, std::string> &headers,
-		std::vector<char>						&body
+		std::string &method,
+		std::string &httpVersion,
+		std::string &uri,
+		// clang-format off
+		std::map<std::string, std::vector<std::string> > &headers,
+		// clang-format on
+		std::vector<char> &body
 	);
 	HttpRequest(const HttpRequest &src);
 	~HttpRequest(void);
@@ -60,18 +62,21 @@ class HttpRequest
 	 * It also sets the target of the request by combining the Host header and
 	 * the URI.
 	 */
-	void normalizeRequest(
-		std::string								&method,
-		std::string								&httpVersion,
-		std::string								&uri,
-		std::multimap<std::string, std::string> &headers,
-		std::vector<char>						&body
+	void normalizeRequest_(
+		std::string &method,
+		std::string &httpVersion,
+		std::string &uri,
+		// clang-format off
+		std::map<std::string, std::vector<std::string> > &headers,
+		// clang-format on
+		std::vector<char> &body
 	);
 
 	std::string method_;
 	std::string httpVersion_;
 	std::string target_;
 	std::string uri_;
+	std::string host_;
 	// clang-format off
 	std::map<std::string, std::vector<std::string> > headers_;
 	// clang-format on
