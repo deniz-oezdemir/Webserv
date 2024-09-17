@@ -3,6 +3,7 @@
 #include "request_parser/FirstLineParser.hpp"
 #include "request_parser/HeaderParser.hpp"
 #include "request_parser/HttpHeaders.hpp"
+#include "request_parser/TokenValidator.hpp"
 #include <cctype>
 #include <cstdlib>
 #include <map>
@@ -41,6 +42,9 @@ HttpRequest RequestParser::parseRequest(std::string str)
 
 	// Extract, parse and normalize headers
 	HeaderParser::parseHeaders(requestStream, &headers);
+	
+	// Check token syntax
+	TokenValidator::validateTokens(headers);
 
 	// Extract and check the body
 	BodyParser::parseBody(requestStream, method, headers, &body);
