@@ -10,10 +10,10 @@
    - [ ] Implement: host_ var in HttpRequest
 
    ## In Progress
-   - [ ] Implement: token syntax 
-        - [ ] Implement: add check for header with wrong separator (, or ;) 
 
    ## Done
+   - [x] Implement: token syntax 
+        - [x] Implement: add check for header with wrong separator (, or ;) 
    - [x] Implement: accept HTTP headers with multiple values
             - [x] headers separated by semicolons
             - [x] check headerName syntax
