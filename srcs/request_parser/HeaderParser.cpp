@@ -199,7 +199,7 @@ void HeaderParser::checkSingleHeader_(std::string &headerLine)
  */
 bool HeaderParser::checkRepeatedHeaderAllowed_(std::string header)
 {
-	for (int i = 0; i < REPEATABLEHEADERS_N; ++i)
+	for (int i = 0; i < REPEATABLE_HEADERS_N; ++i)
 	{
 		if (repeatableHeaders[i] == header)
 		{
@@ -294,7 +294,7 @@ std::vector<std::string> HeaderParser::splitHeaderValue_(
 )
 {
 	char separator = ',';
-	for (int i = 0; i < SEMICOLONSEPARATE_N; i++)
+	for (int i = 0; i < SEMICOLON_SEPARATED_N; i++)
 	{
 		if (semicolonSeparated[i] == headerName)
 			separator = ';';

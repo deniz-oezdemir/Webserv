@@ -6,13 +6,14 @@
    - [ ] Check: URI schemes
    - [ ] Check: Set-Cookie header may be repeated and is a special case
    - [ ] Implement: measure body length and set in private attr, and compare with header if any and also add check in response handler for if it exceeds limit in config file
+   - [ ] Implement: filter parser to only check for accpted methods 
    - [ ] Implement: host_ var in HttpRequest
-   - [ ] Implement: token syntax 
-        - [ ] Implement: add check for header with wrong separator (, or ;) 
 
    ## In Progress
 
    ## Done
+   - [x] Implement: token syntax 
+        - [x] Implement: add check for header with wrong separator (, or ;) 
    - [x] Implement: accept HTTP headers with multiple values
             - [x] headers separated by semicolons
             - [x] check headerName syntax

@@ -52,6 +52,7 @@ HEADERS := 	colors.hpp \
 			request_parser/HeaderParser.hpp \
 			request_parser/HttpHeaders.hpp \
 			request_parser/BodyParser.hpp \
+			request_parser/TokenValidator.hpp \
 
 SOURCE := 	main.cpp \
 			ServerInput.cpp \
@@ -66,6 +67,7 @@ SOURCE := 	main.cpp \
 			request_parser/HeaderParser.cpp \
 			request_parser/HttpHeaders.cpp \
 			request_parser/BodyParser.cpp \
+			request_parser/TokenValidator.cpp \
           	Logger.cpp \
 			HttpException.cpp \
 			ServerEngine.cpp \

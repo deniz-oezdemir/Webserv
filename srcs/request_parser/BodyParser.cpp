@@ -30,7 +30,11 @@ void BodyParser::parseBody(
 	while (std::getline(requestStream, bodyLine))
 	{
 		body->insert(body->end(), bodyLine.begin(), bodyLine.end());
-		body->push_back('\n'); // Preserve the newline character
+		if (!requestStream.eof(
+			)) // Only add newline if not at the end of the stream
+		{
+			body->push_back('\n'); // Preserve the newline character
+		}
 	}
 
 	checkBody_(method, headers, *body);
@@ -70,8 +74,10 @@ void BodyParser::checkBody_(
 		&& (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())
 			   != body.size())
 	{
-		Logger::log(Logger::INFO)
-			<< "Content-Length does not match actual body length." << std::endl;
+		Logger::log(Logger::INFO
+		) << "Content-Length does not match actual body length. Stated length: "
+		  << (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())
+		  << " Actual length: " << body.size() << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 
