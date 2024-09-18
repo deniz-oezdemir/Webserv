@@ -115,7 +115,7 @@ Test(ServerConfig, CheckServerDirectives)
 			throw std::runtime_error("Could not find the key [root] in the "
 									 "server[0] configuration map.");
 		cr_assert(eq(str, const_cast<std::string &>(value.getVectorValue(0)),
-				 "../website"));
+				 "../www/website"));
 
 		if (!config.getServerConfigValue(0, "index", value))
 			throw std::runtime_error("Could not find the key [index] in the "
