@@ -62,14 +62,38 @@ void BodyParser::checkBody_(
 	const std::vector<char> &body
 )
 {
-	if ((method == "GET" || method == "DELETE") && !body.empty())
+	// GET and DELETE methods should not have a body TODO: check this again
+	// GET and DELETE methods should not have a Content-Length header
+	// POST should always have Content-Length header
+	if (method == "GET" || method == "DELETE")
 	{
-		// TODO: check again this rule
-		Logger::log(Logger::INFO)
-			<< "Body should be empty for GET or DELETE requests." << std::endl;
-		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+		if (headers.count("Content-Length") > 0)
+		{
+			Logger::log(Logger::INFO)
+				<< "GET or DELETE method should not have Content-Length header "
+				   "present. Method:"
+				<< method << std::endl;
+			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+		}
+		if (!body.empty())
+		{
+			Logger::log(Logger::INFO)
+				<< "Body should be empty for GET or DELETE requests."
+				<< std::endl;
+			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+		}
+	}
+	else
+	{
+		if (headers.count("Content-Length") < 1)
+		{
+			Logger::log(Logger::INFO)
+				<< "POST method requires Content-Length header." << std::endl;
+			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+		}
 	}
 
+	// Check actual body length matches Content-Length header
 	if (headers.count("Content-Length") > 0
 		&& (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())
 			   != body.size())
