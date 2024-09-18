@@ -35,8 +35,10 @@ class ServerConfig
 	bool getAllServersConfig(
 		std::vector<std::map<std::string, ConfigValue> > &serversConfig
 	) const;
+
 	std::vector<std::map<std::string, ConfigValue> > const &
 	getAllServersConfig(void) const;
+
 	// Get the value of a key in a server[serverIndex] configuration map.
 	bool getServerConfigValue(
 		unsigned int	   serverIndex,
@@ -54,6 +56,17 @@ class ServerConfig
 
 	void initGeneralConfig_(void);
 	void initServersConfig_(void);
+	void initLocationConfig_(
+		std::map<std::string, std::vector<std::string> > &location
+	);
+
+	void errorHandler_(
+		std::string const &message,
+		unsigned int	   lineIndex,
+		bool			   isTest,
+		bool			   isTestPrint
+	);
+
 	bool checkValues_(
 		std::vector<std::string> const &line,
 		unsigned int					maxSize,
@@ -61,12 +74,35 @@ class ServerConfig
 		bool							isTest,
 		bool							isTestPrint
 	);
-	void errorHandler_(
-		std::string const &message,
-		unsigned int	   lineIndex,
-		bool			   isTest,
-		bool			   isTestPrint
+
+	bool isValidErrorCode_(std::string const &code);
+	bool isURI_(std::string const &uri);
+	bool isURL_(std::string const &url);
+	bool isExecutable_(std::string const &path);
+	bool isDirectory_(std::string const &path);
+
+	bool checkDirective_(std::vector<std::string> const &tokens);
+	bool checkLimitExcept_(std::vector<std::string> const &tokens);
+	bool checkAutoIndex_(std::vector<std::string> const &tokens);
+	bool checkReturn_(std::vector<std::string> const &tokens);
+	bool checkCgi_(std::vector<std::string> const &tokens);
+	bool checkUploadStore_(std::vector<std::string> const &tokens);
+	bool checkClientMaxBodySize_(std::vector<std::string> const &tokens);
+	bool checkRoot_(std::vector<std::string> const &tokens);
+	bool checkServerListenUnique_(
+		std::string const &hoist,
+		std::string const &port,
+		unsigned int	  &lineIndex,
+		bool			  &isTest,
+		bool			  &isTestPrint
 	);
+
+	bool checkServerNameUnique_(std::string const &tokens);
+	bool checkListenUnique_(
+		std::vector<std::string> const &host,
+		std::vector<std::string> const &port
+	);
+
 	void parseLocationBlock_(
 		std::vector<std::string> &tokens,
 		std::string				 &line,

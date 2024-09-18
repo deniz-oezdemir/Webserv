@@ -136,3 +136,15 @@ void ConfigValue::setMap(
 	this->type_ = MAP;
 	this->mapValue_ = value;
 }
+
+void ConfigValue::pushBackMapValue(
+	std::string const &key,
+	std::string const &value
+)
+{
+	if (this->type_ != MAP)
+		throw ServerException(
+			"ConfigValue::pushBackMapValue: not a map, key:" + key
+		);
+	this->mapValue_[key].push_back(value);
+}

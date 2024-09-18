@@ -11,7 +11,6 @@
 class ServerEngine
 {
   public:
-	ServerEngine();
 	// clang-format off
 	ServerEngine(std::vector<std::map<std::string, ConfigValue> > const &servers
 	);
@@ -24,13 +23,20 @@ class ServerEngine
 	std::string createResponse(const HttpRequest &request);
 
   private:
+	ServerEngine();
 	ServerEngine(ServerEngine const &src);
 	ServerEngine &operator=(ServerEngine const &src);
 
 	unsigned int		numServers_;
+	unsigned int		totalServerInstances_;
 	std::vector<pollfd> pollFds_;
 	std::vector<Server> servers_;
 
+	void initServer_(
+		std::map<std::string, ConfigValue> const &serverConfig,
+		size_t									 &serverIndex,
+		size_t									 &globalServerIndex
+	);
 	void initPollFds_(void);
 	bool isPollFdServer_(int &fd);
 	void handleClient_(size_t &index);

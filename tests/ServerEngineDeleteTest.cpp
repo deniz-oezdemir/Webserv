@@ -36,9 +36,9 @@ Test(ServerEngine, handleDeleteRequest)
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
 
-	ServerConfig config("../default.config");
+	ServerConfig config("test.config");
 	config.parseFile(false, false);
-	config.setRootToAllServers("../www/website");
+	// config.setRootToAllServers("../www/website");
 
 	{
 		// Create a ServerEngine object

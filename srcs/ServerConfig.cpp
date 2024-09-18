@@ -7,6 +7,7 @@
 #include <iostream>
 #include <stack>
 #include <string>
+#include <sys/stat.h>
 
 // Array of valid log levels to check if the log level set in the configuration
 // file is valid.
@@ -26,7 +27,8 @@ ServerConfig::ServerConfig(std::string const &filepath)
 }
 
 ServerConfig::ServerConfig(ServerConfig const &src)
-	: filepath_(src.filepath_), file_(src.filepath_), isConfigOK_(src.isConfigOK())
+	: filepath_(src.filepath_), file_(src.filepath_),
+	  isConfigOK_(src.isConfigOK())
 {
 	if (!this->file_.is_open())
 		throw ServerException("Could not open the file [%]", errno, filepath_);
@@ -82,11 +84,30 @@ void ServerConfig::initServersConfig_(void)
 {
 	std::map<std::string, ConfigValue> server;
 	server["server_name"] = ConfigValue();
-	server["listen"] = ConfigValue();
+	std::map<std::string, std::vector<std::string> > listenMap;
+	listenMap["host"] = std::vector<std::string>();
+	listenMap["port"] = std::vector<std::string>();
+	server["listen"] = ConfigValue(listenMap);
 	server["root"] = ConfigValue();
 	server["index"] = ConfigValue();
 	server["client_max_body_size"] = ConfigValue();
 	this->serversConfig_.push_back(server);
+}
+
+void ServerConfig::initLocationConfig_(
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > &location
+	// clang-format on
+)
+{
+	location["root"] = std::vector<std::string>();
+	location["index"] = std::vector<std::string>();
+	location["client_max_body_size"] = std::vector<std::string>();
+	location["limit_except"] = std::vector<std::string>();
+	location["autoindex"] = std::vector<std::string>();
+	location["return"] = std::vector<std::string>();
+	location["upload_store"] = std::vector<std::string>();
+	location["cgi"] = std::vector<std::string>();
 }
 
 // Handle the error message, if isTest or isTestPrint is true, print the error
@@ -101,14 +122,14 @@ void ServerConfig::errorHandler_(
 	if (isTest || isTestPrint)
 	{
 		std::cerr << PURPLE "<WebServ> " << YELLOW "[EMERG] " RESET << message
-				  << " in the configuration file " CYAN << this->filepath_ << ":"
-				  << lineIndex << RESET << std::endl;
+				  << " in the configuration file " CYAN << this->filepath_
+				  << ":" << lineIndex << RESET << std::endl;
 		this->isConfigOK_ = false;
 	}
 	else
 		throw ServerException(
-			message + " in the configuration file " + this->filepath_ + ":" +
-			ft::toString(lineIndex)
+			message + " in the configuration file " + this->filepath_ + ":"
+			+ ft::toString(lineIndex)
 		);
 }
 
@@ -146,6 +167,141 @@ bool ServerConfig::checkValues_(
 	return true;
 }
 
+bool ServerConfig::isValidErrorCode_(std::string const &code)
+{
+	if (code.size() != 3)
+		return false;
+	if (!ft::isStrOfDigits(code))
+		return false;
+	unsigned short errorCode(ft::strToUShort(code));
+	if (errorCode < 300 || errorCode > 599)
+		return false;
+	return true;
+}
+
+bool ServerConfig::isURI_(std::string const &uri)
+{
+	if (uri.size() < 2)
+		return false;
+	if (uri[0] != '/')
+		return false;
+	return true;
+}
+
+bool ServerConfig::isURL_(std::string const &url)
+{
+	if (url.size() < 8)
+		return false;
+	if (url.substr(0, 7) != "http://" && url.substr(0, 8) != "https://")
+		return false;
+	if (url.find('.', url.find("://") + 3) == std::string::npos)
+		return false;
+	if (url.find('.', url.find("www.") + 4) == std::string::npos)
+		return false;
+	return true;
+}
+
+bool ServerConfig::isExecutable_(std::string const &path)
+{
+	struct stat fileStat;
+
+	if (stat(path.c_str(), &fileStat) == 0)
+	{
+		if (fileStat.st_mode & S_IXUSR)
+			return true;
+	}
+	return false;
+}
+
+bool ServerConfig::isDirectory_(std::string const &path)
+{
+	struct stat fileStat;
+
+	if (stat(path.c_str(), &fileStat) == 0)
+	{
+		if (S_ISDIR(fileStat.st_mode))
+			return true;
+	}
+	return false;
+}
+
+bool ServerConfig::checkDirective_(std::vector<std::string> const &tokens)
+{
+	if (tokens[0] == "limit_except")
+		return this->checkLimitExcept_(tokens);
+	else if (tokens[0] == "autoindex")
+		return this->checkAutoIndex_(tokens);
+	else if (tokens[0] == "return")
+		return this->checkReturn_(tokens);
+	else if (tokens[0] == "cgi")
+		return this->checkCgi_(tokens);
+	else if (tokens[0] == "upload_store")
+		return this->checkUploadStore_(tokens);
+	else if (tokens[0] == "client_max_body_size")
+		return ft::isStrOfDigits(tokens[1]) && tokens.size() == 2;
+	else if (tokens[0] == "root")
+		return this->checkRoot_(tokens);
+	return false;
+}
+
+bool ServerConfig::checkLimitExcept_(std::vector<std::string> const &tokens)
+{
+	std::vector<std::string>::const_iterator it(tokens.begin() + 1);
+	for (; it < tokens.end(); ++it)
+	{
+		if (*it != "GET" && *it != "POST" && *it != "DELETE" && *it != "PUT")
+			return false;
+	}
+	return true;
+}
+
+bool ServerConfig::checkAutoIndex_(std::vector<std::string> const &tokens)
+{
+	if (tokens.size() == 2 && (tokens[1] == "on" || tokens[1] == "off"))
+		return true;
+	return false;
+}
+
+bool ServerConfig::checkReturn_(std::vector<std::string> const &tokens)
+{
+	if ((tokens.size() == 2 && this->isValidErrorCode_(tokens[1]))
+		|| (tokens.size() == 3 && this->isValidErrorCode_(tokens[1])
+			&& (this->isURI_(tokens[2]) || this->isURL_(tokens[2]))))
+		return true;
+	return false;
+}
+
+bool ServerConfig::checkCgi_(std::vector<std::string> const &tokens)
+{
+	if (tokens.size() == 3 && tokens[1].find('.') != std::string::npos
+		&& this->isExecutable_(tokens[2]))
+		return true;
+	return false;
+}
+
+bool ServerConfig::checkUploadStore_(std::vector<std::string> const &tokens)
+{
+	if (tokens.size() == 2 && this->isURI_(tokens[1]))
+		return true;
+	return false;
+}
+
+bool ServerConfig::checkClientMaxBodySize_(
+	std::vector<std::string> const &tokens
+)
+{
+	if (tokens.size() == 2 && ft::isStrOfDigits(tokens[1]))
+		return true;
+	return false;
+}
+
+bool ServerConfig::checkRoot_(std::vector<std::string> const &tokens)
+{
+	if (tokens.size() == 2 && this->isDirectory_(tokens[1]))
+		return true;
+	return false;
+}
+
 // Set the host and port in the listen directive. If the argument is a port
 // number, set the port. If the argument is an IP address and a port number,
 // split the argument and set the host and port. Otherwise, print an error
@@ -177,8 +333,8 @@ void ServerConfig::setListenDirective_(
 			ft::split(tmp, tokens[1], ":");
 			// Check if the argument is host:port, check if the port number is
 			// valid and if the IP address is valid
-			if (tmp.size() == 2 && ft::isUShort(tmp[1]) &&
-				ft::isValidIPv4(tmp[0]))
+			if (tmp.size() == 2 && ft::isUShort(tmp[1])
+				&& ft::isValidIPv4(tmp[0]))
 			{
 				host = tmp[0];
 				port = tmp[1];
@@ -191,17 +347,35 @@ void ServerConfig::setListenDirective_(
 			throw std::invalid_argument(
 				"Invalid format, expected host:port or port"
 			);
-		// Set the host and port in the listen as a map of host and port.
-		std::map<std::string, std::vector<std::string> > listenMap;
-		listenMap["host"] = std::vector<std::string>(1, host);
-		listenMap["port"] = std::vector<std::string>(1, port);
-		this->serversConfig_.back()["listen"] = ConfigValue(listenMap);
+		if (this->checkServerListenUnique_(
+				host, port, lineIndex, isTest, isTestPrint
+			))
+		{
+			// Set the host and port in the listen as a map with the keys host
+			// and port.
+			this->serversConfig_.back()["listen"].pushBackMapValue(
+				"host", host
+			);
+			this->serversConfig_.back()["listen"].pushBackMapValue(
+				"port", port
+			);
+		}
+		else
+		{
+			this->errorHandler_(
+				"Duplicate listen directive [" + host + ":" + port
+					+ "] is a server block",
+				lineIndex,
+				isTest,
+				isTestPrint
+			);
+		}
 	}
 	catch (std::exception &e)
 	{
 		this->errorHandler_(
-			"Invalid value [" + tokens[1] + "] for " + tokens[0] +
-				" directive: " + e.what(),
+			"Invalid value [" + tokens[1] + "] for " + tokens[0]
+				+ " directive: " + e.what(),
 			lineIndex,
 			isTest,
 			isTestPrint
@@ -220,8 +394,9 @@ void ServerConfig::parseLocationBlock_(
 	bool					 &isTestPrint
 )
 {
-	std::string tmp(tokens[1] + " " + tokens[2]);
+	std::string										uri(tokens[1]);
 	std::map<std::string, std::vector<std::string> > location;
+	this->initLocationConfig_(location);
 	tokens.clear();
 	++lineIndex;
 	while (std::getline(this->file_, line))
@@ -237,17 +412,53 @@ void ServerConfig::parseLocationBlock_(
 		}
 		if (this->checkValues_(tokens, 99, lineIndex, isTest, isTestPrint))
 		{
-			tokens[tokens.size() - 1].erase(
-				tokens[tokens.size() - 1].size() - 1
+			if (location.find(tokens[0]) != location.end())
+			{
+				tokens[tokens.size() - 1].erase(
+					tokens[tokens.size() - 1].size() - 1
+				);
+				if (this->checkDirective_(tokens))
+				{
+					location[tokens[0]] = std::vector<std::string>(
+						tokens.begin() + 1, tokens.end()
+					);
+				}
+				else
+				{
+					this->errorHandler_(
+						"Invalid value [" + tokens[1] + "] for " + tokens[0]
+							+ " directive",
+						lineIndex,
+						isTest,
+						isTestPrint
+					);
+				}
+			}
+			else
+			{
+				this->errorHandler_(
+					"Invalid directive [" + tokens[0] + "] in location block",
+					lineIndex,
+					isTest,
+					isTestPrint
+				);
+			}
+		}
+		else
+		{
+			this->errorHandler_(
+				"Invalid directive [" + tokens[0]
+					+ "] in location block, the line should end with ';'",
+				lineIndex,
+				isTest,
+				isTestPrint
 			);
-			location[tokens[0]] =
-				std::vector<std::string>(tokens.begin() + 1, tokens.end());
 		}
 		tokens.clear();
 		++lineIndex;
 	}
 	if (this->serversConfig_.size() > 0)
-		this->serversConfig_.back()[tmp].setMap(location);
+		this->serversConfig_.back()[uri].setMap(location);
 	else
 		this->errorHandler_(
 			"Invalid directive [" + tokens[0] + "] outside a server block",
@@ -288,8 +499,8 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 					"Missing '{' to pair '}'", lineIndex, isTest, isTestPrint
 				);
 		}
-		else if (tokens[0] == "worker_processes" ||
-				 tokens[0] == "worker_connections")
+		else if (tokens[0] == "worker_processes"
+				 || tokens[0] == "worker_connections")
 		{
 			if (this->checkValues_(tokens, 2, lineIndex, isTest, isTestPrint))
 			{
@@ -298,8 +509,8 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 					this->generalConfig_[tokens[0]] = tokens[1];
 				else
 					this->errorHandler_(
-						"Invalid value [" + tokens[1] + "] for " + tokens[0] +
-							" directive",
+						"Invalid value [" + tokens[1] + "] for " + tokens[0]
+							+ " directive",
 						lineIndex,
 						isTest,
 						isTestPrint
@@ -315,12 +526,13 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 						this->validLogLevels.begin(),
 						this->validLogLevels.end(),
 						tokens[1]
-					) != this->validLogLevels.end())
+					)
+					!= this->validLogLevels.end())
 					this->generalConfig_[tokens[0]] = tokens[1];
 				else
 					this->errorHandler_(
-						"Invalid value [" + tokens[1] + "] for " + tokens[0] +
-							" directive",
+						"Invalid value [" + tokens[1] + "] for " + tokens[0]
+							+ " directive",
 						lineIndex,
 						isTest,
 						isTestPrint
@@ -329,8 +541,8 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 		}
 		// If the directive is http, server or events, check if the directive
 		// has an opening bracket '{'. If it doesn't, print an error message.
-		else if (tokens[0] == "http" || tokens[0] == "server" ||
-				 tokens[0] == "events")
+		else if (tokens[0] == "http" || tokens[0] == "server"
+				 || tokens[0] == "events")
 		{
 			if (tokens.size() == 2 && tokens[1] == "{")
 				brackets.push(true);
@@ -356,14 +568,14 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 						tokens[tokens.size() - 1].size() - 1
 					);
 					if (this->serversConfig_.size() > 0)
-						this->serversConfig_.back()[tokens[0]] =
-							ConfigValue(std::vector<std::string>(
+						this->serversConfig_.back()[tokens[0]]
+							= ConfigValue(std::vector<std::string>(
 								tokens.begin() + 1, tokens.end()
 							));
 					else
 						this->errorHandler_(
-							"Invalid directive [" + tokens[0] +
-								"] outside a server block",
+							"Invalid directive [" + tokens[0]
+								+ "] outside a server block",
 							lineIndex,
 							isTest,
 							isTestPrint
@@ -372,24 +584,24 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 			}
 			else
 				this->errorHandler_(
-					"Invalid number of arguments in [" + tokens[0] +
-						"] directive, expected at least 1",
+					"Invalid number of arguments in [" + tokens[0]
+						+ "] directive, expected at least 1",
 					lineIndex,
 					isTest,
 					isTestPrint
 				);
 		}
-		else if (tokens[0] == "listen" || tokens[0] == "root" ||
-				 tokens[0] == "client_max_body_size")
+		else if (tokens[0] == "listen" || tokens[0] == "root"
+				 || tokens[0] == "client_max_body_size")
 		{
 			if (this->checkValues_(tokens, 2, lineIndex, isTest, isTestPrint))
 			{
 				tokens[1].erase(tokens[1].size() - 1);
-				if (tokens[0] == "client_max_body_size" &&
-					!ft::isStrOfDigits(tokens[1]))
+				if ((tokens[0] == "client_max_body_size" || tokens[0] == "root")
+					&& !this->checkDirective_(tokens))
 					this->errorHandler_(
-						"Invalid value [" + tokens[1] + "] for " + tokens[0] +
-							" directive, expected a port number",
+						"Invalid value [" + tokens[1] + "] for " + tokens[0]
+							+ " directive, expected a port nu mber",
 						lineIndex,
 						isTest,
 						isTestPrint
@@ -405,15 +617,15 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 								tokens, lineIndex, isTest, isTestPrint
 							);
 						else
-							this->serversConfig_.back()[tokens[0]] =
-								ConfigValue(std::vector<std::string>(
+							this->serversConfig_.back()[tokens[0]]
+								= ConfigValue(std::vector<std::string>(
 									tokens.begin() + 1, tokens.end()
 								));
 					}
 					else
 						this->errorHandler_(
-							"Invalid directive [" + tokens[0] +
-								"] outside a server block",
+							"Invalid directive [" + tokens[0]
+								+ "] outside a server block",
 							lineIndex,
 							isTest,
 							isTestPrint
@@ -423,8 +635,10 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 		}
 		else if (tokens[0] == "error_page")
 		{
-			if (tokens.size() > 2 &&
-				this->checkValues_(tokens, 99, lineIndex, isTest, isTestPrint))
+			if (tokens.size() > 2
+				&& this->checkValues_(
+					tokens, 99, lineIndex, isTest, isTestPrint
+				))
 			{
 				tokens[tokens.size() - 1].erase(
 					tokens[tokens.size() - 1].size() - 1
@@ -434,8 +648,8 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 				{
 					if (!ft::isStrOfDigits(*it))
 						this->errorHandler_(
-							"Invalid value [" + *it + "] for " + tokens[0] +
-								" directive, expected a status code",
+							"Invalid value [" + *it + "] for " + tokens[0]
+								+ " directive, expected a status code",
 							lineIndex,
 							isTest,
 							isTestPrint
@@ -443,14 +657,14 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 					else
 					{
 						if (this->serversConfig_.size() > 0)
-							this->serversConfig_.back()[*it] =
-								ConfigValue(std::vector<std::string>(
+							this->serversConfig_.back()[*it]
+								= ConfigValue(std::vector<std::string>(
 									tokens.end() - 1, tokens.end()
 								));
 						else
 							this->errorHandler_(
-								"Invalid directive [" + tokens[0] +
-									"] outside a server block",
+								"Invalid directive [" + tokens[0]
+									+ "] outside a server block",
 								lineIndex,
 								isTest,
 								isTestPrint
@@ -460,8 +674,8 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 			}
 			else
 				this->errorHandler_(
-					"Invalid number of arguments in [" + tokens[0] +
-						"] directive, expected at leat 2",
+					"Invalid number of arguments in [" + tokens[0]
+						+ "] directive, expected at leat 2",
 					lineIndex,
 					isTest,
 					isTestPrint
@@ -469,30 +683,18 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 		}
 		else if (tokens[0] == "location")
 		{
-			if (tokens.size() > 2 && tokens.size() < 5 &&
-				tokens[tokens.size() - 1] == "{")
+			if (tokens.size() == 3 && tokens[tokens.size() - 1] == "{")
 			{
 				brackets.push(true);
-				if (tokens.size() == 4 &&
-					(tokens[1] != "~" && tokens[1] != "=" &&
-					 tokens[1] != "^~" && tokens[1] != "~*"))
-					this->errorHandler_(
-						"Invalid value [" + tokens[1] + "] for " + tokens[0] +
-							" directive, expected '~', '=', '^~' or '~*'",
-						lineIndex,
-						isTest,
-						isTestPrint
-					);
-				else
-					this->parseLocationBlock_(
-						tokens, line, lineIndex, brackets, isTest, isTestPrint
-					);
+				this->parseLocationBlock_(
+					tokens, line, lineIndex, brackets, isTest, isTestPrint
+				);
 			}
 			else
 				this->errorHandler_(
-					"Invalid number of arguments in [" + tokens[0] +
-						"] directive, expected at least 1 and open bracket '{' "
-						"after them",
+					"Invalid number of arguments in [" + tokens[0]
+						+ "] directive, expected one and open bracket '{' "
+						  "after them",
 					lineIndex,
 					isTest,
 					isTestPrint
@@ -566,6 +768,25 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 			it->find("server_name")
 				->second.setVector(std::vector<std::string>(1, "_"));
 		}
+		else
+		{
+			std::vector<std::string>::const_iterator it2(
+				it->find("server_name")->second.getVector().begin()
+			);
+			for (; it2 != it->find("server_name")->second.getVector().end();
+				 ++it2)
+			{
+				if (!this->checkServerNameUnique_(*it2))
+				{
+					this->errorHandler_(
+						"Duplicate server name [" + *it2 + "]",
+						0,
+						isTest,
+						isTestPrint
+					);
+				}
+			}
+		}
 		if (it->find("listen")->second.getMap().empty())
 		{
 			if (isTest || isTestPrint)
@@ -580,6 +801,25 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 			listenMap["host"] = std::vector<std::string>(1, "0.0.0.0");
 			listenMap["port"] = std::vector<std::string>(1, "80");
 			it->find("listen")->second.setMap(listenMap);
+		}
+		else
+		{
+			std::vector<std::string> const &hosts(
+				it->find("listen")->second.getMapValue("host")
+			);
+			std::vector<std::string> const &ports(
+				it->find("listen")->second.getMapValue("ports")
+			);
+			if (!this->checkListenUnique_(hosts, ports))
+			{
+				this->errorHandler_(
+					"Duplicate listen directive [" + hosts[0] + ":" + ports[0]
+						+ "]",
+					0,
+					isTest,
+					isTest
+				);
+			}
 		}
 		if (it->find("root")->second.getVector().empty())
 		{
@@ -668,10 +908,10 @@ bool ServerConfig::getAllServersConfig(
 	return true;
 }
 
-std::vector<std::map<std::string, ConfigValue> > const
-		&ServerConfig::getAllServersConfig(void) const
+std::vector<std::map<std::string, ConfigValue> > const &
+ServerConfig::getAllServersConfig(void) const
 {
-	 return this->serversConfig_;
+	return this->serversConfig_;
 }
 
 // Get the value of a key in a server[serverIndex] configuration map.
@@ -692,6 +932,100 @@ bool ServerConfig::getServerConfigValue(
 		return true;
 	}
 	return false;
+}
+
+bool ServerConfig::checkServerNameUnique_(std::string const &serverName)
+{
+	unsigned int													count(0);
+	std::vector<std::map<std::string, ConfigValue> >::const_iterator it(
+		this->serversConfig_.begin()
+	);
+	for (; it != this->serversConfig_.end(); ++it)
+	{
+		std::vector<std::string>::const_iterator it2(
+			it->find("server_name")->second.getVector().begin()
+		);
+		for (; it2 != it->find("server_name")->second.getVector().end(); ++it2)
+		{
+			if (*it2 == serverName)
+				++count;
+		}
+	}
+	if (count != 1)
+		return false;
+	return true;
+}
+
+bool ServerConfig::checkListenUnique_(
+	std::vector<std::string> const &hosts,
+	std::vector<std::string> const &ports
+)
+{
+	for (std::vector<std::map<std::string, ConfigValue> >::const_iterator it
+		 = this->serversConfig_.begin();
+		 it != this->serversConfig_.end();
+		 ++it)
+	{
+		const std::vector<std::string> &serverHosts
+			= it->find("listen")->second.getMapValue("host");
+		const std::vector<std::string> &serverPorts
+			= it->find("listen")->second.getMapValue("port");
+
+		for (size_t i = 0; i < serverHosts.size() && i < serverPorts.size();
+			 ++i)
+		{
+			for (size_t j = 0; j < hosts.size() && j < ports.size(); ++j)
+			{
+				if (serverHosts[i] == hosts[j] && serverPorts[i] == ports[j])
+				{
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+bool ServerConfig::checkServerListenUnique_(
+	const std::string &host,
+	const std::string &port,
+	unsigned int	  &lineIndex,
+	bool			  &isTest,
+	bool			  &isTestPrint
+)
+{
+	const std::map<std::string, ConfigValue> &lastServerConfig
+		= this->serversConfig_.back();
+	if (lastServerConfig.find("listen") == lastServerConfig.end())
+	{
+		return true;
+	}
+
+	const std::vector<std::string> &hosts
+		= lastServerConfig.at("listen").getMapValue("host");
+	const std::vector<std::string> &ports
+		= lastServerConfig.at("listen").getMapValue("port");
+
+	if (hosts.size() != ports.size())
+	{
+		this->errorHandler_(
+			"Invalid number of arguments in [listen] directive",
+			lineIndex,
+			isTest,
+			isTestPrint
+		);
+		return false;
+	}
+
+	for (size_t i = 0; i < hosts.size(); ++i)
+	{
+		if (hosts[i] == host && ports[i] == port)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 void ServerConfig::setRootToAllServers(std::string const &root)

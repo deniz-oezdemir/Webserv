@@ -9,11 +9,13 @@
 
 Server::Server(
 	std::map<std::string, ConfigValue> const &server,
-	unsigned int							  index
+	unsigned int							  index,
+	unsigned int							  listenIndex
 )
-	: port_(ft::strToUShort(server.at("listen").getMapValue("port")[0])),
-	  ipV4_(const_cast<std::string &>(server.at("listen").getMapValue("host")[0]
+	: port_(ft::strToUShort(server.at("listen").getMapValue("port")[listenIndex]
 	  )),
+	  ipV4_(const_cast<std::string &>(server.at("listen").getMapValue("host"
+	  )[listenIndex])),
 	  clientMaxBodySize_(
 		  ft::stringToULong(server.at("client_max_body_size").getVectorValue(0))
 	  ),
@@ -66,7 +68,7 @@ Server::~Server(void)
 	}
 }
 
-void Server::initServer(void)
+void Server::init(void)
 {
 	createSocket_();
 	bindSocket_();
@@ -87,7 +89,7 @@ void Server::resetServer(void)
 {
 	closeServer();
 	Logger::log(Logger::DEBUG) << "initializing server socket" << std::endl;
-	initServer();
+	init();
 }
 
 void Server::createSocket_()
@@ -333,6 +335,16 @@ bool Server::getThisLocationValue(
 		return false;
 	}
 	return true;
+}
+
+void Server::setPort(std::string const &port)
+{
+	this->port_ = ft::strToUShort(port);
+}
+
+void Server::setIPV4(std::string const &ipV4)
+{
+	this->ipV4_ = ipV4;
 }
 
 void Server::setRoot(const std::string &root)

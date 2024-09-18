@@ -74,5 +74,5 @@ make test T=SpecificTestName
 | `return`               | Sets up HTTP redirection for the specified location.                                                 |
 | `autoindex`            | Enables or disables directory listing for the specified location.                                    |
 | `client_max_body_size` | Limits the maximum size of the client request body for a specific location.                          |
-| `upload_pass`          | Specifies the directory where uploaded files should be saved.                                        |
+| `upload_store`         | Specifies the directory where uploaded files should be saved.                                        |
 | `cgi`                  | Specifies the CGI extension script and the binary path to execute. e.g., `cgi .py /usr/bin/python3`. |
