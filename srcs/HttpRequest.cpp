@@ -1,4 +1,5 @@
 #include "../include/HttpRequest.hpp"
+#include <cstdlib>
 #include <ostream>
 
 HttpRequest::HttpRequest(
@@ -86,6 +87,11 @@ const std::string &HttpRequest::getUri(void) const
 	return uri_;
 }
 
+const std::string &HttpRequest::getHost(void) const
+{
+	return host_;
+}
+
 // clang-format off
 const std::map<std::string, std::vector<std::string> > &
 // clang-format on
@@ -153,4 +159,12 @@ void HttpRequest::normalizeRequest_(
 	target_ = host_ + uri_;
 	headers_ = inputHeaders;
 	body_ = body;
+
+	// Store body length if present
+	// clang-format off
+	std::map<std::string, std::vector<std::string> >::const_iterator it
+		= headers_.begin();
+	// clang-format on
+	bodyLength_
+		= (it != headers_.end()) ? std::atol(it->second[0].c_str()) : -1;
 }
