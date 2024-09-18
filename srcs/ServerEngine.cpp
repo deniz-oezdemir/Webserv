@@ -2,7 +2,7 @@
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
 #include "Logger.hpp"
-#include "RequestParser.hpp"
+#include "request_parser/RequestParser.hpp"
 #include "utils.hpp"
 
 #include <fcntl.h>
@@ -10,7 +10,9 @@
 #include <unistd.h>
 
 ServerEngine::ServerEngine(
+	// clang-format off
 	std::vector<std::map<std::string, ConfigValue> > const &servers
+	// clang-format on
 )
 	: numServers_(servers.size())
 {
@@ -343,16 +345,34 @@ std::string ServerEngine::createResponse(const HttpRequest &request)
 	}
 }
 
-// location hardcoded here, needed in HttpRequest request -> add to parsing?
-// (map with target, location would be handy)
 std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 {
+	std::cout << request << std::endl;
+
+	// Get root path from config of server
+	std::string rootdir = servers_[0].getRoot();
+	// Combine root path with uri from request
+	std::string filepath;
+	if (request.getUri() == "/")
+		filepath = rootdir + "/index.html";
+	else
+		filepath = rootdir + request.getUri();
+
+	Logger::log(Logger::DEBUG) << "Filepath: " << filepath << std::endl;
+
+	// TODO: combine both paragraphs below
+	// TODO: implement check for file/directory, coordinate with Seba
+	// @Seba: what does isThisLocation expect?
+	// file is not for any of root, uri, filepath when running tests for
+	// ServerEngine
+	// @Seba: maybe because we do not start the server when testing?
+	if (servers_[0].isThisLocation(filepath))
+		Logger::log(Logger::DEBUG) << "File is on server" << std::endl;
+	else
+		Logger::log(Logger::DEBUG) << "File is not on server" << std::endl;
+
 	HttpResponse response;
-
-	std::string location = "website";
-	std::string filepath = location + request.getTarget();
-
-	// Read the index.html file
+	// TODO: replace below with readFile
 	std::ifstream file(filepath);
 	if (file.is_open())
 	{
@@ -379,10 +399,11 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 		response.setHeader("Server", "Webserv/0.1");
 		response.setHeader("Date", createTimestamp());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
-		std::string body = "<!DOCTYPE html>\n<html>\n<head><title>404 Not "
-						   "Found</title></head>\n<center><h1>404 Not "
-						   "Found</h1></center>\n<hr><center>Webserv</"
-						   "center>\n</body>\n</html>\n";
+
+		// TODO: replace hardcoded /404.html with file from config? check
+		// with Seba if needed
+		std::string body = readFile(rootdir + "/404.html");
+
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		response.setHeader("Connection", "keep-alive");
 		response.setBody(body);
@@ -391,7 +412,57 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 	return response.toString();
 }
 
-// to be implemented
+// TODO: implement check for file/directory, coordinate with Seba
+std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
+{
+	(void)request;
+	std::cout << request << std::endl;
+
+	// Get root path from config of server
+	std::string rootdir = servers_[0].getRoot();
+	// Combine root path with uri from request
+	std::string filepath = rootdir + request.getUri();
+
+	Logger::log(Logger::DEBUG) << "Filepath: " << filepath << std::endl;
+
+	HttpResponse response;
+
+	if (remove(filepath.c_str()) == 0)
+	{
+		std::string body
+			= "<!DOCTYPE html>\n<html>\n<head><title>200 OK</title></head>\n"
+			  "<body><h1>File deleted.</h1></body>\n</html>\n";
+		response.setStatusCode(200);
+		response.setReasonPhrase("OK");
+		response.setHeader("Server", "Webserv/0.1");
+		response.setHeader("Date", createTimestamp());
+		response.setHeader("Content-Type", "text/html; charset=UTF-8");
+		response.setHeader("Content-Length", std::to_string(body.size()));
+		response.setHeader("Connection", "keep-alive");
+		response.setBody(body);
+		Logger::log(Logger::INFO)
+			<< "DELETE " << request.getUri() << " -> 200 OK" << std::endl;
+	}
+	else
+	{
+		std::string body = readFile(rootdir + "/404.html");
+		response.setStatusCode(404);
+		response.setReasonPhrase("Not Found");
+		response.setHeader("Server", "Webserv/0.1");
+		response.setHeader("Date", createTimestamp());
+		response.setHeader("Content-Type", "text/html; charset=UTF-8");
+		response.setHeader("Content-Length", std::to_string(body.size()));
+		response.setHeader("Connection", "keep-alive");
+		response.setBody(body);
+		Logger::log(Logger::INFO) << "DELETE " << request.getUri()
+								  << " -> 404 Not Found" << std::endl;
+	}
+
+	Logger::log(Logger::DEBUG) << "Handling DELETE: responding" << std::endl;
+	return response.toString();
+}
+
+// TODO: implement
 std::string ServerEngine::handlePostRequest(const HttpRequest &request)
 {
 	(void)request;
@@ -399,29 +470,26 @@ std::string ServerEngine::handlePostRequest(const HttpRequest &request)
 	return "POST test\n";
 }
 
-// to be implemented
-std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
-{
-	(void)request;
-	Logger::log(Logger::DEBUG) << "Handling DELETE: responding" << std::endl;
-	return "DELETE test\n";
-}
-
 // commented out similar functionality via exception by
-// RequestParser::checkMethod() as it should be handled with a 501 response to
+// RequestParser::checkMethod_() as it should be handled with a 501 response to
 // the client
 std::string ServerEngine::handleNotImplementedRequest()
 {
+	// Get root path from config of server
+	std::string rootdir = servers_[0].getRoot();
+
+	Logger::log(Logger::DEBUG) << "Rootdir: " << rootdir << std::endl;
 	HttpResponse response;
 	response.setStatusCode(501);
 	response.setReasonPhrase("Not Implemented");
 	response.setHeader("Server", "Webserv/0.1");
 	response.setHeader("Date", createTimestamp());
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
-	std::string body = "<!DOCTYPE html>\n<html>\n<head><title>501 Not "
-					   "Implemented</title></head>\n<center><h1>501 Not "
-					   "Implemented</h1></center>\n<hr><center>Webserv</"
-					   "center>\n</body>\n</html>\n";
+
+	// TODO: replace hardcoded /404.html with file from config? check
+	// with Seba if needed
+	std::string body = readFile(rootdir + "/501.html");
+
 	response.setHeader("Content-Length", std::to_string(body.size()));
 	// nginx typically closes the TCP connection after sending a 501 response,
 	// do we want to implement it?
@@ -442,4 +510,24 @@ std::string ServerEngine::createTimestamp()
 	char buf[80];
 	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", tstruct);
 	return std::string(buf);
+}
+
+std::string ServerEngine::readFile(const std::string &filePath)
+{
+	std::ifstream file(filePath);
+	if (!file.is_open())
+	{
+		std::cerr << "Error: Could not open file: " << file.is_open() << " "
+				  << filePath << std::endl;
+		return "";
+	}
+
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+	if (buffer.str().empty())
+	{
+		std::cerr << "Error: File " << filePath
+				  << " is empty or could not be read" << std::endl;
+	}
+	return buffer.str();
 }

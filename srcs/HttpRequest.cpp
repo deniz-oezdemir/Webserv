@@ -2,14 +2,16 @@
 #include <ostream>
 
 HttpRequest::HttpRequest(
-	std::string								&method,
-	std::string								&httpVersion,
-	std::string								&uri,
-	std::multimap<std::string, std::string> &headers,
-	std::vector<char>						&body
+	std::string &method,
+	std::string &httpVersion,
+	std::string &uri,
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > &headers,
+	// clang-format on
+	std::vector<char> &body
 )
 {
-	normalizeRequest(method, httpVersion, uri, headers, body);
+	normalizeRequest_(method, httpVersion, uri, headers, body);
 
 	return;
 }
@@ -45,6 +47,11 @@ void HttpRequest::setTarget(std::string &newTarget)
 	target_ = newTarget;
 }
 
+void HttpRequest::setUri(std::string &newUri)
+{
+	uri_ = newUri;
+}
+
 void HttpRequest::setHeaders(
 	// clang-format off
 	std::map<std::string, std::vector<std::string> > &newHeaders
@@ -74,6 +81,11 @@ const std::string &HttpRequest::getTarget(void) const
 	return target_;
 }
 
+const std::string &HttpRequest::getUri(void) const
+{
+	return uri_;
+}
+
 // clang-format off
 const std::map<std::string, std::vector<std::string> > &
 // clang-format on
@@ -92,6 +104,7 @@ std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
 	os << "Method: " << rhs.getMethod() << std::endl;
 	os << "HTTP version: " << rhs.getHttpVersion() << std::endl;
 	os << "Target: " << rhs.getTarget() << std::endl;
+	os << "URI: " << rhs.getUri() << std::endl;
 	os << "HEADERS:" << std::endl;
 	// clang-format off
 	const std::map<std::string, std::vector<std::string> > &headersCpy
@@ -123,45 +136,21 @@ std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
 	return os;
 }
 
-void HttpRequest::normalizeRequest(
-	std::string								&method,
-	std::string								&httpVersion,
-	std::string								&uri,
-	std::multimap<std::string, std::string> &inputHeaders,
-	std::vector<char>						&body
+void HttpRequest::normalizeRequest_(
+	std::string &method,
+	std::string &httpVersion,
+	std::string &uri,
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > &inputHeaders,
+	// clang-format on
+	std::vector<char> &body
 )
 {
 	method_ = method;
 	httpVersion_ = httpVersion;
-	target_ = inputHeaders.find("Host")->second + uri;
+	uri_ = uri;
+	host_ = inputHeaders.at("Host")[0];
+	target_ = host_ + uri_;
+	headers_ = inputHeaders;
 	body_ = body;
-
-	for (std::multimap<std::string, std::string>::iterator it
-		 = inputHeaders.begin();
-		 it != inputHeaders.end();
-		 ++it)
-	{
-		std::vector<std::string> newVector;
-		if (inputHeaders.count(it->first) == 1)
-		{
-			// TODO: check if the request header came with list or other
-			// type, like HEADER: value1, value2
-			newVector.push_back(it->second);
-			headers_[it->first] = newVector;
-		}
-		else if (inputHeaders.count(it->first) > 1)
-		{
-			std::pair<
-				std::multimap<std::string, std::string>::iterator,
-				std::multimap<std::string, std::string>::iterator>
-				matches = inputHeaders.equal_range(it->first);
-			for (; matches.first != matches.second; ++matches.first)
-			{
-				// TODO: check if the request header came with list or other
-				// type, like HEADER: value1, value2
-				newVector.push_back(matches.first->second);
-			}
-			headers_[it->first] = newVector;
-		}
-	}
 }

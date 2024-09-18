@@ -1,23 +1,24 @@
 #include "./test.hpp"
+#include <map>
+#include <string>
+#include <vector>
 
 Test(HttpRequest, HttpRequestBasicTest)
 {
 	char **argv = new char *[2];
 	argv[0] = (char *)"./server";
 	argv[1] = (char *)"test.config";
-	std::string								method("GET");
-	std::string								httpVersion("HTTP/1.1");
-	std::string								uri("localhost:8080");
-	std::string								host("www.example.com");
-	std::string								target(host + uri);
-	std::multimap<std::string, std::string> headers;
-	headers.insert(std::pair<std::string, std::string>("Host", host));
-	headers.insert(
-		std::pair<std::string, std::string>("Content-Type", "application/json")
-	);
-	headers.insert(
-		std::pair<std::string, std::string>("Authorization", "Bearer token")
-	);
+	std::string method("GET");
+	std::string httpVersion("HTTP/1.1");
+	std::string uri("localhost:8080");
+	std::string host("www.example.com");
+	std::string target(host + uri);
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > headers;
+	// clang-format on
+	headers["Host"].push_back(host);
+	headers["Content-Type"].push_back("application/json");
+	headers["Authorization"].push_back("Bearer token");
 	std::vector<char> body({'h', 'e', 'l', 'l', 'o'});
 
 	// create simple request object
@@ -40,28 +41,20 @@ Test(HttpRequest, testRepeatedHeaders)
 	char **argv = new char *[2];
 	argv[0] = (char *)"./server";
 	argv[1] = (char *)"test.config";
-	std::string								method("GET");
-	std::string								httpVersion("HTTP/1.1");
-	std::string								uri("localhost:8080");
-	std::string								host("www.example.com");
-	std::string								target(host + uri);
-	std::multimap<std::string, std::string> headers;
-	headers.insert(std::pair<std::string, std::string>("Host", host));
-	headers.insert(
-		std::pair<std::string, std::string>("Content-Type", "application/json")
-	);
-	headers.insert(
-		std::pair<std::string, std::string>("Content-Type", "text/html")
-	); // Repeated header
-	headers.insert(
-		std::pair<std::string, std::string>("Authorization", "Bearer token")
-	);
-	headers.insert(
-		std::pair<std::string, std::string>("Set-Cookie", "cookie1=value1")
-	);
-	headers.insert(
-		std::pair<std::string, std::string>("Set-Cookie", "cookie2=value2")
-	); // Repeated header
+	std::string										method("GET");
+	std::string										httpVersion("HTTP/1.1");
+	std::string										uri("localhost:8080");
+	std::string										host("www.example.com");
+	std::string										target(host + uri);
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > headers;
+	// clang-format off
+	headers["Host"].push_back(host);
+	headers["Content-Type"].push_back("application/json");
+	headers["Content-Type"].push_back("text/html"); // Repeated header
+	headers["Authorization"].push_back("Bearer token");
+	headers["Set-Cookie"].push_back("cookie1=value1");
+	headers["Set-Cookie"].push_back("cookie2=value2"); // Repeated header
 	std::vector<char> body({'h', 'e', 'l', 'l', 'o'});
 
 	// create simple request object
@@ -101,12 +94,12 @@ Test(HttpRequest, testRepeatedHeaders)
 //     std::string uri("localhost:8080");
 //     std::string host("www.example.com");
 //     std::string target(host + '/' + uri);
-//     std::multimap<std::string, std::string> headers;
-//     headers.insert(std::pair<std::string, std::string>("Host", host));
-//     headers.insert(std::pair<std::string, std::string>("Content-Type", "application/json"));
-//     headers.insert(std::pair<std::string, std::string>("Authorization", "Bearer token"));
-//     headers.insert(std::pair<std::string, std::string>("Accept", "application/json, text/html")); // Multiple values
-//     std::vector<char> body({'h', 'e', 'l', 'l', 'o'});
+//     std::map<std::string, std::vector<std::string>> headers;
+//     headers["Host"].push_back(host);
+//     headers["Content-Type"].push_back("application/json");
+//     headers["Authorization"].push_back("Bearer token");
+//     headers["Accept"].push_back("application/json, text/html"); // Multiple
+//     values std::vector<char> body({'h', 'e', 'l', 'l', 'o'});
 //
 //     // create simple request object
 //     HttpRequest request(method, httpVersion, uri, headers, body);
@@ -115,7 +108,8 @@ Test(HttpRequest, testRepeatedHeaders)
 //     cr_assert_str_eq(request.getHttpVersion().c_str(), "HTTP/1.1");
 //     cr_assert_str_eq(request.getTarget().c_str(), target.c_str());
 //     cr_assert_str_eq(
-//         request.getHeaders().at("Content-Type")[0].c_str(), "application/json"
+//         request.getHeaders().at("Content-Type")[0].c_str(),
+//         "application/json"
 //     );
 //     cr_assert_str_eq(
 //         request.getHeaders().at("Authorization")[0].c_str(), "Bearer token"

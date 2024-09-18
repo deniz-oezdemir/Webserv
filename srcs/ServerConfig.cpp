@@ -802,8 +802,6 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 			listenMap["port"] = std::vector<std::string>(1, "80");
 			it->find("listen")->second.setMap(listenMap);
 		}
-		// TODO: Continue checking uniqueness of listen, and also check if in an
-		// server there are multiple listen, check uniqueness.
 		else
 		{
 			std::vector<std::string> const &hosts(
@@ -1028,4 +1026,13 @@ bool ServerConfig::checkServerListenUnique_(
 	}
 
 	return true;
+}
+
+void ServerConfig::setRootToAllServers(std::string const &root)
+{
+	std::vector<std::map<std::string, ConfigValue> >::iterator it(
+		this->serversConfig_.begin()
+	);
+	for (; it != this->serversConfig_.end(); ++it)
+		it->find("root")->second.setVector(std::vector<std::string>(1, root));
 }

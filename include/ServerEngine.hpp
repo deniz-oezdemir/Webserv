@@ -11,11 +11,16 @@
 class ServerEngine
 {
   public:
+	// clang-format off
 	ServerEngine(std::vector<std::map<std::string, ConfigValue> > const &servers
 	);
+	// clang-format on
 	~ServerEngine();
 
 	void start(void);
+
+	// TODO: move createResponse() to private as only public for testing
+	std::string createResponse(const HttpRequest &request);
 
   private:
 	ServerEngine();
@@ -39,11 +44,11 @@ class ServerEngine
 	void restartServer_(size_t &index);
 	void pollFdError_(size_t &index);
 
-	std::string createResponse(const HttpRequest &request);
 	std::string handleGetRequest(const HttpRequest &request);
 	std::string handlePostRequest(const HttpRequest &request);
 	std::string handleDeleteRequest(const HttpRequest &request);
 	std::string handleNotImplementedRequest();
 
 	std::string createTimestamp();
+	std::string readFile(const std::string &filePath);
 };

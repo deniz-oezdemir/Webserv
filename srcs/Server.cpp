@@ -346,3 +346,8 @@ void Server::setIPV4(std::string const &ipV4)
 {
 	this->ipV4_ = ipV4;
 }
+
+void Server::setRoot(const std::string &root)
+{
+	root_ = root;
+}

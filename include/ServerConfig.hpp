@@ -28,9 +28,9 @@ class ServerConfig
 	void parseFile(bool isTest = false, bool isTestPrint = false);
 	void printConfig(void);
 
+	// Getters
 	// Get the value of a key in the general configuration map.
 	std::string getGeneralConfigValue(std::string const &key) const;
-
 	// Get all servers stored in a vector of maps.
 	bool getAllServersConfig(
 		std::vector<std::map<std::string, ConfigValue> > &serversConfig
@@ -45,6 +45,9 @@ class ServerConfig
 		std::string const &key,
 		ConfigValue		  &value
 	) const;
+
+	// Setters
+	void setRootToAllServers(std::string const &root);
 
 	static std::array<std::string, 4> const validLogLevels;
 
