@@ -9,25 +9,27 @@
 #include <fstream>
 #include <unistd.h>
 
-ServerEngine::ServerEngine() : numServers_(0) {}
-
 ServerEngine::ServerEngine(
 	std::vector<std::map<std::string, ConfigValue> > const &servers
 )
 	: numServers_(servers.size())
 {
-	this->servers_.reserve(this->numServers_);
 	Logger::log(Logger::INFO)
 		<< "Initializing the Server Engine with " << this->numServers_
 		<< " servers..." << std::endl;
-	for (size_t i = 0; i < this->numServers_; ++i)
+	size_t globalServerIndex(0);
+	for (size_t serverIndex = 0; serverIndex < this->numServers_; ++serverIndex)
 	{
-		this->servers_.push_back(Server(servers[i], i));
-		this->servers_[i].initServer();
-		Logger::log(Logger::INFO) << "Server " << i + 1 << " | " << "Listen:\t"
-								  << this->servers_[i].getIPV4() << ':'
-								  << this->servers_[i].getPort() << std::endl;
+		globalServerIndex
+			+= servers[serverIndex].at("listen").getMapValue("port").size();
 	}
+	this->servers_.reserve(globalServerIndex);
+	globalServerIndex = 0;
+	for (size_t serverIndex = 0; serverIndex < this->numServers_; ++serverIndex)
+	{
+		this->initServer_(servers[serverIndex], serverIndex, globalServerIndex);
+	}
+	this->totalServerInstances_ = globalServerIndex;
 }
 
 ServerEngine::~ServerEngine()
@@ -41,6 +43,27 @@ ServerEngine::~ServerEngine()
 			close(pollFds_[i].fd);
 			pollFds_[i].fd = -1;
 		}
+	}
+}
+
+void ServerEngine::initServer_(
+	std::map<std::string, ConfigValue> const &serverConfig,
+	size_t									 &serverIndex,
+	size_t									 &globalServerIndex
+)
+{
+	size_t listenSize = serverConfig.at("listen").getMapValue("port").size();
+	for (size_t listenIndex = 0; listenIndex < listenSize; ++listenIndex)
+	{
+		this->servers_.push_back(Server(serverConfig, serverIndex, listenIndex)
+		);
+		this->servers_[globalServerIndex].initServer();
+		Logger::log(Logger::INFO)
+			<< "Server " << serverIndex + 1
+			<< "[" << listenIndex << "] " << "| "
+			<< "Listen: " << this->servers_[globalServerIndex].getIPV4() << ':'
+			<< this->servers_[globalServerIndex].getPort() << std::endl;
+		++globalServerIndex;
 	}
 }
 
@@ -61,12 +84,12 @@ void ServerEngine::initPollFds_(void)
 {
 	// Initialize pollFds_ vector
 	pollFds_.clear();
-	pollFds_.reserve(this->numServers_);
+	pollFds_.reserve(this->totalServerInstances_);
 
 	Logger::log(Logger::DEBUG) << "Initializing pollFds_ vector" << std::endl;
 
 	// Create pollfd struct for the server socket and add it to the vector
-	for (size_t i = 0; i < this->numServers_; ++i)
+	for (size_t i = 0; i < this->totalServerInstances_; ++i)
 	{
 		pollfd serverPollFd = {servers_[i].getServerFd(), POLLIN, 0};
 		pollFds_.push_back(serverPollFd);
@@ -75,7 +98,7 @@ void ServerEngine::initPollFds_(void)
 
 bool ServerEngine::isPollFdServer_(int &fd)
 {
-	for (size_t i = 0; i < this->numServers_; ++i)
+	for (size_t i = 0; i < this->totalServerInstances_; ++i)
 	{
 		if (fd == this->servers_[i].getServerFd())
 			return true;

@@ -11,7 +11,8 @@ class Server
   public:
 	Server(
 		std::map<std::string, ConfigValue> const &server,
-		unsigned int							  index = 0
+		unsigned int							  index = 0,
+		unsigned int								listenIndex = 0
 	);
 	Server(const Server &src);
 	~Server(void);
@@ -39,14 +40,18 @@ class Server
 	bool getErrorPageValue(int &errorCode, std::string &location) const;
 	bool getErrorPageValue(std::string &errorCode, std::string &location) const;
 
-	// Check if the location is in the server config
-	bool isThisLocation(const std::string &location) const;
 	// Get the value of a key from a specific location map on the server config
 	bool getThisLocationValue(
 		const std::string		 &location,
 		const std::string		 &key,
 		std::vector<std::string> &value
 	) const;
+
+	void setPort(std::string const &port);
+	void setIPV4(std::string const &ipV4);
+
+	// Check if the location is in the server config
+	bool isThisLocation(const std::string &location) const;
 
   private:
 	Server(void);

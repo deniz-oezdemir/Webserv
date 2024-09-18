@@ -86,6 +86,19 @@ class ServerConfig
 	bool checkUploadStore_(std::vector<std::string> const &tokens);
 	bool checkClientMaxBodySize_(std::vector<std::string> const &tokens);
 	bool checkRoot_(std::vector<std::string> const &tokens);
+	bool checkServerListenUnique_(
+		std::string const &hoist,
+		std::string const &port,
+		unsigned int	  &lineIndex,
+		bool			  &isTest,
+		bool			  &isTestPrint
+	);
+
+	bool checkServerNameUnique_(std::string const &tokens);
+	bool checkListenUnique_(
+		std::vector<std::string> const &host,
+		std::vector<std::string> const &port
+	);
 
 	void parseLocationBlock_(
 		std::vector<std::string> &tokens,

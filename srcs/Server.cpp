@@ -1,7 +1,7 @@
 #include "Server.hpp"
+#include "Logger.hpp"
 #include "ServerException.hpp"
 #include "utils.hpp"
-#include "Logger.hpp"
 
 #include <fcntl.h>
 #include <netdb.h>
@@ -9,11 +9,13 @@
 
 Server::Server(
 	std::map<std::string, ConfigValue> const &server,
-	unsigned int							  index
+	unsigned int							  index,
+	unsigned int							  listenIndex
 )
-	: port_(ft::strToUShort(server.at("listen").getMapValue("port")[0])),
-	  ipV4_(const_cast<std::string &>(server.at("listen").getMapValue("host")[0]
+	: port_(ft::strToUShort(server.at("listen").getMapValue("port")[listenIndex]
 	  )),
+	  ipV4_(const_cast<std::string &>(server.at("listen").getMapValue("host"
+	  )[listenIndex])),
 	  clientMaxBodySize_(
 		  ft::stringToULong(server.at("client_max_body_size").getVectorValue(0))
 	  ),
@@ -62,7 +64,7 @@ Server::~Server(void)
 	// to indicate that the socket is closed
 	if (serverFd_ >= 0)
 	{
-    this->closeServer();
+		this->closeServer();
 	}
 }
 
@@ -333,4 +335,14 @@ bool Server::getThisLocationValue(
 		return false;
 	}
 	return true;
+}
+
+void Server::setPort(std::string const &port)
+{
+	this->port_ = ft::strToUShort(port);
+}
+
+void Server::setIPV4(std::string const &ipV4)
+{
+	this->ipV4_ = ipV4;
 }

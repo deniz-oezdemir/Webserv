@@ -188,7 +188,7 @@ bool ServerConfig::isURI_(std::string const &uri)
 	return true;
 }
 
-bool  ServerConfig::isURL_(std::string const &url)
+bool ServerConfig::isURL_(std::string const &url)
 {
 	if (url.size() < 8)
 		return false;
@@ -286,7 +286,9 @@ bool ServerConfig::checkUploadStore_(std::vector<std::string> const &tokens)
 	return false;
 }
 
-bool ServerConfig::checkClientMaxBodySize_(std::vector<std::string> const &tokens)
+bool ServerConfig::checkClientMaxBodySize_(
+	std::vector<std::string> const &tokens
+)
 {
 	if (tokens.size() == 2 && ft::isStrOfDigits(tokens[1]))
 		return true;
@@ -345,10 +347,29 @@ void ServerConfig::setListenDirective_(
 			throw std::invalid_argument(
 				"Invalid format, expected host:port or port"
 			);
-		// Set the host and port in the listen as a map with the keys host and
-		// port.
-		this->serversConfig_.back()["listen"].pushBackMapValue("host", host);
-		this->serversConfig_.back()["listen"].pushBackMapValue("port", port);
+		if (this->checkServerListenUnique_(
+				host, port, lineIndex, isTest, isTestPrint
+			))
+		{
+			// Set the host and port in the listen as a map with the keys host
+			// and port.
+			this->serversConfig_.back()["listen"].pushBackMapValue(
+				"host", host
+			);
+			this->serversConfig_.back()["listen"].pushBackMapValue(
+				"port", port
+			);
+		}
+		else
+		{
+			this->errorHandler_(
+				"Duplicate listen directive [" + host + ":" + port
+					+ "] is a server block",
+				lineIndex,
+				isTest,
+				isTestPrint
+			);
+		}
 	}
 	catch (std::exception &e)
 	{
@@ -406,7 +427,7 @@ void ServerConfig::parseLocationBlock_(
 				{
 					this->errorHandler_(
 						"Invalid value [" + tokens[1] + "] for " + tokens[0]
-						+ " directive",
+							+ " directive",
 						lineIndex,
 						isTest,
 						isTestPrint
@@ -747,6 +768,25 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 			it->find("server_name")
 				->second.setVector(std::vector<std::string>(1, "_"));
 		}
+		else
+		{
+			std::vector<std::string>::const_iterator it2(
+				it->find("server_name")->second.getVector().begin()
+			);
+			for (; it2 != it->find("server_name")->second.getVector().end();
+				 ++it2)
+			{
+				if (!this->checkServerNameUnique_(*it2))
+				{
+					this->errorHandler_(
+						"Duplicate server name [" + *it2 + "]",
+						0,
+						isTest,
+						isTestPrint
+					);
+				}
+			}
+		}
 		if (it->find("listen")->second.getMap().empty())
 		{
 			if (isTest || isTestPrint)
@@ -761,6 +801,27 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 			listenMap["host"] = std::vector<std::string>(1, "0.0.0.0");
 			listenMap["port"] = std::vector<std::string>(1, "80");
 			it->find("listen")->second.setMap(listenMap);
+		}
+		// TODO: Continue checking uniqueness of listen, and also check if in an
+		// server there are multiple listen, check uniqueness.
+		else
+		{
+			std::vector<std::string> const &hosts(
+				it->find("listen")->second.getMapValue("host")
+			);
+			std::vector<std::string> const &ports(
+				it->find("listen")->second.getMapValue("ports")
+			);
+			if (!this->checkListenUnique_(hosts, ports))
+			{
+				this->errorHandler_(
+					"Duplicate listen directive [" + hosts[0] + ":" + ports[0]
+						+ "]",
+					0,
+					isTest,
+					isTest
+				);
+			}
 		}
 		if (it->find("root")->second.getVector().empty())
 		{
@@ -873,4 +934,98 @@ bool ServerConfig::getServerConfigValue(
 		return true;
 	}
 	return false;
+}
+
+bool ServerConfig::checkServerNameUnique_(std::string const &serverName)
+{
+	unsigned int													count(0);
+	std::vector<std::map<std::string, ConfigValue> >::const_iterator it(
+		this->serversConfig_.begin()
+	);
+	for (; it != this->serversConfig_.end(); ++it)
+	{
+		std::vector<std::string>::const_iterator it2(
+			it->find("server_name")->second.getVector().begin()
+		);
+		for (; it2 != it->find("server_name")->second.getVector().end(); ++it2)
+		{
+			if (*it2 == serverName)
+				++count;
+		}
+	}
+	if (count != 1)
+		return false;
+	return true;
+}
+
+bool ServerConfig::checkListenUnique_(
+	std::vector<std::string> const &hosts,
+	std::vector<std::string> const &ports
+)
+{
+	for (std::vector<std::map<std::string, ConfigValue> >::const_iterator it
+		 = this->serversConfig_.begin();
+		 it != this->serversConfig_.end();
+		 ++it)
+	{
+		const std::vector<std::string> &serverHosts
+			= it->find("listen")->second.getMapValue("host");
+		const std::vector<std::string> &serverPorts
+			= it->find("listen")->second.getMapValue("port");
+
+		for (size_t i = 0; i < serverHosts.size() && i < serverPorts.size();
+			 ++i)
+		{
+			for (size_t j = 0; j < hosts.size() && j < ports.size(); ++j)
+			{
+				if (serverHosts[i] == hosts[j] && serverPorts[i] == ports[j])
+				{
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+bool ServerConfig::checkServerListenUnique_(
+	const std::string &host,
+	const std::string &port,
+	unsigned int	  &lineIndex,
+	bool			  &isTest,
+	bool			  &isTestPrint
+)
+{
+	const std::map<std::string, ConfigValue> &lastServerConfig
+		= this->serversConfig_.back();
+	if (lastServerConfig.find("listen") == lastServerConfig.end())
+	{
+		return true;
+	}
+
+	const std::vector<std::string> &hosts
+		= lastServerConfig.at("listen").getMapValue("host");
+	const std::vector<std::string> &ports
+		= lastServerConfig.at("listen").getMapValue("port");
+
+	if (hosts.size() != ports.size())
+	{
+		this->errorHandler_(
+			"Invalid number of arguments in [listen] directive",
+			lineIndex,
+			isTest,
+			isTestPrint
+		);
+		return false;
+	}
+
+	for (size_t i = 0; i < hosts.size(); ++i)
+	{
+		if (hosts[i] == host && ports[i] == port)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
