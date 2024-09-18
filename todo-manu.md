@@ -9,9 +9,9 @@
    - [ ] Implement: check presence of Content-Length header in POST and its absense in GET and DELETE (double-check these rules!!) 
 
    ## In Progress
+   - [ ] Implement: measure body length and set in private attr, and compare with header if any and also add check in response handler for if it exceeds limit in config file
 
    ## Done
-   - [x] Implement: measure body length and set in private attr, and compare with header if any and also add check in response handler for if it exceeds limit in config file
    - [x] Implement: host_ var in HttpRequest
    - [x] Implement: token syntax 
         - [x] Implement: add check for header with wrong separator (, or ;) 
