@@ -19,7 +19,7 @@ class Server
 
 	Server &operator=(const Server &rhs);
 
-	void initServer(void);
+	void init(void);
 	void closeServer(void);
 	void resetServer(void);
 

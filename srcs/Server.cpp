@@ -68,7 +68,7 @@ Server::~Server(void)
 	}
 }
 
-void Server::initServer(void)
+void Server::init(void)
 {
 	createSocket_();
 	bindSocket_();
@@ -89,7 +89,7 @@ void Server::resetServer(void)
 {
 	closeServer();
 	Logger::log(Logger::DEBUG) << "initializing server socket" << std::endl;
-	initServer();
+	init();
 }
 
 void Server::createSocket_()

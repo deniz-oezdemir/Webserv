@@ -57,14 +57,14 @@ void ServerEngine::initServer_(
 	size_t listenSize = serverConfig.at("listen").getMapValue("port").size();
 	for (size_t listenIndex = 0; listenIndex < listenSize; ++listenIndex)
 	{
-		this->servers_.push_back(Server(serverConfig, serverIndex, listenIndex)
+		this->servers_.push_back(
+			Server(serverConfig, globalServerIndex, listenIndex)
 		);
-		this->servers_[globalServerIndex].initServer();
+		this->servers_[globalServerIndex].init();
 		Logger::log(Logger::INFO)
-			<< "Server " << serverIndex + 1
-			<< "[" << listenIndex << "] " << "| "
-			<< "Listen: " << this->servers_[globalServerIndex].getIPV4() << ':'
-			<< this->servers_[globalServerIndex].getPort() << std::endl;
+			<< "Server " << serverIndex + 1 << "[" << listenIndex << "] "
+			<< "| " << "Listen: " << this->servers_[globalServerIndex].getIPV4()
+			<< ':' << this->servers_[globalServerIndex].getPort() << std::endl;
 		++globalServerIndex;
 	}
 }
