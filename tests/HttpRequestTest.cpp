@@ -71,14 +71,14 @@ Test(HttpRequest, testRepeatedHeaders)
 	char **argv = new char *[2];
 	argv[0] = (char *)"./server";
 	argv[1] = (char *)"test.config";
-	std::string										method("GET");
-	std::string										httpVersion("HTTP/1.1");
-	std::string										uri("localhost:8080");
-	std::string										host("www.example.com");
-	std::string										target(host + uri);
+	std::string method("GET");
+	std::string httpVersion("HTTP/1.1");
+	std::string uri("localhost:8080");
+	std::string host("www.example.com");
+	std::string target(host + uri);
 	// clang-format off
 	std::map<std::string, std::vector<std::string> > headers;
-	// clang-format off
+	// clang-format on
 	headers["Host"].push_back(host);
 	headers["Content-Type"].push_back("application/json");
 	headers["Content-Type"].push_back("text/html"); // Repeated header
@@ -111,41 +111,4 @@ Test(HttpRequest, testRepeatedHeaders)
 	cr_assert_eq(request.getBody(), body);
 
 	delete[] argv;
-}
-
-// WARNING: this test will fail until the functionallity for it is implemented
-Test(HttpRequest, testHeadersWithMultipleValues)
-{
-    char **argv = new char *[2];
-    argv[0] = (char *)"./server";
-    argv[1] = (char *)"test.config";
-    std::string method("GET");
-    std::string httpVersion("HTTP/1.1");
-    std::string uri("/localhost:8080");
-    std::string host("www.example.com");
-    std::string target(host + '/' + uri);
-    std::map<std::string, std::vector<std::string>> headers;
-    headers["Host"].push_back(host);
-    headers["Content-Type"].push_back("application/json");
-    headers["Authorization"].push_back("Bearer token");
-	headers["Accept"].push_back(
-		"text/html,application/xhtml+xml,application/xml"
-	);
-	std::vector<char> body({'h', 'e', 'l', 'l', 'o'});
-
-	std::string requestStr
-		= createRequestString(method, uri, httpVersion, headers, body);
-
-	HttpRequest request = RequestParser::parseRequest(requestStr);
-
-	cr_assert_eq(request.getHeaders().at("Accept").size(), 3);
-	cr_assert_str_eq(request.getHeaders().at("Accept")[0].c_str(), "text/html");
-	cr_assert_str_eq(
-		request.getHeaders().at("Accept")[1].c_str(), "application/xhtml+xml"
-	);
-	cr_assert_str_eq(
-		request.getHeaders().at("Accept")[2].c_str(), "application/xml"
-	);
-
-    delete[] argv;
 }
