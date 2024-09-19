@@ -154,6 +154,25 @@ void HttpRequest::normalizeRequest_(
 {
 	method_ = method;
 	httpVersion_ = httpVersion;
+
+	// Remove all precedent chars to the URI target, in order to be latter
+	// appended to the Host. For ex: remoce the 'http://' part if any
+	if (uri[0] != '*'
+		&& (uri.find("https://") != std::string::npos
+			|| uri.find("http://") != std::string::npos))
+	{
+		size_t schemeEnd = uri.find("://") + 3;		 // Find end of scheme
+		size_t pathStart = uri.find('/', schemeEnd); // Find start of path
+
+		if (pathStart != std::string::npos)
+		{
+			uri = uri.substr(pathStart); // Keep the path
+		}
+		else
+		{
+			uri = "/" + uri.substr(schemeEnd); // No path, keep the authority
+		}
+	}
 	uri_ = uri;
 	host_ = inputHeaders.at("Host")[0];
 	target_ = host_ + uri_;

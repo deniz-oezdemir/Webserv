@@ -216,7 +216,7 @@ Test(RequestParser, testInvalidURI)
 {
 	std::string										method("GET");
 	std::string										httpVersion("HTTP/1.1");
-	std::string										uri("localhost:8080");
+	std::string										uri("ihttps://localhost:8080");
 	std::string										host("www.example.com");
 	std::map<std::string, std::vector<std::string>> headers;
 	std::vector<char>								body;
