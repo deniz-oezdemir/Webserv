@@ -20,11 +20,13 @@
  */
 void HeaderParser::parseHeaders(
 	std::istream &requestStream,
+	const std::string &firstLine,
 	// clang-format off
 	std::map<std::string, std::vector<std::string> > *headers
 	// clang-format on
 )
 {
+	std::cout << firstLine << std::endl;
 
 	std::multimap<std::string, std::string> rawHeaders;
 	std::string								headerLine;
