@@ -21,6 +21,6 @@ class ParseReqFirstLine
 	ParseReqFirstLine &operator=(const ParseReqFirstLine &rhs);
 
 	static void checkMethod_(std::string &method);
-	static void checkUri(std::string &uri);
-	static void checkHttpVersion(std::string &httpVersion);
+	static void checkUri_(std::string &uri);
+	static void checkHttpVersion_(std::string &httpVersion);
 };

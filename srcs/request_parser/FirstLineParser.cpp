@@ -44,8 +44,8 @@ void ParseReqFirstLine::checkStartLine(
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 	checkMethod_(*method);
-	checkUri(*uri);
-	checkHttpVersion(*httpVersion);
+	checkUri_(*uri);
+	checkHttpVersion_(*httpVersion);
 }
 
 /**
@@ -77,7 +77,7 @@ void ParseReqFirstLine::checkMethod_(std::string &method)
  *
  * @throws HttpException if the URI is invalid.
  */
-void ParseReqFirstLine::checkUri(std::string &uri)
+void ParseReqFirstLine::checkUri_(std::string &uri)
 {
 	if (uri == "*")
 		return;
@@ -125,7 +125,7 @@ void ParseReqFirstLine::checkUri(std::string &uri)
  *
  * @throws HttpException if the HTTP version is not 'HTTP/1.1'.
  */
-void ParseReqFirstLine::checkHttpVersion(std::string &httpVersion)
+void ParseReqFirstLine::checkHttpVersion_(std::string &httpVersion)
 {
 	if (httpVersion != "HTTP/1.1")
 	{

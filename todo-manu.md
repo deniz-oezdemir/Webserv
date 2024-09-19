@@ -1,15 +1,11 @@
 ## To Do
 - [ ] Example task
-- [ ] Change all private methods to use _ at end across whole program
-- [ ] Implement: ensure all header fields get transformed to upper-case for normalization
-- [ ] Check: what to do with unfolded headers (headers that continue on next line for readability. The next line starts with whitespace. They should be appended.)
-- [ ] Check: Set-Cookie header may be repeated and is a special case
-- [ ] Implement: check presence of Content-Length header in POST and its absense in GET and DELETE (double-check these rules!!) 
 - [ ] Implement: compare request length with limit set in congif
 
 ## In Progress
 
 ## Done
+- [x] Change all private methods to use _ at end across whole program
 - [x] Implement: add port_ and corresponding getter to HttpRequest
 - [x] Implement: Normalize URI.
 - [x] Implement: URI schemes. 
