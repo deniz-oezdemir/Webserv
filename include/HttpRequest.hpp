@@ -42,16 +42,17 @@ class HttpRequest
 	void setBody(std::vector<char> &newBody);
 
 	// Getters
-	const std::string &getMethod(void) const;
-	const std::string &getHttpVersion(void) const;
-	const std::string &getTarget(void) const;
-	const std::string &getUri(void) const;
+	const std::string	&getMethod(void) const;
+	const std::string	&getHttpVersion(void) const;
+	const std::string	&getTarget(void) const;
+	const std::string	&getUri(void) const;
+	const unsigned long &getPort(void) const;
 	// clang-format off
 	const std::map<std::string, std::vector<std::string> > &getHeaders(void
 	) const;
 	// clang-format on
 	const std::vector<char> &getBody(void) const;
-	const std::string &getHost(void) const;
+	const std::string		&getHost(void) const;
 
 	// Overloaded Operators
 	HttpRequest &operator=(const HttpRequest &rhs);
@@ -73,11 +74,12 @@ class HttpRequest
 		std::vector<char> &body
 	);
 
-	std::string method_;
-	std::string httpVersion_;
-	std::string target_;
-	std::string uri_;
-	std::string host_;
+	std::string	  method_;
+	std::string	  httpVersion_;
+	std::string	  target_;
+	std::string	  uri_;
+	std::string	  host_;
+	unsigned long port_;
 	// clang-format off
 	std::map<std::string, std::vector<std::string> > headers_;
 	// clang-format on
