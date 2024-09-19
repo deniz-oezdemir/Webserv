@@ -92,6 +92,11 @@ const std::string &HttpRequest::getHost(void) const
 	return host_;
 }
 
+const unsigned long &HttpRequest::getPort(void) const
+{
+	return port_;
+}
+
 // clang-format off
 const std::map<std::string, std::vector<std::string> > &
 // clang-format on
@@ -154,6 +159,36 @@ void HttpRequest::normalizeRequest_(
 {
 	method_ = method;
 	httpVersion_ = httpVersion;
+
+	// Remove all precedent chars to the URI target, in order to be latter
+	// appended to the Host. For ex: remoce the 'http://' part if any
+	// and store the port if any.
+	if (uri[0] != '*'
+		&& (uri.find("https://") != std::string::npos
+			|| uri.find("http://") != std::string::npos))
+	{
+		size_t schemeEnd = uri.find("://") + 3;		 // Find end of scheme
+		size_t pathStart = uri.find('/', schemeEnd); // Find start of path
+
+		if (pathStart != std::string::npos)
+		{
+			uri = uri.substr(pathStart); // Keep the path
+		}
+		else
+		{
+			uri = "/" + uri.substr(schemeEnd); // No path, keep the authority
+		}
+
+		// Remove port if any and store in port_
+		if (uri.find(':') != std::string::npos)
+		{
+			size_t		colonPos = uri.find_last_of(':');
+			std::string tmpPort = uri.substr(colonPos + 1);
+			uri = uri.substr(0, colonPos - 1);
+			port_ = std::atol(tmpPort.c_str());
+		}
+	}
+
 	uri_ = uri;
 	host_ = inputHeaders.at("Host")[0];
 	target_ = host_ + uri_;

@@ -25,7 +25,6 @@ void HeaderParser::parseHeaders(
 	// clang-format on
 )
 {
-
 	std::multimap<std::string, std::string> rawHeaders;
 	std::string								headerLine;
 

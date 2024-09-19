@@ -117,11 +117,11 @@ Test(RequestParser, testBody)
 								"    \"age\": 30\n"
 								"}";
 	std::vector<char> body(bodyStr.begin(), bodyStr.end());
-	
-    // Calculate the correct Content-Length using stringstream
-    std::stringstream ss;
-    ss << body.size();
-    headers["Content-Length"].push_back(ss.str());
+
+	// Calculate the correct Content-Length using stringstream
+	std::stringstream ss;
+	ss << body.size();
+	headers["Content-Length"].push_back(ss.str());
 
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
@@ -154,13 +154,13 @@ Test(RequestParser, testBodyLengthZero)
 	headers["User-Agent"].push_back("telnet/12.21");
 	headers["Accept"].push_back("*/*");
 
-	std::string		  bodyStr ;
+	std::string		  bodyStr;
 	std::vector<char> body(bodyStr.begin(), bodyStr.end());
-	
-    // Calculate the correct Content-Length using stringstream
-    std::stringstream ss;
-    ss << body.size();
-    headers["Content-Length"].push_back(ss.str());
+
+	// Calculate the correct Content-Length using stringstream
+	std::stringstream ss;
+	ss << body.size();
+	headers["Content-Length"].push_back(ss.str());
 
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
@@ -214,10 +214,10 @@ Test(RequestParser, testInvalidHttpVersion)
 
 Test(RequestParser, testInvalidURI)
 {
-	std::string										method("GET");
-	std::string										httpVersion("HTTP/1.1");
-	std::string										uri("localhost:8080");
-	std::string										host("www.example.com");
+	std::string method("GET");
+	std::string httpVersion("HTTP/1.1");
+	std::string uri("ihttps://localhost:8080");
+	std::string host("www.example.com");
 	std::map<std::string, std::vector<std::string>> headers;
 	std::vector<char>								body;
 
@@ -390,9 +390,7 @@ Test(RequestParser, testIgnoredHeader)
 	std::string										uri("/localhost:8080");
 	std::map<std::string, std::vector<std::string>> headers;
 	headers["Host"].push_back("www.example.com");
-	headers["Proxy-Authenticate"].push_back(
-		"testcontent"
-	);
+	headers["Proxy-Authenticate"].push_back("testcontent");
 	std::vector<char> body;
 
 	std::string requestStr
@@ -400,7 +398,23 @@ Test(RequestParser, testIgnoredHeader)
 
 	HttpRequest request = RequestParser::parseRequest(requestStr);
 
-	cr_assert_eq(
-		request.getHeaders().count("Proxy-Authenticate"), 0
-	);
+	cr_assert_eq(request.getHeaders().count("Proxy-Authenticate"), 0);
+}
+
+Test(RequestParser, testPortGetter)
+{
+	std::string										method("GET");
+	std::string										httpVersion("HTTP/1.1");
+	std::string										host("");
+	std::string										uri("https://www.localhost:8080");
+	std::map<std::string, std::vector<std::string>> headers;
+	headers["Host"].push_back("www.example.com");
+	std::vector<char> body;
+
+	std::string requestStr
+		= createRequestString(method, uri, httpVersion, headers, body);
+
+	HttpRequest request = RequestParser::parseRequest(requestStr);
+
+	cr_assert_eq(request.getPort(), 8080);
 }

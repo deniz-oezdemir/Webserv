@@ -36,9 +36,9 @@ HttpRequest RequestParser::parseRequest(std::string str)
 	std::istringstream requestStream(str.c_str());
 
 	// Extract the start line
-	std::string startLine;
-	std::getline(requestStream, startLine, '\n');
-	ParseReqFirstLine::checkStartLine(startLine, &method, &uri, &httpVersion);
+	std::string firstLine;
+	std::getline(requestStream, firstLine, '\n');
+	ParseReqFirstLine::checkStartLine(firstLine, &method, &uri, &httpVersion);
 
 	// Extract, parse and normalize headers
 	HeaderParser::parseHeaders(requestStream, &headers);

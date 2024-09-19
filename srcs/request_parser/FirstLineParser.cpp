@@ -82,11 +82,12 @@ void ParseReqFirstLine::checkUri(std::string &uri)
 	if (uri == "*")
 		return;
 
-	if (uri[0] != '/')
+	if (uri[0] != '/'
+		&& (uri.find("http://") != 0 && uri.find("https://") != 0))
 	{
-		Logger::log(Logger::INFO)
-			<< "Uri is not \'*\' and does not start with /: " << uri
-			<< std::endl;
+		Logger::log(Logger::INFO) << "Uri is not \'*\' and does not start with "
+									 "/, http://, or https://: "
+								  << uri << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 
