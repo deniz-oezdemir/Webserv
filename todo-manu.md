@@ -6,12 +6,13 @@
 - [ ] Check: Set-Cookie header may be repeated and is a special case
 - [ ] Implement: check presence of Content-Length header in POST and its absense in GET and DELETE (double-check these rules!!) 
 - [ ] Implement: compare request length with limit set in congif
+- [ ] Implement: add port_ and corresponding getter to HttpRequest
 
 ## In Progress
-- [ ] Implement: URI schemes and match to Host header. 
-- [ ] Implement: Normalize URI.
 
 ## Done
+- [x] Implement: Normalize URI.
+- [x] Implement: URI schemes. 
 - [x] Implement: filter parser to only check for accepted headers 
 - [x] Implement: measure body length and set in private attr
 - [x] Implement: host_ var in HttpRequest
