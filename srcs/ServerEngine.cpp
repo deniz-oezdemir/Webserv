@@ -195,11 +195,7 @@ void ServerEngine::handleClient_(size_t &index)
 	{
 		std::string requestStr(buffer, bytesRead);
 		request = new HttpRequest(RequestParser::parseRequest(requestStr));
-		std::cout << "Hello from server. Your message was: " << buffer;
-
-		std::cout << std::endl
-				  << "Request received: " << std::endl
-				  << *request << std::endl;
+		Logger::log(Logger::DEBUG) << "Request received:\n\nBuffer:\n" << requestStr << "Request:\n" << *request << std::flush;
 	}
 	catch (std::exception &e)
 	{
