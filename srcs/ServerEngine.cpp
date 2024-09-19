@@ -195,7 +195,9 @@ void ServerEngine::handleClient_(size_t &index)
 	{
 		std::string requestStr(buffer, bytesRead);
 		request = new HttpRequest(RequestParser::parseRequest(requestStr));
-		Logger::log(Logger::DEBUG) << "Request received:\n\nBuffer:\n" << requestStr << "Request:\n" << *request << std::flush;
+		Logger::log(Logger::DEBUG) << "Request received:\n\nBuffer:\n"
+								   << requestStr << "Request:\n"
+								   << *request << std::flush;
 	}
 	catch (std::exception &e)
 	{
@@ -341,9 +343,24 @@ std::string ServerEngine::createResponse(const HttpRequest &request)
 	}
 }
 
+int ServerEngine::findServer_(std::string const &host, unsigned short const &port) 
+{
+	for (size_t i = 0; i < this->totalServerInstances_; ++i)
+	{
+		std::vector<std::string> const &serverNames
+			= this->servers_[i].getServerName();
+		for (size_t j = 0; j < serverNames.size(); ++j)
+		{
+			if (serverNames[j] == host && this->servers_[i].getPort() == port)
+				return i;
+		}
+	}
+	return -1;
+}
+
 std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 {
-	Server const &server = this->findServer_(request);
+	int ServerIndex = this->findServer_(request.getHost(), ft::strToUShort(request.getPort()));
 	// Get root path from config of server
 	std::string rootdir = servers_[0].getRoot();
 	// Combine root path with uri from request
@@ -512,8 +529,8 @@ std::string ServerEngine::readFile(const std::string &filePath)
 	std::ifstream file(filePath);
 	if (!file.is_open())
 	{
-		std::cerr << "Error: Could not open file: " << file.is_open() << " "
-				  << filePath << std::endl;
+		Logger::log(Logger::ERROR, true)
+			<< "Failed to open file: " << filePath << std::endl;
 		return "";
 	}
 
@@ -521,8 +538,8 @@ std::string ServerEngine::readFile(const std::string &filePath)
 	buffer << file.rdbuf();
 	if (buffer.str().empty())
 	{
-		std::cerr << "Error: File " << filePath
-				  << " is empty or could not be read" << std::endl;
+		Logger::log(Logger::ERROR, true)
+			<< "File is empty or could not be read: " << filePath << std::endl;
 	}
 	return buffer.str();
 }
