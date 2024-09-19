@@ -5,13 +5,15 @@
    - [ ] Check: what to do with unfolded headers (headers that continue on next line for readability. The next line starts with whitespace. They should be appended.)
    - [ ] Check: URI schemes
    - [ ] Check: Set-Cookie header may be repeated and is a special case
-   - [ ] Implement: measure body length and set in private attr, and compare with header if any and also add check in response handler for if it exceeds limit in config file
-   - [ ] Implement: filter parser to only check for accpted methods 
-   - [ ] Implement: host_ var in HttpRequest
+   - [ ] Implement: check presence of Content-Length header in POST and its absense in GET and DELETE (double-check these rules!!) 
+   - [ ] Implement: compare request length with limit set in congif
 
    ## In Progress
+   - [ ] Implement: filter parser to only check for accepted headers 
 
    ## Done
+   - [x] Implement: measure body length and set in private attr
+   - [x] Implement: host_ var in HttpRequest
    - [x] Implement: token syntax 
         - [x] Implement: add check for header with wrong separator (, or ;) 
    - [x] Implement: accept HTTP headers with multiple values

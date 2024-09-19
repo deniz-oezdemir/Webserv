@@ -51,6 +51,7 @@ class HttpRequest
 	) const;
 	// clang-format on
 	const std::vector<char> &getBody(void) const;
+	const std::string &getHost(void) const;
 
 	// Overloaded Operators
 	HttpRequest &operator=(const HttpRequest &rhs);
@@ -81,6 +82,7 @@ class HttpRequest
 	std::map<std::string, std::vector<std::string> > headers_;
 	// clang-format on
 	std::vector<char> body_;
+	unsigned long int bodyLength_;
 };
 
 std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs);

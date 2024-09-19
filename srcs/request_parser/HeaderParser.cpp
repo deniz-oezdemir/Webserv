@@ -46,11 +46,26 @@ void HeaderParser::parseHeaders(
 			std::string headerName = headerLine.substr(0, colonPos);
 			std::string headerValue = headerLine.substr(colonPos + 1);
 
-			// Trim leading spaces TODO: remove trailing spaces??
+			// Check if header is accepted by our proram or should be ignored
+			if (checkIfHeaderAccepted_(headerName) == false)
+			{
+				Logger::log(Logger::DEBUG)
+					<< "Header ignored: " << headerName << std::endl;
+				std::getline(requestStream, headerLine);
+				continue;
+			}
+
 			std::size_t firstNonSpacePos = headerValue.find_first_not_of(' ');
 			if (firstNonSpacePos != std::string::npos)
 			{
 				headerValue = headerValue.substr(firstNonSpacePos);
+			}
+
+			// Trim trailing spaces from header value
+			std::size_t lastNonSpacePos = headerValue.find_last_not_of(' ');
+			if (lastNonSpacePos != std::string::npos)
+			{
+				headerValue = headerValue.substr(0, lastNonSpacePos + 1);
 			}
 
 			rawHeaders.insert(
@@ -62,6 +77,18 @@ void HeaderParser::parseHeaders(
 
 	checkRawHeaders_(rawHeaders);
 	*headers = unifyHeaders_(rawHeaders);
+}
+
+bool HeaderParser::checkIfHeaderAccepted_(std::string &headerName)
+{
+	for (int i = 0; i < ACCEPTED_HEADERS_N; ++i)
+	{
+		if (acceptedHeaders[i].find(headerName) != std::string::npos)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 /**
@@ -157,6 +184,7 @@ void HeaderParser::checkSingleHeader_(std::string &headerLine)
 	// Trim leading and trailing whitespace from headerName
 	size_t start = headerName.find_first_not_of(" \t");
 	size_t end = headerName.find_last_not_of(" \t");
+
 	if (start != 0 || end != headerName.size() - 1)
 	{
 		Logger::log(Logger::INFO)
@@ -190,10 +218,10 @@ void HeaderParser::checkSingleHeader_(std::string &headerLine)
 }
 /**
  * @brief Checks if the given header is allowed to be repeated.
- * 
+ *
  * This function checks if the specified header is in the list of headers
  * that are allowed to appear more than once in an HTTP request.
- * 
+ *
  * @param header The name of the header to check.
  * @return true if the header is allowed to be repeated, false otherwise.
  */
@@ -261,7 +289,8 @@ void HeaderParser::checkRawHeaders_(
 				if (!checkRepeatedHeaderAllowed_(it->first))
 				{
 					Logger::log(Logger::INFO)
-						<< "Non-repeatable header appears more than once. Header: "
+						<< "Non-repeatable header appears more than once. "
+						   "Header: "
 						<< it->first << std::endl;
 					throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 				}
