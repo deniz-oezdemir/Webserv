@@ -44,12 +44,20 @@ class ServerEngine
 	void restartServer_(size_t &index);
 	void pollFdError_(size_t &index);
 
-	int findServer_(std::string const &host, unsigned short const &port); 
+	int findServer_(std::string const &host, unsigned short const &port);
 
-	std::string handleGetRequest(const HttpRequest &request);
-	std::string handlePostRequest(const HttpRequest &request);
-	std::string handleDeleteRequest(const HttpRequest &request);
+	std::string
+	handleGetRequest(const HttpRequest &request, Server const &server);
+	std::string
+	handlePostRequest(const HttpRequest &request, Server const &server);
+	std::string
+	handleDeleteRequest(const HttpRequest &request, Server const &server);
 	std::string handleNotImplementedRequest();
+	std::string handleDefaultErrorResponse(
+		int				   errorCode,
+		std::string const &reasonPhrase,
+		bool			   closeConnection = false
+	);
 
 	std::string createTimestamp();
 	std::string readFile(const std::string &filePath);

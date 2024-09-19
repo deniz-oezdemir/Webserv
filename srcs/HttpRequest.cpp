@@ -184,7 +184,7 @@ void HttpRequest::normalizeRequest_(
 		{
 			size_t		colonPos = uri.find_last_of(':');
 			std::string tmpPort = uri.substr(colonPos + 1);
-			uri = uri.substr(0, colonPos - 1);
+			uri = uri.substr(0, colonPos);
 			port_ = std::atol(tmpPort.c_str());
 		}
 	}
@@ -194,6 +194,8 @@ void HttpRequest::normalizeRequest_(
 	target_ = host_ + uri_;
 	headers_ = inputHeaders;
 	body_ = body;
+	if (!port_)
+		port_ = 80;
 
 	// Store body length if present
 	// clang-format off

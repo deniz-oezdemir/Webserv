@@ -321,29 +321,38 @@ void ServerEngine::start()
 
 std::string ServerEngine::createResponse(const HttpRequest &request)
 {
+	int serverIndex = this->findServer_(request.getHost(), request.getPort());
+	if (serverIndex == -1)
+	{
+		Logger::log(Logger::DEBUG) << "Server not found" << std::endl;
+		return this->handleDefaultErrorResponse(404, "Not Found", true);
+	}
 	if (request.getMethod() == "GET")
 	{
 		Logger::log(Logger::DEBUG) << "Handling GET" << std::endl;
-		return handleGetRequest(request);
+		return handleGetRequest(request, this->servers_[serverIndex]);
 	}
 	else if (request.getMethod() == "POST")
 	{
 		Logger::log(Logger::DEBUG) << "Handling POST" << std::endl;
-		return handlePostRequest(request);
+		return handlePostRequest(request, this->servers_[serverIndex]);
 	}
 	else if (request.getMethod() == "DELETE")
 	{
 		Logger::log(Logger::DEBUG) << "Handling DELETE" << std::endl;
-		return handleDeleteRequest(request);
+		return handleDeleteRequest(request, this->servers_[serverIndex]);
 	}
 	else
 	{
-		Logger::log(Logger::DEBUG) << "Handling Not Implemented" << std::endl;
-		return handleNotImplementedRequest();
+		Logger::log(Logger::DEBUG) << "Method not implemented" << std::endl;
+		return this->handleDefaultErrorResponse(501, "Not Implemented", true);
 	}
 }
 
-int ServerEngine::findServer_(std::string const &host, unsigned short const &port) 
+int ServerEngine::findServer_(
+	std::string const	 &host,
+	unsigned short const &port
+)
 {
 	for (size_t i = 0; i < this->totalServerInstances_; ++i)
 	{
@@ -358,27 +367,14 @@ int ServerEngine::findServer_(std::string const &host, unsigned short const &por
 	return -1;
 }
 
-std::string ServerEngine::handleGetRequest(const HttpRequest &request)
+std::string
+ServerEngine::handleGetRequest(const HttpRequest &request, Server const &server)
 {
-	int ServerIndex = this->findServer_(request.getHost(), ft::strToUShort(request.getPort()));
-	// Get root path from config of server
-	std::string rootdir = servers_[0].getRoot();
-	// Combine root path with uri from request
-	std::string filepath;
-	if (request.getUri() == "/")
-		filepath = rootdir + "/index.html";
-	else
-		filepath = rootdir + request.getUri();
+	std::string uri = request.getUri();
+	std::string rootdir = server.getRoot();
+	std::string filepath = rootdir + uri;
 
-	Logger::log(Logger::DEBUG) << "Filepath: " << filepath << std::endl;
-
-	// TODO: combine both paragraphs below
-	// TODO: implement check for file/directory, coordinate with Seba
-	// @Seba: what does isThisLocation expect?
-	// file is not for any of root, uri, filepath when running tests for
-	// ServerEngine
-	// @Seba: maybe because we do not start the server when testing?
-	if (servers_[0].isThisLocation(filepath))
+	if (server.isThisLocation(uri))
 		Logger::log(Logger::DEBUG) << "File is on server" << std::endl;
 	else
 		Logger::log(Logger::DEBUG) << "File is not on server" << std::endl;
@@ -425,9 +421,13 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 }
 
 // TODO: implement check for file/directory, coordinate with Seba
-std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
+std::string ServerEngine::handleDeleteRequest(
+	const HttpRequest &request,
+	Server const	  &server
+)
 {
 	(void)request;
+	(void)server;
 	std::cout << request << std::endl;
 
 	// Get root path from config of server
@@ -475,11 +475,36 @@ std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
 }
 
 // TODO: implement
-std::string ServerEngine::handlePostRequest(const HttpRequest &request)
+std::string ServerEngine::handlePostRequest(
+	const HttpRequest &request,
+	Server const	  &server
+)
 {
 	(void)request;
+	(void)server;
 	Logger::log(Logger::DEBUG) << "Handling POST: responding" << std::endl;
 	return "POST test\n";
+}
+
+std::string ServerEngine::handleDefaultErrorResponse(
+	int				   statusCode,
+	std::string const &reasonPhrase,
+	bool			   closeConnection
+)
+{
+	HttpResponse response;
+	response.setStatusCode(statusCode);
+	response.setReasonPhrase(reasonPhrase);
+	response.setHeader("Server", "Webserv/0.1");
+	response.setHeader("Date", createTimestamp());
+	response.setHeader("Content-Type", "text/html; charset=UTF-8");
+
+	std::string body = readFile("www/" + std::to_string(statusCode) + ".html");
+	response.setHeader("Content-Length", std::to_string(body.size()));
+	if (closeConnection)
+		response.setHeader("Connection", "close");
+	response.setBody(body);
+	return response.toString();
 }
 
 // commented out similar functionality via exception by
