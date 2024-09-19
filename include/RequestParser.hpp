@@ -65,8 +65,4 @@ class RequestParser
 		const std::string &headerName,
 		const std::string &headerValue
 	);
-
-	static const std::string repeatableHeaders[20];
-	static const std::string semicolonSeparated[5];
-	static const std::map<std::string, std::string> headerAcceptedChars_;
 };
