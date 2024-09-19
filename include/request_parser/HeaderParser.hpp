@@ -24,6 +24,7 @@ class HeaderParser
 	checkRawHeaders_(const std::multimap<std::string, std::string> &headers);
 	static bool checkRepeatedHeaderAllowed_(std::string header);
 	static void checkSingleHeader_(std::string &headerLine);
+	static bool checkIfHeaderAccepted_(std::string &headerName);
 	static bool isValidHeaderName_(std::string headerName);
 	static bool isValidHeaderValue_(std::string headerValue);
 	// clang-format off

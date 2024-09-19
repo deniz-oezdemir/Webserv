@@ -381,3 +381,26 @@ Test(RequestParser, testHeaderWithWrongSeparator)
 
 	cr_assert_throw(RequestParser::parseRequest(requestStr), HttpException);
 }
+
+Test(RequestParser, testIgnoredHeader)
+{
+	std::string										method("GET");
+	std::string										httpVersion("HTTP/1.1");
+	std::string										host("");
+	std::string										uri("/localhost:8080");
+	std::map<std::string, std::vector<std::string>> headers;
+	headers["Host"].push_back("www.example.com");
+	headers["Proxy-Authenticate"].push_back(
+		"testcontent"
+	);
+	std::vector<char> body;
+
+	std::string requestStr
+		= createRequestString(method, uri, httpVersion, headers, body);
+
+	HttpRequest request = RequestParser::parseRequest(requestStr);
+
+	cr_assert_eq(
+		request.getHeaders().count("Proxy-Authenticate"), 0
+	);
+}
