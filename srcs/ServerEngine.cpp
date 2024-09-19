@@ -343,8 +343,7 @@ std::string ServerEngine::createResponse(const HttpRequest &request)
 
 std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 {
-	std::cout << request << std::endl;
-
+	Server const &server = this->findServer_(request);
 	// Get root path from config of server
 	std::string rootdir = servers_[0].getRoot();
 	// Combine root path with uri from request

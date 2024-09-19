@@ -766,27 +766,29 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 					isTestPrint
 				);
 			it->find("server_name")
-				->second.setVector(std::vector<std::string>(1, "_"));
+				->second.setVector(std::vector<std::string>(1, "localhost"));
 		}
-		else
-		{
-			std::vector<std::string>::const_iterator it2(
-				it->find("server_name")->second.getVector().begin()
-			);
-			for (; it2 != it->find("server_name")->second.getVector().end();
-				 ++it2)
-			{
-				if (!this->checkServerNameUnique_(*it2))
-				{
-					this->errorHandler_(
-						"Duplicate server name [" + *it2 + "]",
-						0,
-						isTest,
-						isTestPrint
-					);
-				}
-			}
-		}
+		// NOTE: Uncomment the code below if the server_name should be unique.
+		//
+		// else
+		// {
+		// 	std::vector<std::string>::const_iterator it2(
+		// 		it->find("server_name")->second.getVector().begin()
+		// 	);
+		// 	for (; it2 != it->find("server_name")->second.getVector().end();
+		// 		 ++it2)
+		// 	{
+		// 		if (!this->checkServerNameUnique_(*it2))
+		// 		{
+		// 			this->errorHandler_(
+		// 				"Duplicate server name [" + *it2 + "]",
+		// 				0,
+		// 				isTest,
+		// 				isTestPrint
+		// 			);
+		// 		}
+		// 	}
+		// }
 		if (it->find("listen")->second.getMap().empty())
 		{
 			if (isTest || isTestPrint)

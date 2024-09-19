@@ -44,6 +44,8 @@ class ServerEngine
 	void restartServer_(size_t &index);
 	void pollFdError_(size_t &index);
 
+	Server const &findServer_(HttpRequest const &request) const;
+
 	std::string handleGetRequest(const HttpRequest &request);
 	std::string handlePostRequest(const HttpRequest &request);
 	std::string handleDeleteRequest(const HttpRequest &request);
