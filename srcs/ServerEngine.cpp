@@ -343,10 +343,7 @@ std::string ServerEngine::createResponse(const HttpRequest &request)
 {
 	int serverIndex = this->findServer_(request.getHost(), request.getPort());
 	if (serverIndex == -1)
-	{
-		Logger::log(Logger::DEBUG) << "Server not found" << std::endl;
 		return this->handleDefaultErrorResponse_(404, true);
-	}
 	if (request.getMethod() == "GET")
 	{
 		Logger::log(Logger::DEBUG) << "Handling GET" << std::endl;
@@ -363,10 +360,7 @@ std::string ServerEngine::createResponse(const HttpRequest &request)
 		return handleDeleteRequest_(request, this->servers_[serverIndex]);
 	}
 	else
-	{
-		Logger::log(Logger::DEBUG) << "Method not implemented" << std::endl;
 		return this->handleDefaultErrorResponse_(501, true);
-	}
 }
 
 int ServerEngine::findServer_(
@@ -387,12 +381,12 @@ int ServerEngine::findServer_(
 	return -1;
 }
 
-std::string
-ServerEngine::handleGetRequest_(const HttpRequest &request, Server const &server)
+std::string ServerEngine::handleGetRequest_(
+	const HttpRequest &request,
+	Server const	  &server
+)
 {
 	std::string uri = request.getUri();
-	std::string rootdir = server.getRoot();
-	std::string filepath = rootdir + uri;
 
 	// clang-format off
 	std::map<std::string, std::vector<std::string> > location;
@@ -403,16 +397,53 @@ ServerEngine::handleGetRequest_(const HttpRequest &request, Server const &server
 		return this->handleDefaultErrorResponse_(404);
 
 	// clang-format off
-	std::map<std::string, std::vector<std::string> >::const_iterator it
-		= location.find("return");
+	std::map<std::string, std::vector<std::string> >::const_iterator it;
 	// clang-format on
 
+	// Check for redirections
+	it = location.find("return");
+	if (it != location.end() && it->second.size() != 0)
+		return this->handleReturnDirective_(it->second);
+
+	// Check for authorized methods
+	it = location.find("limit_except");
 	if (it != location.end() && it->second.size() != 0)
 	{
-		Logger::log(Logger::DEBUG)
-			<< "GET: return directive (redirect)" << std::endl;
-		return this->handleReturnDirective_(it->second);
+		if (std::find(it->second.begin(), it->second.end(), "GET")
+			== it->second.end())
+			return this->handleDefaultErrorResponse_(405, true);
 	}
+
+	// Check for max body size
+	it = location.find("client_body_size");
+	if (it != location.end() && it->second.size() != 0)
+	{
+		if (request.getBody().size() > ft::stringToULong(it->second[0]))
+			return this->handleDefaultErrorResponse_(413, true);
+	}
+	else
+	{
+		if (request.getBody().size() > server.getClientMaxBodySize())
+			return this->handleDefaultErrorResponse_(413, true);
+	}
+
+	std::string				 rootdir;
+	std::vector<std::string> index;
+	std::string				 filepath;
+
+	// Set the root directory
+	it = location.find("root");
+	if (it != location.end() && it->second.size() != 0)
+		rootdir = it->second[0];
+	else
+		rootdir = server.getRoot();
+
+	// Set the index file
+	it = location.find("index");
+	if (it != location.end() && it->second.size() != 0)
+		index = it->second;
+	else
+		index = server.getIndex();
 
 	HttpResponse response;
 	// TODO: replace below with readFile_
@@ -598,10 +629,26 @@ ServerEngine::handleDefaultErrorResponse_(int statusCode, bool closeConnection)
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
 	std::string body = readFile_("www/" + std::to_string(statusCode) + ".html");
+	if (body.empty())
+	{
+		if (statusCode >= 400 && statusCode < 500)
+			body = readFile_("www/40x.html");
+		else if (statusCode >= 500 && statusCode < 600)
+			body = readFile_("www/50x.html");
+		else if (statusCode >= 300 && statusCode < 400)
+			body = readFile_("www/30x.html");
+	}
+	if (body.empty())
+		body = "<!DOCTYPE html>\n<html>\n<head><title>"
+			   + std::to_string(statusCode) + " " + getStatusCodeReason(statusCode)
+			   + "</title></head>\n<body><h1>" + std::to_string(statusCode) + " "
+			   + getStatusCodeReason(statusCode) + "</h1></body>\n</html>\n";
+
 	response.setHeader("Content-Length", std::to_string(body.size()));
 	if (closeConnection)
 		response.setHeader("Connection", "close");
 	response.setBody(body);
+
 	return response.toString();
 }
 
