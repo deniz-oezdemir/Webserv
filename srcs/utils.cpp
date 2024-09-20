@@ -122,4 +122,26 @@ unsigned long stringToULong(std::string const &str)
 	return value;
 }
 
+bool isURI(std::string const &str)
+{
+	if (str.empty())
+		return false;
+	if (str[0] != '/')
+		return false;
+	return true;
+}
+
+bool isURL(std::string const &str)
+{
+	if (str.size() < 8)
+		return false;
+	if (str.substr(0, 7) != "http://" && str.substr(0, 8) != "https://")
+		return false;
+	if (str.find('.', str.find("://") + 3) == std::string::npos)
+		return false;
+	if (str.find('.', str.find("www.") + 4) == std::string::npos)
+		return false;
+	return true;
+}
+
 } // namespace ft

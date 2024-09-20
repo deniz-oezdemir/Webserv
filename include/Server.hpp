@@ -12,7 +12,7 @@ class Server
 	Server(
 		std::map<std::string, ConfigValue> const &server,
 		unsigned int							  index = 0,
-		unsigned int								listenIndex = 0
+		unsigned int							  listenIndex = 0
 	);
 	Server(const Server &src);
 	~Server(void);
@@ -38,6 +38,10 @@ class Server
 		std::vector<std::string> &value
 	) const;
 
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > const
+	getThisLocation(const std::string &location) const;
+	// clang-format on
 
 	// Setters
 	void setRoot(const std::string &root);

@@ -337,6 +337,22 @@ bool Server::getThisLocationValue(
 	return true;
 }
 
+// clang-format off
+std::map<std::string, std::vector<std::string> > const
+// clang-format on
+Server::getThisLocation(std::string const &location) const
+{
+	std::map<std::string, ConfigValue>::const_iterator it;
+	it = serverConfig_.find(location);
+	if (it == serverConfig_.end())
+	{
+		// clang-format off
+		return std::map<std::string, std::vector<std::string> >();
+		// clang-format on
+	}
+	return it->second.getMap();
+}
+
 void Server::setPort(std::string const &port)
 {
 	this->port_ = ft::strToUShort(port);

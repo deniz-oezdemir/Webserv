@@ -34,6 +34,9 @@ unsigned short strToUShort(std::string const &str);
 bool		  isValidIPv4(std::string const &str);
 unsigned long stringToULong(std::string const &str);
 
+bool isURI(std::string const &str);
+bool isURL(std::string const &str);
+
 template <typename C, typename T>
 typename C::iterator find(C &container, T const &value)
 {

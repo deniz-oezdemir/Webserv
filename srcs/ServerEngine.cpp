@@ -374,10 +374,25 @@ ServerEngine::handleGetRequest(const HttpRequest &request, Server const &server)
 	std::string rootdir = server.getRoot();
 	std::string filepath = rootdir + uri;
 
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > location;
+	// clang-format on
 	if (server.isThisLocation(uri))
-		Logger::log(Logger::DEBUG) << "File is on server" << std::endl;
+		location = server.getThisLocation(uri);
 	else
-		Logger::log(Logger::DEBUG) << "File is not on server" << std::endl;
+		return this->handleDefaultErrorResponse(404);
+
+	// clang-format off
+	std::map<std::string, std::vector<std::string> >::const_iterator it
+		= location.find("return");
+	// clang-format on
+
+	if (it != location.end() && it->second.size() != 0)
+	{
+		Logger::log(Logger::DEBUG)
+			<< "GET: return directive (redirect)" << std::endl;
+		return this->handleReturnDirective_(it->second);
+	}
 
 	HttpResponse response;
 	// TODO: replace below with readFile
@@ -486,27 +501,6 @@ std::string ServerEngine::handlePostRequest(
 	return "POST test\n";
 }
 
-std::string ServerEngine::handleDefaultErrorResponse(
-	int				   statusCode,
-	std::string const &reasonPhrase,
-	bool			   closeConnection
-)
-{
-	HttpResponse response;
-	response.setStatusCode(statusCode);
-	response.setReasonPhrase(reasonPhrase);
-	response.setHeader("Server", "Webserv/0.1");
-	response.setHeader("Date", createTimestamp());
-	response.setHeader("Content-Type", "text/html; charset=UTF-8");
-
-	std::string body = readFile("www/" + std::to_string(statusCode) + ".html");
-	response.setHeader("Content-Length", std::to_string(body.size()));
-	if (closeConnection)
-		response.setHeader("Connection", "close");
-	response.setBody(body);
-	return response.toString();
-}
-
 // commented out similar functionality via exception by
 // RequestParser::checkMethod_() as it should be handled with a 501 response to
 // the client
@@ -567,4 +561,90 @@ std::string ServerEngine::readFile(const std::string &filePath)
 			<< "File is empty or could not be read: " << filePath << std::endl;
 	}
 	return buffer.str();
+}
+
+std::string
+ServerEngine::handleDefaultErrorResponse(int statusCode, bool closeConnection)
+{
+	Logger::log(Logger::DEBUG)
+		<< "Handling default error response: [" << statusCode << "] "
+		<< getStatusCodeReason(statusCode) << std::endl;
+
+	HttpResponse response;
+	response.setStatusCode(statusCode);
+	response.setReasonPhrase(getStatusCodeReason(statusCode));
+	response.setHeader("Server", "Webserv/0.1");
+	response.setHeader("Date", createTimestamp());
+	response.setHeader("Content-Type", "text/html; charset=UTF-8");
+
+	std::string body = readFile("www/" + std::to_string(statusCode) + ".html");
+	response.setHeader("Content-Length", std::to_string(body.size()));
+	if (closeConnection)
+		response.setHeader("Connection", "close");
+	response.setBody(body);
+	return response.toString();
+}
+
+std::string ServerEngine::handleReturnDirective_(
+	std::vector<std::string> const &returnDirective
+)
+{
+	HttpResponse response;
+	int			 statusCode = 301;
+
+	if (returnDirective.size() == 2)
+	{
+		statusCode = std::atoi(returnDirective[0].c_str());
+		response.setHeader("Location", returnDirective[1]);
+	}
+	else if (returnDirective.size() == 1)
+	{
+		response.setHeader("Location", returnDirective[0]);
+	}
+
+	Logger::log(Logger::DEBUG)
+		<< "Handling return directive: [" << statusCode << "] "
+		<< getStatusCodeReason(statusCode)
+		<< "To: " << response.getHeader("Location") << std::endl;
+
+	response.setStatusCode(statusCode);
+	response.setReasonPhrase(getStatusCodeReason(statusCode));
+	response.setHeader("Server", "Webserv/0.1");
+	response.setHeader("Date", createTimestamp());
+	response.setHeader("Content-Type", "text/html; charset=UTF-8");
+	response.setHeader("Content-Length", "0");
+
+	return response.toString();
+}
+
+std::string const &getStatusCodeReason(unsigned int code)
+{
+	static std::map<int, std::string> httpStatusCodes;
+	if (httpStatusCodes.empty())
+	{
+		httpStatusCodes[200] = "OK";
+		httpStatusCodes[201] = "Created";
+		httpStatusCodes[202] = "Accepted";
+		httpStatusCodes[204] = "No Content";
+		httpStatusCodes[301] = "Moved Permanently";
+		httpStatusCodes[302] = "Found";
+		httpStatusCodes[303] = "See Other";
+		httpStatusCodes[304] = "Not Modified";
+		httpStatusCodes[400] = "Bad Request";
+		httpStatusCodes[401] = "Unauthorized";
+		httpStatusCodes[403] = "Forbidden";
+		httpStatusCodes[404] = "Not Found";
+		httpStatusCodes[405] = "Method Not Allowed";
+		httpStatusCodes[408] = "Request Timeout";
+		httpStatusCodes[411] = "Length Required";
+		httpStatusCodes[413] = "Payload Too Large";
+		httpStatusCodes[414] = "URI Too Long";
+		httpStatusCodes[415] = "Unsupported Media Type";
+		httpStatusCodes[500] = "Internal Server Error";
+		httpStatusCodes[501] = "Not Implemented";
+		httpStatusCodes[505] = "HTTP Version Not Supported";
+	}
+	if (httpStatusCodes.find(code) == httpStatusCodes.end())
+		return httpStatusCodes[500];
+	return httpStatusCodes[code];
 }

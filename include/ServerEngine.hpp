@@ -18,6 +18,7 @@ class ServerEngine
 	~ServerEngine();
 
 	void start(void);
+	std::string const &getStatusCodeReason(unsigned int statusCode) const;
 
 	// TODO: move createResponse() to private as only public for testing
 	std::string createResponse(const HttpRequest &request);
@@ -45,6 +46,8 @@ class ServerEngine
 	void pollFdError_(size_t &index);
 
 	int findServer_(std::string const &host, unsigned short const &port);
+	std::string
+	handleReturnDirective_(std::vector<std::string> const &returnDirective);
 
 	std::string
 	handleGetRequest(const HttpRequest &request, Server const &server);
@@ -55,7 +58,6 @@ class ServerEngine
 	std::string handleNotImplementedRequest();
 	std::string handleDefaultErrorResponse(
 		int				   errorCode,
-		std::string const &reasonPhrase,
 		bool			   closeConnection = false
 	);
 
