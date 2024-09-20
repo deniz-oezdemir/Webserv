@@ -7,8 +7,11 @@
 #include "utils.hpp"
 
 #include <csignal>
+#include <dirent.h>
 #include <fcntl.h>
 #include <fstream>
+#include <sstream>
+#include <sys/stat.h>
 #include <unistd.h>
 
 extern bool g_shutdown;
@@ -50,6 +53,38 @@ ServerEngine::~ServerEngine()
 			pollFds_[i].fd = -1;
 		}
 	}
+}
+
+std::string const &getStatusCodeReason(unsigned int code)
+{
+	static std::map<int, std::string> httpStatusCodes;
+	if (httpStatusCodes.empty())
+	{
+		httpStatusCodes[200] = "OK";
+		httpStatusCodes[201] = "Created";
+		httpStatusCodes[202] = "Accepted";
+		httpStatusCodes[204] = "No Content";
+		httpStatusCodes[301] = "Moved Permanently";
+		httpStatusCodes[302] = "Found";
+		httpStatusCodes[303] = "See Other";
+		httpStatusCodes[304] = "Not Modified";
+		httpStatusCodes[400] = "Bad Request";
+		httpStatusCodes[401] = "Unauthorized";
+		httpStatusCodes[403] = "Forbidden";
+		httpStatusCodes[404] = "Not Found";
+		httpStatusCodes[405] = "Method Not Allowed";
+		httpStatusCodes[408] = "Request Timeout";
+		httpStatusCodes[411] = "Length Required";
+		httpStatusCodes[413] = "Payload Too Large";
+		httpStatusCodes[414] = "URI Too Long";
+		httpStatusCodes[415] = "Unsupported Media Type";
+		httpStatusCodes[500] = "Internal Server Error";
+		httpStatusCodes[501] = "Not Implemented";
+		httpStatusCodes[505] = "HTTP Version Not Supported";
+	}
+	if (httpStatusCodes.find(code) == httpStatusCodes.end())
+		return httpStatusCodes[500];
+	return httpStatusCodes[code];
 }
 
 void ServerEngine::initServer_(
@@ -402,12 +437,12 @@ std::string ServerEngine::handleGetRequest_(
 
 	// Check for redirections
 	it = location.find("return");
-	if (it != location.end() && it->second.size() != 0)
+	if (it != location.end() && !it->second.empty())
 		return this->handleReturnDirective_(it->second);
 
 	// Check for authorized methods
 	it = location.find("limit_except");
-	if (it != location.end() && it->second.size() != 0)
+	if (it != location.end() && !it->second.empty())
 	{
 		if (std::find(it->second.begin(), it->second.end(), "GET")
 			== it->second.end())
@@ -416,7 +451,7 @@ std::string ServerEngine::handleGetRequest_(
 
 	// Check for max body size
 	it = location.find("client_body_size");
-	if (it != location.end() && it->second.size() != 0)
+	if (it != location.end() && !it->second.empty())
 	{
 		if (request.getBody().size() > ft::stringToULong(it->second[0]))
 			return this->handleDefaultErrorResponse_(413, true);
@@ -433,17 +468,22 @@ std::string ServerEngine::handleGetRequest_(
 
 	// Set the root directory
 	it = location.find("root");
-	if (it != location.end() && it->second.size() != 0)
+	if (it != location.end() && !it->second.empty())
 		rootdir = it->second[0];
 	else
 		rootdir = server.getRoot();
 
 	// Set the index file
 	it = location.find("index");
-	if (it != location.end() && it->second.size() != 0)
+	if (it != location.end() && !it->second.empty())
 		index = it->second;
 	else
 		index = server.getIndex();
+
+	// Check for autoindex
+	it = location.find("autoindex");
+	if (it != location.end() && !it->second.empty() && it->second[0] == "on")
+		return handleAutoIndex_(rootdir, uri);
 
 	HttpResponse response;
 	// TODO: replace below with readFile_
@@ -640,8 +680,9 @@ ServerEngine::handleDefaultErrorResponse_(int statusCode, bool closeConnection)
 	}
 	if (body.empty())
 		body = "<!DOCTYPE html>\n<html>\n<head><title>"
-			   + std::to_string(statusCode) + " " + getStatusCodeReason(statusCode)
-			   + "</title></head>\n<body><h1>" + std::to_string(statusCode) + " "
+			   + std::to_string(statusCode) + " "
+			   + getStatusCodeReason(statusCode) + "</title></head>\n<body><h1>"
+			   + std::to_string(statusCode) + " "
 			   + getStatusCodeReason(statusCode) + "</h1></body>\n</html>\n";
 
 	response.setHeader("Content-Length", std::to_string(body.size()));
@@ -684,34 +725,70 @@ std::string ServerEngine::handleReturnDirective_(
 	return response.toString();
 }
 
-std::string const &getStatusCodeReason(unsigned int code)
+std::string ServerEngine::generateAutoIndexPage_(
+	std::string const &root,
+	std::string const &uri
+)
 {
-	static std::map<int, std::string> httpStatusCodes;
-	if (httpStatusCodes.empty())
+	std::stringstream html;
+
+	html << "<!DOCTYPE html>\n<html>\n<head><title>Index of " << uri
+		 << "</title></head>\n<body><h1>Index of " << uri << "</h1>\n";
+	html << "<ul>\n";
+
+	DIR *dir = opendir((root + uri).c_str());
+	if (dir == NULL)
 	{
-		httpStatusCodes[200] = "OK";
-		httpStatusCodes[201] = "Created";
-		httpStatusCodes[202] = "Accepted";
-		httpStatusCodes[204] = "No Content";
-		httpStatusCodes[301] = "Moved Permanently";
-		httpStatusCodes[302] = "Found";
-		httpStatusCodes[303] = "See Other";
-		httpStatusCodes[304] = "Not Modified";
-		httpStatusCodes[400] = "Bad Request";
-		httpStatusCodes[401] = "Unauthorized";
-		httpStatusCodes[403] = "Forbidden";
-		httpStatusCodes[404] = "Not Found";
-		httpStatusCodes[405] = "Method Not Allowed";
-		httpStatusCodes[408] = "Request Timeout";
-		httpStatusCodes[411] = "Length Required";
-		httpStatusCodes[413] = "Payload Too Large";
-		httpStatusCodes[414] = "URI Too Long";
-		httpStatusCodes[415] = "Unsupported Media Type";
-		httpStatusCodes[500] = "Internal Server Error";
-		httpStatusCodes[501] = "Not Implemented";
-		httpStatusCodes[505] = "HTTP Version Not Supported";
+		Logger::log(Logger::ERROR, true)
+			<< "Failed to open directory: " << root + uri << std::endl;
+		return handleDefaultErrorResponse_(404, true);
 	}
-	if (httpStatusCodes.find(code) == httpStatusCodes.end())
-		return httpStatusCodes[500];
-	return httpStatusCodes[code];
+
+	struct dirent *entry;
+	while ((entry = readdir(dir)) != NULL)
+	{
+		std::string filename(entry->d_name);
+
+		// Skip "." and ".." directories
+		if (filename == "." || filename == "..")
+			continue;
+
+		std::string fullPath = root + uri + "/" + filename;
+
+		// Check if it is a directory
+		struct stat fileStat;
+		if (stat(fullPath.c_str(), &fileStat) == -1)
+		{
+			Logger::log(Logger::ERROR, true)
+				<< "Failed to get file stats: " << fullPath << "Error: ["
+				<< errno << "] " << strerror(errno) << std::endl;
+			continue;
+		}
+		else if (S_ISDIR(fileStat.st_mode))
+			filename += "/";
+
+		// Generate links for each file/directory
+		html << "<li><a href=\"" << uri << "/" + filename << "\">" << filename
+			 << "</a></li>\n";
+	}
+	closedir(dir);
+	html << "</ul>\n</body>\n</html>\n";
+	return html.str();
+}
+
+std::string
+ServerEngine::handleAutoIndex_(std::string const &root, std::string const &uri)
+{
+	Logger::log(Logger::DEBUG)
+		<< "Handling auto index on: " << root << uri << std::endl;
+
+	std::string body = generateAutoIndexPage_(root, uri);
+
+	HttpResponse response;
+	response.setStatusCode(200);
+	response.setReasonPhrase("OK");
+	response.setHeader("Content-Type", "text/html; charset=UTF-8");
+	response.setHeader("Content-Length", ft::toString(body.size()));
+	response.setBody(body);
+	return response.toString();
 }

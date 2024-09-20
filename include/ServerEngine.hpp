@@ -20,7 +20,7 @@ class ServerEngine
 	// clang-format on
 	~ServerEngine();
 
-	void start(void);
+	void			   start(void);
 	std::string const &getStatusCodeReason(unsigned int statusCode) const;
 
 	// TODO: move createResponse() to private as only public for testing
@@ -56,7 +56,12 @@ class ServerEngine
 
 	int findServer_(std::string const &host, unsigned short const &port);
 	std::string
+	generateAutoIndexPage_(std::string const &root, std::string const &uri);
+
+	std::string
 	handleReturnDirective_(std::vector<std::string> const &returnDirective);
+	std::string
+	handleAutoIndex_(std::string const &root, std::string const &uri);
 
 	std::string
 	handleGetRequest_(const HttpRequest &request, Server const &server);
@@ -65,10 +70,8 @@ class ServerEngine
 	std::string
 	handleDeleteRequest_(const HttpRequest &request, Server const &server);
 	std::string handleNotImplementedRequest_();
-	std::string handleDefaultErrorResponse_(
-		int				   errorCode,
-		bool			   closeConnection = false
-	);
+	std::string
+	handleDefaultErrorResponse_(int errorCode, bool closeConnection = false);
 
 	std::string createTimestamp_();
 	std::string readFile_(const std::string &filePath);
