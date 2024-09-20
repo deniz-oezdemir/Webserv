@@ -3,10 +3,13 @@
 #include "ConfigValue.hpp"
 #include "HttpRequest.hpp"
 #include "Server.hpp"
+#include "macros.hpp"
 #include <cstring>
 #include <map>
 #include <poll.h>
 #include <string>
+
+extern bool g_shutdown;
 
 class ServerEngine
 {
@@ -32,14 +35,20 @@ class ServerEngine
 	std::vector<pollfd> pollFds_;
 	std::vector<Server> servers_;
 
+	char clientRequestBuffer_[BUFFER_SIZE];
+	long bytesRead_;
+
 	void initServer_(
 		std::map<std::string, ConfigValue> const &serverConfig,
 		size_t									 &serverIndex,
 		size_t									 &globalServerIndex
 	);
-	void initPollFds_(void);
+	void initServerPollFds_(void);
+	void initializePollEvents();
+	void processPollEvents();
+	void readClientRequest_(size_t &index);
+	void sendClientResponse_(size_t &index);
 	bool isPollFdServer_(int &fd);
-	void handleClient_(size_t &index);
 	void acceptConnection_(size_t &index);
 	void restartServer_(size_t &index);
 	void pollFdError_(size_t &index);
