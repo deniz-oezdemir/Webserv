@@ -7,8 +7,6 @@
 
 #include <iostream>
 
-bool g_shutdown = false;
-
 static bool isHelpOrVersionFlags(ServerInput &input)
 {
 	if (!input.hasThisFlag(ServerInput::HELP)
