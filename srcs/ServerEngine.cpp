@@ -632,11 +632,11 @@ ServerEngine::handleDefaultErrorResponse_(int statusCode, bool closeConnection)
 	if (body.empty())
 	{
 		if (statusCode >= 400 && statusCode < 500)
-			body = readFile_("www/40x.html");
+			body = readFile_("www/4xx.html");
 		else if (statusCode >= 500 && statusCode < 600)
-			body = readFile_("www/50x.html");
+			body = readFile_("www/5xx.html");
 		else if (statusCode >= 300 && statusCode < 400)
-			body = readFile_("www/30x.html");
+			body = readFile_("www/3xx.html");
 	}
 	if (body.empty())
 		body = "<!DOCTYPE html>\n<html>\n<head><title>"

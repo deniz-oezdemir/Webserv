@@ -475,6 +475,8 @@ void ServerConfig::parseLocationBlock_(
 		if (location["client_max_body_size"].empty())
 			location["client_max_body_size"]
 				= serversConfig_.back()["client_max_body_size"].getVector();
+		if (location["autoindex"].empty())
+			location["autoindex"] = std::vector<std::string>(1, "off");
 		this->serversConfig_.back()[uri].setMap(location);
 	}
 	else
