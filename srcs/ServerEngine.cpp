@@ -20,8 +20,6 @@ ServerEngine::ServerEngine(
 )
 	: numServers_(servers.size())
 {
-	std::signal(SIGINT, signalHandler);
-
 	Logger::log(Logger::INFO)
 		<< "Initializing the Server Engine with " << this->numServers_
 		<< " servers..." << std::endl;
@@ -553,11 +551,4 @@ std::string ServerEngine::readFile(const std::string &filePath)
 				  << " is empty or could not be read" << std::endl;
 	}
 	return buffer.str();
-}
-
-void ServerEngine::signalHandler(int signum)
-{
-	Logger::log(Logger::INFO)
-		<< "Signal (" << signum << ") received." << std::endl;
-	g_shutdown = true;
 }

@@ -60,5 +60,4 @@ class ServerEngine
 
 	std::string createTimestamp();
 	std::string readFile(const std::string &filePath);
-	static void signalHandler(int signum);
 };

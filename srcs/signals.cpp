@@ -1,6 +1,6 @@
 #include "signals.hpp"
 #include "Logger.hpp"
-
+#include "ServerEngine.hpp"
 #include <csignal>
 #include <cstdlib>
 #include <iostream>
@@ -15,7 +15,9 @@ static void handleInterrupt(int signal)
 		std::cout << '\n';
 		Logger::log(Logger::DEBUG)
 			<< "SIGINT received. Exiting..." << std::endl;
-		std::exit(signal);
+		// instead of exit to shut down server and clean resources (TODO)
+		g_shutdown = true;
+		// std::exit(signal);
 	}
 }
 
