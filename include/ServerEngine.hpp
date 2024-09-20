@@ -44,11 +44,11 @@ class ServerEngine
 	void restartServer_(size_t &index);
 	void pollFdError_(size_t &index);
 
-	std::string handleGetRequest(const HttpRequest &request);
-	std::string handlePostRequest(const HttpRequest &request);
-	std::string handleDeleteRequest(const HttpRequest &request);
-	std::string handleNotImplementedRequest();
+	std::string handleGetRequest_(const HttpRequest &request);
+	std::string handlePostRequest_(const HttpRequest &request);
+	std::string handleDeleteRequest_(const HttpRequest &request);
+	std::string handleNotImplementedRequest_();
 
-	std::string createTimestamp();
-	std::string readFile(const std::string &filePath);
+	std::string createTimestamp_();
+	std::string readFile_(const std::string &filePath);
 };

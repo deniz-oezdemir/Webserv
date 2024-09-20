@@ -1,14 +1,14 @@
 #include "../include/HttpException.hpp"
 
-HttpException::HttpException() : _code(0), _message("") {}
+HttpException::HttpException() : code_(0), message_("") {}
 
-HttpException::HttpException(int _code, const std::string &_message)
-	: _code(_code), _message(_message)
+HttpException::HttpException(int code_, const std::string &message_)
+	: code_(code_), message_(message_)
 {
 }
 
 HttpException::HttpException(const HttpException &other)
-	: _code(other._code), _message(other._message)
+	: code_(other.code_), message_(other.message_)
 {
 }
 
@@ -16,8 +16,8 @@ HttpException &HttpException::operator=(const HttpException &other)
 {
 	if (this != &other)
 	{
-		_code = other._code;
-		_message = other._message;
+		code_ = other.code_;
+		message_ = other.message_;
 	}
 	return *this;
 }
@@ -26,10 +26,10 @@ HttpException::~HttpException() throw() {}
 
 int HttpException::getCode() const
 {
-	return _code;
+	return code_;
 }
 
 const char *HttpException::what() const throw()
 {
-	return _message.c_str();
+	return message_.c_str();
 }

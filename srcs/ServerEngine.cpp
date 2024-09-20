@@ -326,26 +326,26 @@ std::string ServerEngine::createResponse(const HttpRequest &request)
 	if (request.getMethod() == "GET")
 	{
 		Logger::log(Logger::DEBUG) << "Handling GET" << std::endl;
-		return handleGetRequest(request);
+		return handleGetRequest_(request);
 	}
 	else if (request.getMethod() == "POST")
 	{
 		Logger::log(Logger::DEBUG) << "Handling POST" << std::endl;
-		return handlePostRequest(request);
+		return handlePostRequest_(request);
 	}
 	else if (request.getMethod() == "DELETE")
 	{
 		Logger::log(Logger::DEBUG) << "Handling DELETE" << std::endl;
-		return handleDeleteRequest(request);
+		return handleDeleteRequest_(request);
 	}
 	else
 	{
 		Logger::log(Logger::DEBUG) << "Handling Not Implemented" << std::endl;
-		return handleNotImplementedRequest();
+		return handleNotImplementedRequest_();
 	}
 }
 
-std::string ServerEngine::handleGetRequest(const HttpRequest &request)
+std::string ServerEngine::handleGetRequest_(const HttpRequest &request)
 {
 	std::cout << request << std::endl;
 
@@ -372,7 +372,7 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 		Logger::log(Logger::DEBUG) << "File is not on server" << std::endl;
 
 	HttpResponse response;
-	// TODO: replace below with readFile
+	// TODO: replace below with readFile_
 	std::ifstream file(filepath);
 	if (file.is_open())
 	{
@@ -384,7 +384,7 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 		response.setStatusCode(200);
 		response.setReasonPhrase("OK");
 		response.setHeader("Server", "Webserv/0.1");
-		response.setHeader("Date", createTimestamp());
+		response.setHeader("Date", createTimestamp_());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		response.setHeader("Connection", "keep-alive");
@@ -397,12 +397,12 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 		response.setStatusCode(404);
 		response.setReasonPhrase("Not Found");
 		response.setHeader("Server", "Webserv/0.1");
-		response.setHeader("Date", createTimestamp());
+		response.setHeader("Date", createTimestamp_());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
 		// TODO: replace hardcoded /404.html with file from config? check
 		// with Seba if needed
-		std::string body = readFile(rootdir + "/404.html");
+		std::string body = readFile_(rootdir + "/404.html");
 
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		response.setHeader("Connection", "keep-alive");
@@ -413,7 +413,7 @@ std::string ServerEngine::handleGetRequest(const HttpRequest &request)
 }
 
 // TODO: implement check for file/directory, coordinate with Seba
-std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
+std::string ServerEngine::handleDeleteRequest_(const HttpRequest &request)
 {
 	(void)request;
 	std::cout << request << std::endl;
@@ -435,7 +435,7 @@ std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
 		response.setStatusCode(200);
 		response.setReasonPhrase("OK");
 		response.setHeader("Server", "Webserv/0.1");
-		response.setHeader("Date", createTimestamp());
+		response.setHeader("Date", createTimestamp_());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		response.setHeader("Connection", "keep-alive");
@@ -445,11 +445,11 @@ std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
 	}
 	else
 	{
-		std::string body = readFile(rootdir + "/404.html");
+		std::string body = readFile_(rootdir + "/404.html");
 		response.setStatusCode(404);
 		response.setReasonPhrase("Not Found");
 		response.setHeader("Server", "Webserv/0.1");
-		response.setHeader("Date", createTimestamp());
+		response.setHeader("Date", createTimestamp_());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		response.setHeader("Connection", "keep-alive");
@@ -463,7 +463,7 @@ std::string ServerEngine::handleDeleteRequest(const HttpRequest &request)
 }
 
 // TODO: implement
-std::string ServerEngine::handlePostRequest(const HttpRequest &request)
+std::string ServerEngine::handlePostRequest_(const HttpRequest &request)
 {
 	(void)request;
 	Logger::log(Logger::DEBUG) << "Handling POST: responding" << std::endl;
@@ -473,7 +473,7 @@ std::string ServerEngine::handlePostRequest(const HttpRequest &request)
 // commented out similar functionality via exception by
 // RequestParser::checkMethod_() as it should be handled with a 501 response to
 // the client
-std::string ServerEngine::handleNotImplementedRequest()
+std::string ServerEngine::handleNotImplementedRequest_()
 {
 	// Get root path from config of server
 	std::string rootdir = servers_[0].getRoot();
@@ -483,12 +483,12 @@ std::string ServerEngine::handleNotImplementedRequest()
 	response.setStatusCode(501);
 	response.setReasonPhrase("Not Implemented");
 	response.setHeader("Server", "Webserv/0.1");
-	response.setHeader("Date", createTimestamp());
+	response.setHeader("Date", createTimestamp_());
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
 	// TODO: replace hardcoded /404.html with file from config? check
 	// with Seba if needed
-	std::string body = readFile(rootdir + "/501.html");
+	std::string body = readFile_(rootdir + "/501.html");
 
 	response.setHeader("Content-Length", std::to_string(body.size()));
 	// nginx typically closes the TCP connection after sending a 501 response,
@@ -498,7 +498,7 @@ std::string ServerEngine::handleNotImplementedRequest()
 	return response.toString();
 }
 
-std::string ServerEngine::createTimestamp()
+std::string ServerEngine::createTimestamp_()
 {
 	time_t	   now = time(0);
 	struct tm *tstruct = localtime(&now);
@@ -512,7 +512,7 @@ std::string ServerEngine::createTimestamp()
 	return std::string(buf);
 }
 
-std::string ServerEngine::readFile(const std::string &filePath)
+std::string ServerEngine::readFile_(const std::string &filePath)
 {
 	std::ifstream file(filePath);
 	if (!file.is_open())
