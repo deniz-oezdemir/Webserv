@@ -11,7 +11,7 @@
 #include "../include/ConfigValue.hpp"
 #include "../include/utils.hpp"
 #include "../include/HttpRequest.hpp"
-#include "../include/RequestParser.hpp"
+#include "../include/request_parser/RequestParser.hpp"
 #include "../include/Logger.hpp"
 #include "../include/ServerException.hpp"
 #include "../include/Server.hpp"

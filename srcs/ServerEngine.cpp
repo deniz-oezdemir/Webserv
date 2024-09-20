@@ -2,12 +2,16 @@
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
 #include "Logger.hpp"
+#include "macros.hpp"
 #include "request_parser/RequestParser.hpp"
 #include "utils.hpp"
 
+#include <csignal>
 #include <fcntl.h>
 #include <fstream>
 #include <unistd.h>
+
+extern bool g_shutdown;
 
 ServerEngine::ServerEngine(
 	// clang-format off
@@ -82,13 +86,14 @@ void ServerEngine::restartServer_(size_t &index)
 		<< "Server[" << index << "] restarted" << std::endl;
 }
 
-void ServerEngine::initPollFds_(void)
+void ServerEngine::initServerPollFds_(void)
 {
 	// Initialize pollFds_ vector
 	pollFds_.clear();
 	pollFds_.reserve(this->totalServerInstances_);
 
-	Logger::log(Logger::DEBUG) << "Initializing pollFds_ vector" << std::endl;
+	Logger::log(Logger::DEBUG)
+		<< "Initializing pollFds_ vector with ServerFds" << std::endl;
 
 	// Create pollfd struct for the server socket and add it to the vector
 	for (size_t i = 0; i < this->totalServerInstances_; ++i)
@@ -158,16 +163,69 @@ void ServerEngine::acceptConnection_(size_t &index)
 		<< "Client connection added to pollFds_[" << index << "]" << std::endl;
 }
 
-// TODO: Create a dynamic buffer, read in a loop until the end of the request
-void ServerEngine::handleClient_(size_t &index)
+void ServerEngine::pollFdError_(size_t &index)
 {
-	Logger::log(Logger::DEBUG)
-		<< "Handling client connection pollFds_[" << index << ']' << std::endl;
+	std::string error("");
+	if (pollFds_[index].revents & POLLERR)
+		error += "|POLLERR|";
+	if (pollFds_[index].revents & POLLHUP)
+		error += "|POLLHUP|";
+	if (pollFds_[index].revents & POLLNVAL)
+		error += "|POLLNVAL|";
 
-	static size_t const bufferSize = 4096;
-	char				buffer[bufferSize];
-	long bytesRead = read(this->pollFds_[index].fd, buffer, sizeof(buffer));
-	if (bytesRead < 0)
+	if (error == "|POLLHUP|")
+	{
+		Logger::log(Logger::DEBUG)
+			<< "Client disconnected on pollFds_[" << index
+			<< "]: " << pollFds_[index].fd << std::endl;
+	}
+	else
+	{
+		Logger::log(Logger::ERROR, true)
+			<< "Descriptor error on pollFds_[" << index
+			<< "]: " << pollFds_[index].fd << " : (" << error << ") "
+			<< std::endl;
+	}
+	if (!this->isPollFdServer_(this->pollFds_[index].fd))
+	{
+		Logger::log(Logger::DEBUG)
+			<< "Closing and deleting client socket: pollFds_[" << index
+			<< "]: " << pollFds_[index].fd << std::endl;
+		close(pollFds_[index].fd);
+		this->pollFds_.erase(this->pollFds_.begin() + index);
+	}
+	else
+	{
+		restartServer_(index);
+	}
+}
+
+void ServerEngine::initializePollEvents()
+{
+	int pollCount = poll(pollFds_.data(), pollFds_.size(), POLL_TIMEOUT);
+	if (pollCount == -1)
+	{
+		Logger::log(Logger::ERROR, true)
+			<< "poll() failed: (" << ft::toString(errno) << ") "
+			<< strerror(errno) << std::endl;
+		return;
+	}
+	Logger::log(Logger::DEBUG)
+		<< "poll() returned " << pollCount << " events" << std::endl;
+}
+
+// TODO: parse request in parts; append buffer to previously parsed request
+// until full request parsed
+void ServerEngine::readClientRequest_(size_t &index)
+{
+	Logger::log(Logger::INFO)
+		<< "Reading client request at pollFds_[" << index << ']' << std::endl;
+
+	this->bytesRead_ = read(
+		this->pollFds_[index].fd, this->clientRequestBuffer_, BUFFER_SIZE
+	);
+
+	if (this->bytesRead_ < 0)
 	{
 		if (errno != EWOULDBLOCK && errno != EAGAIN)
 		{
@@ -177,7 +235,7 @@ void ServerEngine::handleClient_(size_t &index)
 		}
 		return;
 	}
-	else if (bytesRead == 0)
+	else if (this->bytesRead_ == 0)
 	{
 		// Client disconnected
 		Logger::log(Logger::DEBUG)
@@ -188,12 +246,19 @@ void ServerEngine::handleClient_(size_t &index)
 		return;
 	}
 
-	Logger::log(Logger::DEBUG) << "Read " << bytesRead << " bytes" << std::endl;
-	// Parse the request
+	// After reading the request, prepare to send a response
+	pollFds_[index].events = POLLOUT;
+
+	Logger::log(Logger::DEBUG)
+		<< "Read " << this->bytesRead_ << " bytes" << std::endl;
+}
+
+void ServerEngine::sendClientResponse_(size_t &index)
+{
 	HttpRequest *request = NULL;
 	try
 	{
-		std::string requestStr(buffer, bytesRead);
+		std::string requestStr(this->clientRequestBuffer_, this->bytesRead_);
 		request = new HttpRequest(RequestParser::parseRequest(requestStr));
 		Logger::log(Logger::DEBUG) << "Request received:\n\nBuffer:\n"
 								   << requestStr << "Request:\n"
@@ -232,90 +297,45 @@ void ServerEngine::handleClient_(size_t &index)
 			delete request;
 			return;
 		}
+		// After sending the response, prepare to read the next request
+		pollFds_[index].events = POLLIN;
+
 		delete request;
 	}
 }
 
-void ServerEngine::pollFdError_(size_t &index)
+void ServerEngine::processPollEvents()
 {
-	std::string error("");
-	if (pollFds_[index].revents & POLLERR)
-		error += "|POLLERR|";
-	if (pollFds_[index].revents & POLLHUP)
-		error += "|POLLHUP|";
-	if (pollFds_[index].revents & POLLNVAL)
-		error += "|POLLNVAL|";
-
-	if (error == "|POLLHUP|")
+	for (size_t i = 0; i < pollFds_.size(); ++i)
 	{
-		Logger::log(Logger::DEBUG)
-			<< "Client disconnected on pollFds_[" << index
-			<< "]: " << pollFds_[index].fd << std::endl;
-	}
-	else
-	{
-		Logger::log(Logger::ERROR, true)
-			<< "Descriptor error on pollFds_[" << index
-			<< "]: " << pollFds_[index].fd << " : (" << error << ") "
-			<< std::endl;
-	}
-	if (!this->isPollFdServer_(this->pollFds_[index].fd))
-	{
-		Logger::log(Logger::DEBUG)
-			<< "Closing and deleting client socket: pollFds_[" << index
-			<< "]: " << pollFds_[index].fd << std::endl;
-		close(pollFds_[index].fd);
-		this->pollFds_.erase(this->pollFds_.begin() + index);
-	}
-	else
-	{
-		restartServer_(index);
+		// Check if fd has some errors(pollerr, pollnval) or if the
+		// connection was broken(pollhup)
+		if (pollFds_[i].revents & (POLLERR | POLLHUP | POLLNVAL))
+			pollFdError_(i);
+		else if (pollFds_[i].revents & POLLIN)
+		{
+			Logger::log(Logger::DEBUG)
+				<< "pollFds_[" << i << "] is ready for read" << std::endl;
+			// If fd is a server socket accept a new client connection
+			if (this->isPollFdServer_(pollFds_[i].fd))
+				acceptConnection_(i);
+			else
+				readClientRequest_(i);
+		}
+		else if (pollFds_[i].revents & POLLOUT)
+			sendClientResponse_(i);
 	}
 }
 
 void ServerEngine::start()
 {
-	this->initPollFds_();
 	Logger::log(Logger::INFO) << "Starting the Server Engine" << std::endl;
-	while (true)
-	{
-		int pollCount = poll(pollFds_.data(), pollFds_.size(), -1);
-		if (pollCount == -1)
-		{
-			Logger::log(Logger::ERROR, true)
-				<< "poll() failed: (" << ft::toString(errno) << ") "
-				<< strerror(errno) << std::endl;
-			continue;
-		}
-		Logger::log(Logger::DEBUG)
-			<< "poll() returned " << pollCount << " events" << std::endl;
+	this->initServerPollFds_();
 
-		for (size_t i = 0; i < pollFds_.size(); ++i)
-		{
-			// Check if fd has some errors(pollerr, pollnval) or if the
-			// connection was broken(pollhup)
-			if (pollFds_[i].revents & (POLLERR | POLLHUP | POLLNVAL))
-			{
-				pollFdError_(i);
-			}
-			else if (pollFds_[i].revents & POLLIN)
-			{
-				Logger::log(Logger::DEBUG)
-					<< "pollFds_[" << i << "] is ready for read" << std::endl;
-				// If the file descriptor is the server socket, accept a new
-				// client connection
-				if (this->isPollFdServer_(pollFds_[i].fd))
-				{
-					acceptConnection_(i);
-				}
-				else
-				{
-					// If the file descriptor is a client socket, handle client
-					// I/O
-					handleClient_(i);
-				}
-			}
-		}
+	while (!g_shutdown)
+	{
+		initializePollEvents();
+		processPollEvents();
 	}
 }
 
@@ -325,27 +345,27 @@ std::string ServerEngine::createResponse(const HttpRequest &request)
 	if (serverIndex == -1)
 	{
 		Logger::log(Logger::DEBUG) << "Server not found" << std::endl;
-		return this->handleDefaultErrorResponse(404, "Not Found", true);
+		return this->handleDefaultErrorResponse_(404, true);
 	}
 	if (request.getMethod() == "GET")
 	{
 		Logger::log(Logger::DEBUG) << "Handling GET" << std::endl;
-		return handleGetRequest(request, this->servers_[serverIndex]);
+		return handleGetRequest_(request, this->servers_[serverIndex]);
 	}
 	else if (request.getMethod() == "POST")
 	{
 		Logger::log(Logger::DEBUG) << "Handling POST" << std::endl;
-		return handlePostRequest(request, this->servers_[serverIndex]);
+		return handlePostRequest_(request, this->servers_[serverIndex]);
 	}
 	else if (request.getMethod() == "DELETE")
 	{
 		Logger::log(Logger::DEBUG) << "Handling DELETE" << std::endl;
-		return handleDeleteRequest(request, this->servers_[serverIndex]);
+		return handleDeleteRequest_(request, this->servers_[serverIndex]);
 	}
 	else
 	{
 		Logger::log(Logger::DEBUG) << "Method not implemented" << std::endl;
-		return this->handleDefaultErrorResponse(501, "Not Implemented", true);
+		return this->handleDefaultErrorResponse_(501, true);
 	}
 }
 
@@ -368,7 +388,7 @@ int ServerEngine::findServer_(
 }
 
 std::string
-ServerEngine::handleGetRequest(const HttpRequest &request, Server const &server)
+ServerEngine::handleGetRequest_(const HttpRequest &request, Server const &server)
 {
 	std::string uri = request.getUri();
 	std::string rootdir = server.getRoot();
@@ -380,7 +400,7 @@ ServerEngine::handleGetRequest(const HttpRequest &request, Server const &server)
 	if (server.isThisLocation(uri))
 		location = server.getThisLocation(uri);
 	else
-		return this->handleDefaultErrorResponse(404);
+		return this->handleDefaultErrorResponse_(404);
 
 	// clang-format off
 	std::map<std::string, std::vector<std::string> >::const_iterator it
@@ -395,7 +415,7 @@ ServerEngine::handleGetRequest(const HttpRequest &request, Server const &server)
 	}
 
 	HttpResponse response;
-	// TODO: replace below with readFile
+	// TODO: replace below with readFile_
 	std::ifstream file(filepath);
 	if (file.is_open())
 	{
@@ -407,7 +427,7 @@ ServerEngine::handleGetRequest(const HttpRequest &request, Server const &server)
 		response.setStatusCode(200);
 		response.setReasonPhrase("OK");
 		response.setHeader("Server", "Webserv/0.1");
-		response.setHeader("Date", createTimestamp());
+		response.setHeader("Date", createTimestamp_());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		response.setHeader("Connection", "keep-alive");
@@ -420,12 +440,12 @@ ServerEngine::handleGetRequest(const HttpRequest &request, Server const &server)
 		response.setStatusCode(404);
 		response.setReasonPhrase("Not Found");
 		response.setHeader("Server", "Webserv/0.1");
-		response.setHeader("Date", createTimestamp());
+		response.setHeader("Date", createTimestamp_());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
 		// TODO: replace hardcoded /404.html with file from config? check
 		// with Seba if needed
-		std::string body = readFile(rootdir + "/404.html");
+		std::string body = readFile_(rootdir + "/404.html");
 
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		response.setHeader("Connection", "keep-alive");
@@ -436,7 +456,7 @@ ServerEngine::handleGetRequest(const HttpRequest &request, Server const &server)
 }
 
 // TODO: implement check for file/directory, coordinate with Seba
-std::string ServerEngine::handleDeleteRequest(
+std::string ServerEngine::handleDeleteRequest_(
 	const HttpRequest &request,
 	Server const	  &server
 )
@@ -462,7 +482,7 @@ std::string ServerEngine::handleDeleteRequest(
 		response.setStatusCode(200);
 		response.setReasonPhrase("OK");
 		response.setHeader("Server", "Webserv/0.1");
-		response.setHeader("Date", createTimestamp());
+		response.setHeader("Date", createTimestamp_());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		response.setHeader("Connection", "keep-alive");
@@ -472,11 +492,11 @@ std::string ServerEngine::handleDeleteRequest(
 	}
 	else
 	{
-		std::string body = readFile(rootdir + "/404.html");
+		std::string body = readFile_(rootdir + "/404.html");
 		response.setStatusCode(404);
 		response.setReasonPhrase("Not Found");
 		response.setHeader("Server", "Webserv/0.1");
-		response.setHeader("Date", createTimestamp());
+		response.setHeader("Date", createTimestamp_());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		response.setHeader("Connection", "keep-alive");
@@ -490,7 +510,7 @@ std::string ServerEngine::handleDeleteRequest(
 }
 
 // TODO: implement
-std::string ServerEngine::handlePostRequest(
+std::string ServerEngine::handlePostRequest_(
 	const HttpRequest &request,
 	Server const	  &server
 )
@@ -504,7 +524,7 @@ std::string ServerEngine::handlePostRequest(
 // commented out similar functionality via exception by
 // RequestParser::checkMethod_() as it should be handled with a 501 response to
 // the client
-std::string ServerEngine::handleNotImplementedRequest()
+std::string ServerEngine::handleNotImplementedRequest_()
 {
 	// Get root path from config of server
 	std::string rootdir = servers_[0].getRoot();
@@ -514,12 +534,12 @@ std::string ServerEngine::handleNotImplementedRequest()
 	response.setStatusCode(501);
 	response.setReasonPhrase("Not Implemented");
 	response.setHeader("Server", "Webserv/0.1");
-	response.setHeader("Date", createTimestamp());
+	response.setHeader("Date", createTimestamp_());
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
 	// TODO: replace hardcoded /404.html with file from config? check
 	// with Seba if needed
-	std::string body = readFile(rootdir + "/501.html");
+	std::string body = readFile_(rootdir + "/501.html");
 
 	response.setHeader("Content-Length", std::to_string(body.size()));
 	// nginx typically closes the TCP connection after sending a 501 response,
@@ -529,7 +549,7 @@ std::string ServerEngine::handleNotImplementedRequest()
 	return response.toString();
 }
 
-std::string ServerEngine::createTimestamp()
+std::string ServerEngine::createTimestamp_()
 {
 	time_t	   now = time(0);
 	struct tm *tstruct = localtime(&now);
@@ -543,7 +563,7 @@ std::string ServerEngine::createTimestamp()
 	return std::string(buf);
 }
 
-std::string ServerEngine::readFile(const std::string &filePath)
+std::string ServerEngine::readFile_(const std::string &filePath)
 {
 	std::ifstream file(filePath);
 	if (!file.is_open())
@@ -564,7 +584,7 @@ std::string ServerEngine::readFile(const std::string &filePath)
 }
 
 std::string
-ServerEngine::handleDefaultErrorResponse(int statusCode, bool closeConnection)
+ServerEngine::handleDefaultErrorResponse_(int statusCode, bool closeConnection)
 {
 	Logger::log(Logger::DEBUG)
 		<< "Handling default error response: [" << statusCode << "] "
@@ -574,10 +594,10 @@ ServerEngine::handleDefaultErrorResponse(int statusCode, bool closeConnection)
 	response.setStatusCode(statusCode);
 	response.setReasonPhrase(getStatusCodeReason(statusCode));
 	response.setHeader("Server", "Webserv/0.1");
-	response.setHeader("Date", createTimestamp());
+	response.setHeader("Date", createTimestamp_());
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
-	std::string body = readFile("www/" + std::to_string(statusCode) + ".html");
+	std::string body = readFile_("www/" + std::to_string(statusCode) + ".html");
 	response.setHeader("Content-Length", std::to_string(body.size()));
 	if (closeConnection)
 		response.setHeader("Connection", "close");
@@ -610,7 +630,7 @@ std::string ServerEngine::handleReturnDirective_(
 	response.setStatusCode(statusCode);
 	response.setReasonPhrase(getStatusCodeReason(statusCode));
 	response.setHeader("Server", "Webserv/0.1");
-	response.setHeader("Date", createTimestamp());
+	response.setHeader("Date", createTimestamp_());
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
 	response.setHeader("Content-Length", "0");
 

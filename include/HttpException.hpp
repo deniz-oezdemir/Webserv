@@ -16,7 +16,7 @@ class HttpException : public std::exception
 	const char *what(void) const throw();
 
   private:
-	int			_code;
-	std::string _message;
+	int			code_;
+	std::string message_;
 };
 
