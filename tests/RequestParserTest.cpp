@@ -406,9 +406,9 @@ Test(RequestParser, testPortGetter)
 	std::string										method("GET");
 	std::string										httpVersion("HTTP/1.1");
 	std::string										host("");
-	std::string										uri("https://www.localhost:8080");
+	std::string										uri("/");
 	std::map<std::string, std::vector<std::string>> headers;
-	headers["Host"].push_back("www.example.com");
+	headers["Host"].push_back("www.example.com:8080");
 	std::vector<char> body;
 
 	std::string requestStr

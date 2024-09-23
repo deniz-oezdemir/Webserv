@@ -1,6 +1,9 @@
 #include "../include/HttpRequest.hpp"
+#include <cctype>
+#include <cstddef>
 #include <cstdlib>
 #include <ostream>
+#include <string>
 
 HttpRequest::HttpRequest(
 	std::string &method,
@@ -147,6 +150,59 @@ std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
 	return os;
 }
 
+/**
+ * @brief Extracts the port number from a given string.
+ *
+ * @param str Pointer to the string from which to extract the port number.
+ * @return The extracted port number, or the default port (80) if no valid
+ *         port number is found.
+ *
+ * @note This function currently extracts the port from the Host header.
+ *       In the future, it can be extended to also extract the port from
+ *       the URI if needed.
+ */
+unsigned long HttpRequest::extractPort(std::string *str)
+{
+	unsigned long port = 80; // default port
+	size_t		  colonPos = str->find_last_of(':');
+	if (colonPos != std::string::npos)
+	{
+		std::string tmpPort = host_.substr(colonPos + 1);
+		bool		isDigit = true;
+		for (size_t i = 0; i < tmpPort.length(); ++i)
+		{
+			if (!isdigit(tmpPort[i]))
+			{
+				isDigit = false;
+				break;
+			}
+		}
+		if (isDigit && !tmpPort.empty())
+		{
+			port = atol(tmpPort.c_str());
+			*str = str->substr(0, colonPos);
+		}
+	}
+	return port;
+}
+
+/**
+ * @brief Normalizes the HTTP request by extracting and storing relevant components.
+ *
+ * This function takes the method, HTTP version, URI, headers, and body of an HTTP
+ * request and normalizes them by extracting and storing the relevant components
+ * into the HttpRequest object. It also extracts the port number from the Host
+ * header using the `extractPort` function.
+ *
+ * @param method The HTTP method (e.g., GET, POST).
+ * @param httpVersion The HTTP version (e.g., HTTP/1.1).
+ * @param uri The URI of the request.
+ * @param inputHeaders A map of the request headers.
+ * @param body The body of the request.
+ *
+ * @note The port extraction is currently done from the Host header. In the future,
+ *       this can be extended to also extract the port from the URI if needed.
+ */
 void HttpRequest::normalizeRequest_(
 	std::string &method,
 	std::string &httpVersion,
@@ -159,38 +215,9 @@ void HttpRequest::normalizeRequest_(
 {
 	method_ = method;
 	httpVersion_ = httpVersion;
-
-	// Remove all precedent chars to the URI target, in order to be latter
-	// appended to the Host. For ex: remoce the 'http://' part if any
-	// and store the port if any.
-	if (uri[0] != '*'
-		&& (uri.find("https://") != std::string::npos
-			|| uri.find("http://") != std::string::npos))
-	{
-		size_t schemeEnd = uri.find("://") + 3;		 // Find end of scheme
-		size_t pathStart = uri.find('/', schemeEnd); // Find start of path
-
-		if (pathStart != std::string::npos)
-		{
-			uri = uri.substr(pathStart); // Keep the path
-		}
-		else
-		{
-			uri = "/" + uri.substr(schemeEnd); // No path, keep the authority
-		}
-
-		// Remove port if any and store in port_
-		if (uri.find(':') != std::string::npos)
-		{
-			size_t		colonPos = uri.find_last_of(':');
-			std::string tmpPort = uri.substr(colonPos + 1);
-			uri = uri.substr(0, colonPos);
-			port_ = std::atol(tmpPort.c_str());
-		}
-	}
-
 	uri_ = uri;
 	host_ = inputHeaders.at("Host")[0];
+	port_ = extractPort(&host_);
 	target_ = host_ + uri_;
 	headers_ = inputHeaders;
 	body_ = body;

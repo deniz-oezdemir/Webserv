@@ -73,6 +73,9 @@ class HttpRequest
 		// clang-format on
 		std::vector<char> &body
 	);
+	void		  cleanURI_(std::string uri);
+	void		  cleanHost_(void);
+	unsigned long extractPort(std::string *str);
 
 	std::string	  method_;
 	std::string	  httpVersion_;
