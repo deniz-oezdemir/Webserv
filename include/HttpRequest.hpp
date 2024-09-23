@@ -53,6 +53,7 @@ class HttpRequest
 	// clang-format on
 	const std::vector<char> &getBody(void) const;
 	const std::string		&getHost(void) const;
+	const bool				&getKeepAlive(void) const;
 
 	// Overloaded Operators
 	HttpRequest &operator=(const HttpRequest &rhs);
@@ -76,7 +77,10 @@ class HttpRequest
 	void		  cleanURI_(std::string uri);
 	void		  cleanHost_(void);
 	unsigned long extractPort(std::string *str);
+	bool		  extractKeepAlive(void);
 
+	// Private attributes.
+	// WARNING: if new attr, add getter and modify assignment operator
 	std::string	  method_;
 	std::string	  httpVersion_;
 	std::string	  target_;
@@ -87,6 +91,7 @@ class HttpRequest
 	std::map<std::string, std::vector<std::string> > headers_;
 	// clang-format on
 	std::vector<char> body_;
+	bool			  keepAlive_;
 };
 
 std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs);

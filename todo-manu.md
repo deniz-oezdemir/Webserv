@@ -2,13 +2,13 @@
 - [ ] Example task
 - [ ] Implement: compare request length with limit set in congif
 - [ ] Change name of all abstrac classes to have A prefix
-- [ ] Implement: keep connection alive variable in HttpRequest
 - [ ] Implement: client fd reader
 
 
 ## In Progress
 
 ## Done
+- [x] Implement: keep connection alive variable in HttpRequest
 - [x] Check: check HttpRequest copy assignment and copy constructor
 - [x] Implement: add defaul port
 - [x] Implement: check presence of port in Host header and normalize

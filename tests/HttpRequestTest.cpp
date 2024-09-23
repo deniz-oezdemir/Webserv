@@ -104,6 +104,30 @@ Test(HttpRequest, HttpCopyConstructor)
 	cr_assert_eq(requestCpy.getBody(), body);
 }
 
+Test(HttpRequest, HttpRequestKeepAlive)
+{
+	char **argv = new char *[2];
+	argv[0] = (char *)"./server";
+	argv[1] = (char *)"test.config";
+	std::string method("GET");
+	std::string httpVersion("HTTP/1.1");
+	std::string uri("localhost:8080");
+	std::string host("www.example.com");
+	std::string target(host + uri);
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > headers;
+	// clang-format on
+	headers["Host"].push_back(host);
+	headers["Connection"].push_back("close");
+	headers["Content-Type"].push_back("application/json");
+	std::vector<char> body({'h', 'e', 'l', 'l', 'o'});
+
+	// create simple request object
+	HttpRequest request(method, httpVersion, uri, headers, body);
+
+	cr_assert_eq(request.getKeepAlive(), false);
+}
+
 Test(HttpRequest, testRepeatedHeaders)
 {
 	char **argv = new char *[2];

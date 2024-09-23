@@ -1,10 +1,11 @@
 #include "../include/HttpRequest.hpp"
+#include "macros.hpp"
 #include <cctype>
 #include <cstddef>
 #include <cstdlib>
+#include <map>
 #include <ostream>
 #include <string>
-#include "macros.hpp"
 
 HttpRequest::HttpRequest(
 	std::string &method,
@@ -38,6 +39,7 @@ HttpRequest &HttpRequest::operator=(const HttpRequest &rhs)
 	port_ = rhs.getPort();
 	headers_ = rhs.getHeaders();
 	body_ = rhs.getBody();
+	keepAlive_ = rhs.getKeepAlive();
 
 	return *this;
 }
@@ -124,6 +126,11 @@ const std::vector<char> &HttpRequest::getBody(void) const
 	return body_;
 }
 
+const bool &HttpRequest::getKeepAlive(void) const
+{
+	return keepAlive_;
+}
+
 std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
 {
 	os << "Method: " << rhs.getMethod() << std::endl;
@@ -197,6 +204,17 @@ unsigned long HttpRequest::extractPort(std::string *str)
 	return port;
 }
 
+bool HttpRequest::extractKeepAlive(void)
+{
+	if (headers_.count("Connection") > 0)
+	{
+		if (headers_.at("Connection")[0].compare("keep-alive") == 0)
+			return true;
+	}
+
+	return false;
+}
+
 /**
  * @brief Normalizes the HTTP request by extracting and storing relevant
  * components.
@@ -233,4 +251,5 @@ void HttpRequest::normalizeRequest_(
 	target_ = host_ + uri_;
 	headers_ = inputHeaders;
 	body_ = body;
+	keepAlive_ = extractKeepAlive();
 }
