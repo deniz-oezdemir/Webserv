@@ -922,7 +922,7 @@ std::string ServerEngine::handleCgiRequest_(
 		response.setHeader("Date", createTimestamp_());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
 		response.setHeader(
-			"Content-Length", std::to_string(output.str().size())
+			"Content-Length", ft::toString(output.str().size())
 		);
 		// TODO: when to close the connection?
 		// response.setHeader("Connection", "close");
