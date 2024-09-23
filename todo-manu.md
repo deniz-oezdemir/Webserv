@@ -6,9 +6,9 @@
 
 
 ## In Progress
-- [ ] Implement: keep connection alive variable in HttpRequest
 
 ## Done
+- [x] Implement: keep connection alive variable in HttpRequest
 - [x] Check: check HttpRequest copy assignment and copy constructor
 - [x] Implement: add defaul port
 - [x] Implement: check presence of port in Host header and normalize
