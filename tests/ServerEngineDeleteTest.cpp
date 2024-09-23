@@ -7,7 +7,7 @@
 #include <fstream>
 #include <sstream>
 
-std::string readFile(const std::string &filePath)
+std::string readFile_(const std::string &filePath)
 {
 	std::ifstream file(filePath);
 	if (!file.is_open())
@@ -28,10 +28,10 @@ std::string readFile(const std::string &filePath)
 }
 
 // Test for handling DELETE request
-Test(ServerEngine, handleDeleteRequest)
+Test(ServerEngine, handleDeleteRequest_)
 {
 	// Create a request string for DELETE method
-	std::string requestStr = readFile("deleteRequest.txt");
+	std::string requestStr = readFile_("deleteRequest.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
@@ -45,7 +45,7 @@ Test(ServerEngine, handleDeleteRequest)
 		ServerEngine serverEngine(config.getAllServersConfig());
 		// serverEngine.start(); // This line is commented out
 
-		// Call the handleDeleteRequest method
+		// Call the handleDeleteRequest_ method
 		std::string response = serverEngine.createResponse(request);
 
 		std::cout << "\n\nTest Response:\n" << response << std::endl;

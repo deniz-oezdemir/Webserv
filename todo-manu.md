@@ -1,8 +1,5 @@
 ## To Do
 - [ ] Example task
-- [ ] Check: what to do with unfolded headers (headers that continue on next line for readability. The next line starts with whitespace. They should be appended.)
-- [ ] Check: Set-Cookie header may be repeated and is a special case
-- [ ] Implement: check presence of Content-Length header in POST and its absense in GET and DELETE (double-check these rules!!) 
 - [ ] Implement: compare request length with limit set in congif
 - [ ] Change name of all abstrac classes to have A prefix
 - [ ] Implement: keep connection alive variable in HttpRequest

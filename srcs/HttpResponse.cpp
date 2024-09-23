@@ -51,3 +51,14 @@ std::string HttpResponse::toString() const
 
 	return response;
 }
+
+std::string const &HttpResponse::getHeader(std::string const &key) const
+{
+	std::vector<std::pair<std::string, std::string> >::const_iterator it;
+	for (it = headers_.begin(); it != headers_.end(); ++it)
+	{
+		if (it->first == key)
+			return it->second;
+	}
+	return headers_.end()->second;
+}

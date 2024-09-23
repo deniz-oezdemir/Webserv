@@ -1,6 +1,6 @@
 #include "HttpRequest.hpp"
 #include "Logger.hpp"
-#include "RequestParser.hpp"
+#include "request_parser/RequestParser.hpp"
 #include "ServerConfig.hpp"
 #include "ServerEngine.hpp"
 #include <chrono>
@@ -9,7 +9,7 @@
 #include <sstream>
 #include <thread>
 
-std::string readFile(const std::string &filePath)
+std::string readFile_(const std::string &filePath)
 {
 	std::ifstream file(filePath);
 	if (!file.is_open())
@@ -32,7 +32,7 @@ std::string readFile(const std::string &filePath)
 Test(ServerEngine, handleGetRequest_FileExists)
 {
 	// Read the request from getRequest.txt
-	std::string requestStr = readFile("getRequest.txt");
+	std::string requestStr = readFile_("getRequest.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
@@ -46,7 +46,7 @@ Test(ServerEngine, handleGetRequest_FileExists)
 		ServerEngine serverEngine(config.getAllServersConfig());
 		// serverEngine.start();
 
-		// Call the handleGetRequest method
+		// Call the handleGetRequest_method
 		std::string response = serverEngine.createResponse(request);
 
 		std::cout << "\n\nTest Response:\n" << response << std::endl;
@@ -68,7 +68,7 @@ Test(ServerEngine, handleGetRequest_FileNotFound)
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 
 	// Read the request from nofileGetRequest.txt
-	std::string requestStr = readFile("nofileGetRequest.txt");
+	std::string requestStr = readFile_("nofileGetRequest.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
@@ -82,7 +82,7 @@ Test(ServerEngine, handleGetRequest_FileNotFound)
 		ServerEngine serverEngine(config.getAllServersConfig());
 		// serverEngine.start();
 
-		// Call the handleGetRequest method
+		// Call the handleGetRequest_method
 		std::string response = serverEngine.createResponse(request);
 
 		std::cout << "\n\nTest Response:\n" << response << std::endl;
@@ -105,7 +105,7 @@ Test(ServerEngine, handleGetRequest_NotImplemented)
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 
 	// Create a request string with an unsupported method (e.g., TRACE)
-	std::string requestStr = readFile("traceRequest.txt");
+	std::string requestStr = readFile_("traceRequest.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
@@ -123,7 +123,7 @@ Test(ServerEngine, handleGetRequest_NotImplemented)
 				  << request.getMethod() << "\n"
 				  << std::endl;
 
-		// Call the handleGetRequest method
+		// Call the handleGetRequest_method
 		std::string response = serverEngine.createResponse(request);
 
 		std::cout << "\n\nTest Response:\n" << response << std::endl;
@@ -144,7 +144,7 @@ Test(ServerEngine, handleGetRequest_Root)
 	std::this_thread::sleep_for(std::chrono::seconds(3));
 
 	// Read the request from getRequest.txt
-	std::string requestStr = readFile("getRequestRoot.txt");
+	std::string requestStr = readFile_("getRequestRoot.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
@@ -158,7 +158,7 @@ Test(ServerEngine, handleGetRequest_Root)
 		ServerEngine serverEngine(config.getAllServersConfig());
 		// serverEngine.start();
 
-		// Call the handleGetRequest method
+		// Call the handleGetRequest_method
 		std::string response = serverEngine.createResponse(request);
 
 		std::cout << "\n\nTest Response:\n" << response << std::endl;

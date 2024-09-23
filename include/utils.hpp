@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <map>
 
 // Fourty-two namespace contains utility functions.
 namespace ft
@@ -33,6 +34,13 @@ unsigned short strToUShort(std::string const &str);
 // isValidIPv4 checks if a string is a valid IPv4 address.
 bool		  isValidIPv4(std::string const &str);
 unsigned long stringToULong(std::string const &str);
+
+bool isURI(std::string const &str);
+bool isURL(std::string const &str);
+
+std::string getDirectory(std::string const &path);
+
+std::map<std::string, std::string> const createMimeTypesMap(void);
 
 template <typename C, typename T>
 typename C::iterator find(C &container, T const &value)

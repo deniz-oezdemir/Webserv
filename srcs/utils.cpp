@@ -122,4 +122,57 @@ unsigned long stringToULong(std::string const &str)
 	return value;
 }
 
+bool isURI(std::string const &str)
+{
+	if (str.empty())
+		return false;
+	if (str[0] != '/')
+		return false;
+	return true;
+}
+
+bool isURL(std::string const &str)
+{
+	if (str.size() < 8)
+		return false;
+	if (str.substr(0, 7) != "http://" && str.substr(0, 8) != "https://")
+		return false;
+	if (str.find('.', str.find("://") + 3) == std::string::npos)
+		return false;
+	if (str.find('.', str.find("www.") + 4) == std::string::npos)
+		return false;
+	return true;
+}
+
+std::map<std::string, std::string> const createMimeTypesMap()
+{
+    std::map<std::string, std::string> mimeTypes;
+    mimeTypes["html"] = "text/html; charset=UTF-8";
+    mimeTypes["htm"] = "text/html; charset=UTF-8";
+    mimeTypes["css"] = "text/css; charset=UTF-8";
+    mimeTypes["js"] = "application/javascript; charset=UTF-8";
+    mimeTypes["json"] = "application/json; charset=UTF-8";
+    mimeTypes["jpg"] = "image/jpeg";
+    mimeTypes["jpeg"] = "image/jpeg";
+    mimeTypes["png"] = "image/png";
+    mimeTypes["gif"] = "image/gif";
+    mimeTypes["txt"] = "text/plain; charset=UTF-8";
+    mimeTypes["xml"] = "application/xml; charset=UTF-8";
+    mimeTypes["pdf"] = "application/pdf";
+    mimeTypes["zip"] = "application/zip";
+    mimeTypes["mp3"] = "audio/mpeg";
+    mimeTypes["mp4"] = "video/mp4";
+    mimeTypes["avi"] = "video/x-msvideo";
+    
+    return mimeTypes;
+}
+
+std::string getDirectory(const std::string &filepath) {
+    std::string::size_type pos = filepath.find_last_of("/\\");
+    if (pos != std::string::npos) {
+        return filepath.substr(0, pos);
+    }
+    return ".";
+}
+
 } // namespace ft

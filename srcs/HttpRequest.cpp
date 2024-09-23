@@ -221,6 +221,8 @@ void HttpRequest::normalizeRequest_(
 	target_ = host_ + uri_;
 	headers_ = inputHeaders;
 	body_ = body;
+	if (!port_)
+		port_ = 80;
 
 	// Store body length if present
 	// clang-format off

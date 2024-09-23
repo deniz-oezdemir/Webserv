@@ -16,6 +16,8 @@ class HttpResponse
 	void setHeader(const std::string &key, const std::string &value);
 	void setBody(const std::string &body);
 
+	std::string const &getHeader(std::string const &key) const;
+
 	std::string toString() const;
 
   private:

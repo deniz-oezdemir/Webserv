@@ -72,7 +72,8 @@ SOURCE := 	main.cpp \
 			HttpException.cpp \
 			ServerEngine.cpp \
 			HttpResponse.cpp \
-			signals.cpp
+			signals.cpp \
+			globals.cpp
 
 OBJECTS := $(addprefix $(OBJ_DIR)/, $(notdir $(SOURCE:.cpp=.o)))
 

@@ -1,7 +1,9 @@
 #pragma once
 
-#define PORT	   8080
-#define QUEUE_SIZE 1
+#define PORT		 8080
+#define QUEUE_SIZE	 1
+#define POLL_TIMEOUT -1
+#define BUFFER_SIZE	 8192
 
 #define HTTP_ACCEPTED_METHODS {"GET", "POST", "DELETE"}
 
