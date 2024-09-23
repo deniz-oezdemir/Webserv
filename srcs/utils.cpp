@@ -144,4 +144,35 @@ bool isURL(std::string const &str)
 	return true;
 }
 
+std::map<std::string, std::string> const createMimeTypesMap()
+{
+    std::map<std::string, std::string> mimeTypes;
+    mimeTypes["html"] = "text/html; charset=UTF-8";
+    mimeTypes["htm"] = "text/html; charset=UTF-8";
+    mimeTypes["css"] = "text/css; charset=UTF-8";
+    mimeTypes["js"] = "application/javascript; charset=UTF-8";
+    mimeTypes["json"] = "application/json; charset=UTF-8";
+    mimeTypes["jpg"] = "image/jpeg";
+    mimeTypes["jpeg"] = "image/jpeg";
+    mimeTypes["png"] = "image/png";
+    mimeTypes["gif"] = "image/gif";
+    mimeTypes["txt"] = "text/plain; charset=UTF-8";
+    mimeTypes["xml"] = "application/xml; charset=UTF-8";
+    mimeTypes["pdf"] = "application/pdf";
+    mimeTypes["zip"] = "application/zip";
+    mimeTypes["mp3"] = "audio/mpeg";
+    mimeTypes["mp4"] = "video/mp4";
+    mimeTypes["avi"] = "video/x-msvideo";
+    
+    return mimeTypes;
+}
+
+std::string getDirectory(const std::string &filepath) {
+    std::string::size_type pos = filepath.find_last_of("/\\");
+    if (pos != std::string::npos) {
+        return filepath.substr(0, pos);
+    }
+    return ".";
+}
+
 } // namespace ft

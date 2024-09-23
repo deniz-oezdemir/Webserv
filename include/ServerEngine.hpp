@@ -22,6 +22,7 @@ class ServerEngine
 
 	void			   start(void);
 	std::string const &getStatusCodeReason(unsigned int statusCode) const;
+	std::string		   getMimeType(std::string const &filePath) const;
 
 	// TODO: move createResponse() to private as only public for testing
 	std::string createResponse(const HttpRequest &request);
@@ -62,6 +63,11 @@ class ServerEngine
 	handleReturnDirective_(std::vector<std::string> const &returnDirective);
 	std::string
 	handleAutoIndex_(std::string const &root, std::string const &uri);
+	std::string handleCgiRequest_(
+		std::string const &filepath,
+		std::string const &interpreter,
+		HttpRequest const &request
+	);
 
 	std::string
 	handleGetRequest_(const HttpRequest &request, Server const &server);

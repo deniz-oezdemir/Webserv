@@ -278,7 +278,7 @@ sockaddr_in const &Server::getServerAddr(void) const
 	return serverAddr_;
 }
 
-bool Server::getErrorPageValue(int &errorCode, std::string &location) const
+bool Server::getErrorPageValue(int errorCode, std::string &location) const
 {
 	std::map<std::string, ConfigValue>::const_iterator it;
 	it = serverConfig_.find(ft::toString(errorCode));

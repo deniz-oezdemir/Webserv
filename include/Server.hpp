@@ -51,7 +51,7 @@ class Server
 	sockaddr_in const &getServerAddr(void) const;
 
 	// Get the location for an specific Error code
-	bool getErrorPageValue(int &errorCode, std::string &location) const;
+	bool getErrorPageValue(int errorCode, std::string &location) const;
 	bool getErrorPageValue(std::string &errorCode, std::string &location) const;
 
 	void setPort(std::string const &port);

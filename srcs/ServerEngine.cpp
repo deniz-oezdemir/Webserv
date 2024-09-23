@@ -459,34 +459,57 @@ std::string ServerEngine::handleGetRequest_(
 		if (request.getBody().size() > ft::stringToULong(it->second[0]))
 			return this->handleDefaultErrorResponse_(413, true);
 	}
-	else
+	else if (request.getBody().size() > server.getClientMaxBodySize())
+		return this->handleDefaultErrorResponse_(413, true);
+
+	// Set root, index and file path
+	std::string rootdir = location.find("root") != location.end()
+								  && !location.at("root").empty()
+							  ? location.at("root")[0]
+							  : server.getRoot();
+
+	std::string filepath = rootdir + uri;
+
+	std::vector<std::string> index = location.find("index") != location.end()
+											 && !location.at("index").empty()
+										 ? location.at("index")
+										 : server.getIndex();
+
+	it = location.find("cgi");
+	if (it != location.end() && !it->second.empty())
 	{
-		if (request.getBody().size() > server.getClientMaxBodySize())
-			return this->handleDefaultErrorResponse_(413, true);
+		std::string cgiExtension = it->second[0];	// ".py"
+		std::string cgiInterpreter = it->second[1]; // "/usr/bin/python3"
+
+		// If the file requested matches the CGI extension (e.g., ".py")
+		if (uri.find(cgiExtension) != std::string::npos)
+		{
+			return handleCgiRequest_(filepath, cgiInterpreter, request);
+		}
 	}
 
-	std::string				 rootdir;
-	std::vector<std::string> index;
-	std::string				 filepath;
+	// Check if the request is for a directory and handle autoindex
+	struct stat fileStat;
+	if (stat(filepath.c_str(), &fileStat) == 0 && S_ISDIR(fileStat.st_mode))
+	{
+		if (location.find("autoindex") != location.end()
+			&& location.at("autoindex")[0] == "on")
+			return handleAutoIndex_(rootdir, uri);
 
-	// Set the root directory
-	it = location.find("root");
-	if (it != location.end() && !it->second.empty())
-		rootdir = it->second[0];
-	else
-		rootdir = server.getRoot();
-
-	// Set the index file
-	it = location.find("index");
-	if (it != location.end() && !it->second.empty())
-		index = it->second;
-	else
-		index = server.getIndex();
-
-	// Check for autoindex
-	it = location.find("autoindex");
-	if (it != location.end() && !it->second.empty() && it->second[0] == "on")
-		return handleAutoIndex_(rootdir, uri);
+		// Try to serve index file
+		for (std::vector<std::string>::const_iterator it = index.begin();
+			 it != index.end();
+			 ++it)
+		{
+			std::string indexFilePath = filepath + "/" + *it;
+			if (stat(indexFilePath.c_str(), &fileStat) == 0
+				&& S_ISREG(fileStat.st_mode))
+			{
+				filepath = indexFilePath;
+				break;
+			}
+		}
+	}
 
 	HttpResponse response;
 	// TODO: replace below with readFile_
@@ -502,7 +525,7 @@ std::string ServerEngine::handleGetRequest_(
 		response.setReasonPhrase("OK");
 		response.setHeader("Server", "Webserv/0.1");
 		response.setHeader("Date", createTimestamp_());
-		response.setHeader("Content-Type", "text/html; charset=UTF-8");
+		response.setHeader("Content-Type", getMimeType(filepath));
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		response.setHeader("Connection", "keep-alive");
 		response.setBody(body);
@@ -511,19 +534,24 @@ std::string ServerEngine::handleGetRequest_(
 	{
 		Logger::log(Logger::DEBUG)
 			<< "Handling GET: file not found" << std::endl;
-		response.setStatusCode(404);
-		response.setReasonPhrase("Not Found");
-		response.setHeader("Server", "Webserv/0.1");
-		response.setHeader("Date", createTimestamp_());
-		response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
-		// TODO: replace hardcoded /404.html with file from config? check
-		// with Seba if needed
-		std::string body = readFile_(rootdir + "/404.html");
+		std::string errorURI;
+		if (server.getErrorPageValue(404, errorURI))
+		{
+			response.setStatusCode(404);
+			response.setReasonPhrase("Not Found");
+			response.setHeader("Server", "Webserv/0.1");
+			response.setHeader("Date", createTimestamp_());
+			response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
-		response.setHeader("Content-Length", std::to_string(body.size()));
-		response.setHeader("Connection", "keep-alive");
-		response.setBody(body);
+			std::string body = readFile_(rootdir + errorURI);
+
+			response.setHeader("Content-Length", std::to_string(body.size()));
+			response.setHeader("Connection", "keep-alive");
+			response.setBody(body);
+		}
+		else
+			return this->handleDefaultErrorResponse_(404);
 	}
 	Logger::log(Logger::DEBUG) << "Handling GET: responding" << std::endl;
 	return response.toString();
@@ -797,4 +825,131 @@ ServerEngine::handleAutoIndex_(std::string const &root, std::string const &uri)
 	response.setHeader("Content-Length", ft::toString(body.size()));
 	response.setBody(body);
 	return response.toString();
+}
+
+std::string ServerEngine::handleCgiRequest_(
+	const std::string &filepath,
+	const std::string &interpreter,
+	const HttpRequest &request
+)
+{
+	int pipefd[2];
+	if (pipe(pipefd) == -1)
+	{
+		Logger::log(Logger::ERROR, true) << "Pipe creation failed" << std::endl;
+		return this->handleDefaultErrorResponse_(500);
+	}
+
+	pid_t pid = fork();
+	if (pid == -1)
+	{
+		Logger::log(Logger::ERROR, true) << "Fork failed" << std::endl;
+		return this->handleDefaultErrorResponse_(500);
+	}
+	else if (pid == 0)
+	{
+		close(pipefd[0]);
+
+		std::string cgiDir = ft::getDirectory(filepath);
+		if (chdir(cgiDir.c_str()) == -1)
+		{
+			Logger::log(Logger::ERROR, true)
+				<< "Failed to change directory to: " << cgiDir << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+		dup2(pipefd[1], STDOUT_FILENO);
+		close(pipefd[1]);
+
+		std::vector<std::string> envVariables;
+		envVariables.push_back("GATEWAY_INTERFACE=CGI/1.1");
+		envVariables.push_back("SERVER_PROTOCOL=HTTP/1.1");
+		envVariables.push_back("REQUEST_METHOD=" + request.getMethod());
+		envVariables.push_back("SCRIPT_FILENAME=" + filepath);
+		envVariables.push_back("PATH_INFO=" + request.getUri());
+
+		std::vector<char *> envp;
+		for (std::vector<std::string>::iterator it = envVariables.begin();
+			 it != envVariables.end();
+			 ++it)
+		{
+			envp.push_back(const_cast<char *>(it->c_str()));
+		}
+		envp.push_back(NULL);
+
+		char *argv[]
+			= {const_cast<char *>(interpreter.c_str()),
+			   const_cast<char *>(filepath.c_str()),
+			   NULL};
+
+		execve(interpreter.c_str(), argv, &envp[0]);
+
+		exit(EXIT_FAILURE);
+	}
+	else
+	{
+		close(pipefd[1]);
+
+		char			  buffer[1024];
+		std::stringstream output;
+		ssize_t			  bytesRead;
+
+		// TODO: ask Manu how to handle chunked requests
+		// if (request.isChunked())
+		// {
+		//     while ()
+		//     {
+		//     }
+		// }
+
+		while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer))) > 0)
+			output.write(buffer, bytesRead);
+
+		close(pipefd[0]);
+
+		int status;
+		waitpid(pid, &status, 0);
+
+		if (status != 0)
+		{
+			Logger::log(Logger::ERROR, true)
+				<< "CGI script execution failed" << std::endl;
+			return this->handleDefaultErrorResponse_(500);
+		}
+
+		HttpResponse response;
+		response.setStatusCode(200);
+		response.setReasonPhrase("OK");
+		response.setHeader("Server", "Webserv/0.1");
+		response.setHeader("Date", createTimestamp_());
+		response.setHeader("Content-Type", "text/html; charset=UTF-8");
+		response.setHeader(
+			"Content-Length", std::to_string(output.str().size())
+		);
+		// TODO: when to close the connection?
+		// response.setHeader("Connection", "close");
+		response.setBody(output.str());
+
+		return response.toString();
+	}
+}
+
+std::string ServerEngine::getMimeType(std::string const &filePath) const
+{
+	static std::map<std::string, std::string> const mimeTypes
+		= ft::createMimeTypesMap();
+
+	size_t dotPos = filePath.rfind('.');
+	if (dotPos != std::string::npos)
+	{
+		std::string extension = filePath.substr(dotPos);
+		std::map<std::string, std::string>::const_iterator it
+			= mimeTypes.find(extension);
+		if (it != mimeTypes.end())
+		{
+			return it->second;
+		}
+	}
+
+	return "application/octet-stream";
 }
