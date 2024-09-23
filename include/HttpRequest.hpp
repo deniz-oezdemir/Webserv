@@ -87,7 +87,6 @@ class HttpRequest
 	std::map<std::string, std::vector<std::string> > headers_;
 	// clang-format on
 	std::vector<char> body_;
-	unsigned long int bodyLength_;
 };
 
 std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs);
