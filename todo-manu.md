@@ -2,11 +2,11 @@
 - [ ] Example task
 - [ ] Implement: compare request length with limit set in congif
 - [ ] Change name of all abstrac classes to have A prefix
-- [ ] Implement: keep connection alive variable in HttpRequest
 - [ ] Implement: client fd reader
 
 
 ## In Progress
+- [ ] Implement: keep connection alive variable in HttpRequest
 
 ## Done
 - [x] Check: check HttpRequest copy assignment and copy constructor
