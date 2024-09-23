@@ -7,6 +7,9 @@
 - [ ] Implement: check presence of Content-Length header in POST and its absense in GET and DELETE (double-check these rules!!) 
 - [ ] Implement: compare request length with limit set in congif
 - [ ] Change name of all abstrac classes to have A prefix
+- [ ] Implement: keep connection alive variable in HttpRequest
+- [ ] Implement: client fd reader
+
 
 ## In Progress
 - [ ] Implement: check presence of port in Host header and normalize

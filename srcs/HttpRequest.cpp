@@ -1,6 +1,9 @@
 #include "../include/HttpRequest.hpp"
+#include <cctype>
+#include <cstddef>
 #include <cstdlib>
 #include <ostream>
+#include <string>
 
 HttpRequest::HttpRequest(
 	std::string &method,
@@ -147,37 +150,98 @@ std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
 	return os;
 }
 
-void HttpRequest::cleanURI_(std::string uri)
+unsigned long HttpRequest::extractPort(std::string *str)
 {
-	// Remove all precedent chars to the URI target, in order to be latter
-	// appended to the Host. For ex: remoce the 'http://' part if any
-	// and store the port if any.
-	if (uri[0] != '*'
-		&& (uri.find("https://") != std::string::npos
-			|| uri.find("http://") != std::string::npos))
+	unsigned long port;
+	size_t		  colonPos = str->find_last_of(':');
+	if (colonPos != std::string::npos)
 	{
-		size_t schemeEnd = uri.find("://") + 3;		 // Find end of scheme
-		size_t pathStart = uri.find('/', schemeEnd); // Find start of path
-
-		if (pathStart != std::string::npos)
+		std::string tmpPort = host_.substr(colonPos + 1);
+		bool		isDigit = true;
+		for (size_t i = 0; i < tmpPort.length(); ++i)
 		{
-			uri = uri.substr(pathStart); // Keep the path
+			if (!isdigit(tmpPort[i]))
+			{
+				isDigit = false;
+				break;
+			}
 		}
-		else
+		if (isDigit && !tmpPort.empty())
 		{
-			uri = "/" + uri.substr(schemeEnd); // No path, keep the authority
-		}
-
-		// Remove port if any and store in port_
-		if (uri.find(':') != std::string::npos)
-		{
-			size_t		colonPos = uri.find_last_of(':');
-			std::string tmpPort = uri.substr(colonPos + 1);
-			uri = uri.substr(0, colonPos - 1);
-			port_ = std::atol(tmpPort.c_str());
+			port = atol(tmpPort.c_str());
+			str->substr(0, colonPos);
 		}
 	}
+	return port;
 }
+//
+// void HttpRequest::cleanURI_(std::string uri)
+// {
+// 	// Remove all precedent chars to the URI target, in order to be latter
+// 	// appended to the Host. For ex: remove the 'http://' part if any
+// 	// and remove and store the port in port_ if any.
+// 	if (uri[0] != '*'
+// 		&& (uri.find("https://") != std::string::npos
+// 			|| uri.find("http://") != std::string::npos))
+// 	{
+// 		size_t schemeEnd = uri.find("://") + 3;		 // Find end of scheme
+// 		size_t pathStart = uri.find('/', schemeEnd); // Find start of path
+//
+// 		if (pathStart != std::string::npos)
+// 		{
+// 			uri = uri.substr(pathStart); // Keep the path
+// 		}
+// 		else
+// 		{
+// 			uri = "/" + uri.substr(schemeEnd); // No path, keep the authority
+// 		}
+//
+// 		// Remove port if any and store in port_
+// 		size_t colonPos = uri.find_last_of(':');
+// 		if (colonPos != std::string::npos)
+// 		{
+// 			size_t portLength = 0;
+// 			for (size_t it = colonPos; it != uri_.length(); ++it)
+// 			{
+// 				if (std::isalpha(uri_[it]) == false)
+// 				{
+// 					portLength = it;
+// 					break;
+// 				}
+// 			}
+// 			std::string tmpPort = uri.substr(colonPos + 1, portLength);
+// 			uri_ = uri_.erase(colonPos, portLength + 1);
+// 			if (port_ > 0)
+// 			{
+// 				port_ = std::atol(tmpPort.c_str());
+// 			}
+// 		}
+// 	}
+// }
+//
+// void HttpRequest::cleanHost_(void)
+// {
+// 	// Remove port if any and store in port_
+// 	size_t colonPos = host_.find_last_of(':');
+// 	if (colonPos != std::string::npos)
+// 	{
+// 		size_t portLength = 0;
+// 		for (size_t it = colonPos; it != host_.length(); ++it)
+// 		{
+// 			if (std::isalpha(host_[it]) == false)
+// 			{
+// 				portLength = it;
+// 				break;
+// 			}
+// 		}
+// 		std::string tmpPort = host_.substr(colonPos + 1, portLength);
+// 		host_ = host_.erase(colonPos, portLength + 1);
+// 		if (port_ > 0)
+// 		{
+// 			port_ = std::atol(tmpPort.c_str());
+// 		}
+// 	}
+// }
 
 void HttpRequest::normalizeRequest_(
 	std::string &method,
@@ -191,9 +255,9 @@ void HttpRequest::normalizeRequest_(
 {
 	method_ = method;
 	httpVersion_ = httpVersion;
-	cleanURI_(uri);
 	uri_ = uri;
 	host_ = inputHeaders.at("Host")[0];
+	port_ = extractPort(&host_);
 	target_ = host_ + uri_;
 	headers_ = inputHeaders;
 	body_ = body;
