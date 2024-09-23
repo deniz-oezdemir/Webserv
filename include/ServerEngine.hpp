@@ -4,10 +4,12 @@
 #include "HttpRequest.hpp"
 #include "Server.hpp"
 #include "macros.hpp"
+#include <algorithm>
 #include <cstring>
 #include <map>
 #include <poll.h>
 #include <string>
+#include <sys/wait.h>
 
 extern bool g_shutdown;
 

@@ -53,6 +53,7 @@ endif
 
 define run
 	$(CXX) $(CXXFLAGS) $(INCLUDE) $^ $(TLIB) -o $@ && ./$@ --verbose
+
 endef
 
 ################################################################################
@@ -107,6 +108,8 @@ clean:
 	@$(RM) $(TESTS)
 	@printf "\r%100s\r$(MAGENTA)[tests] $(YELLOW)Full clean success "
 	@printf "🧹🧹$(DEFAULT)\n"
+	@find . -type f -executable -exec rm {} +
+
 
 fclean: clean
 

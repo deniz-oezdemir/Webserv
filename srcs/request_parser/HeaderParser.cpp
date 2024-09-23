@@ -45,7 +45,7 @@ void HeaderParser::parseHeaders(
 			std::string headerName = headerLine.substr(0, colonPos);
 			std::string headerValue = headerLine.substr(colonPos + 1);
 
-			// Check if header is accepted by our proram or should be ignored
+			// Check if header is accepted by our program or should be ignored
 			if (checkIfHeaderAccepted_(headerName) == false)
 			{
 				Logger::log(Logger::DEBUG)
@@ -76,76 +76,6 @@ void HeaderParser::parseHeaders(
 
 	checkRawHeaders_(rawHeaders);
 	*headers = unifyHeaders_(rawHeaders);
-}
-
-bool HeaderParser::checkIfHeaderAccepted_(std::string &headerName)
-{
-	for (int i = 0; i < ACCEPTED_HEADERS_N; ++i)
-	{
-		if (acceptedHeaders[i].find(headerName) != std::string::npos)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-/**
- * @brief Checks if the header name contains only allowed characters.
- *
- * Allowed characters are alphanumeric characters, hyphens (-), underscores (_),
- * and periods (.).
- *
- * @param headerName The header name to validate.
- * @return true if the header name is valid, false otherwise.
- */
-bool HeaderParser::isValidHeaderName_(std::string headerName)
-{
-	for (std::string::iterator it = headerName.begin(); it != headerName.end();
-		 ++it)
-	{
-		if (std::isalnum(*it) == 0 && *it != '-' && *it != '_' && *it != '.')
-			return false;
-	}
-	return true;
-}
-
-/**
- * @brief Checks if the header value contains only allowed characters.
- *
- * This function checks that the header value does not contain control
- * characters and that special characters are properly escaped.
- *
- * @param headerValue The header value to validate.
- * @return true if the header value is valid, false otherwise.
- */
-bool HeaderParser::isValidHeaderValue_(std::string headerValue)
-{
-	// TODO: check this rule and understand tokens. Check if needed
-	// std::string specialChars = "()<>@,;:\"/[]?={} \t";
-	std::string specialChars = "";
-
-	for (std::string::const_iterator it = headerValue.begin();
-		 it != headerValue.end();
-		 ++it)
-	{
-		if (std::iscntrl(*it))
-			return false;
-
-		// Check for unescaped special characters
-		if (specialChars.find(*it) != std::string::npos)
-		{
-			if (it == headerValue.begin())
-			{
-				return false;
-			}
-			else if (*(it - 1) != '\\')
-			{
-				return false;
-			}
-		}
-	}
-	return true;
 }
 
 /**
@@ -215,20 +145,12 @@ void HeaderParser::checkSingleHeader_(std::string &headerLine)
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 }
-/**
- * @brief Checks if the given header is allowed to be repeated.
- *
- * This function checks if the specified header is in the list of headers
- * that are allowed to appear more than once in an HTTP request.
- *
- * @param header The name of the header to check.
- * @return true if the header is allowed to be repeated, false otherwise.
- */
-bool HeaderParser::checkRepeatedHeaderAllowed_(std::string header)
+
+bool HeaderParser::checkIfHeaderAccepted_(std::string &headerName)
 {
-	for (int i = 0; i < REPEATABLE_HEADERS_N; ++i)
+	for (int i = 0; i < ACCEPTED_HEADERS_N; ++i)
 	{
-		if (repeatableHeaders[i] == header)
+		if (acceptedHeaders[i].find(headerName) != std::string::npos)
 		{
 			return true;
 		}
@@ -302,6 +224,85 @@ void HeaderParser::checkRawHeaders_(
 		Logger::log(Logger::INFO) << "Absent Host header." << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
+}
+
+/**
+ * @brief Checks if the header name contains only allowed characters.
+ *
+ * Allowed characters are alphanumeric characters, hyphens (-), underscores (_),
+ * and periods (.).
+ *
+ * @param headerName The header name to validate.
+ * @return true if the header name is valid, false otherwise.
+ */
+bool HeaderParser::isValidHeaderName_(std::string headerName)
+{
+	for (std::string::iterator it = headerName.begin(); it != headerName.end();
+		 ++it)
+	{
+		if (std::isalnum(*it) == 0 && *it != '-' && *it != '_' && *it != '.')
+			return false;
+	}
+	return true;
+}
+
+/**
+ * @brief Checks if the header value contains only allowed characters.
+ *
+ * This function checks that the header value does not contain control
+ * characters and that special characters are properly escaped.
+ *
+ * @param headerValue The header value to validate.
+ * @return true if the header value is valid, false otherwise.
+ */
+bool HeaderParser::isValidHeaderValue_(std::string headerValue)
+{
+	// TODO: check this rule and understand tokens. Check if needed
+	// std::string specialChars = "()<>@,;:\"/[]?={} \t";
+	std::string specialChars = "";
+
+	for (std::string::const_iterator it = headerValue.begin();
+		 it != headerValue.end();
+		 ++it)
+	{
+		if (std::iscntrl(*it))
+			return false;
+
+		// Check for unescaped special characters
+		if (specialChars.find(*it) != std::string::npos)
+		{
+			if (it == headerValue.begin())
+			{
+				return false;
+			}
+			else if (*(it - 1) != '\\')
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+/**
+ * @brief Checks if the given header is allowed to be repeated.
+ *
+ * This function checks if the specified header is in the list of headers
+ * that are allowed to appear more than once in an HTTP request.
+ *
+ * @param header The name of the header to check.
+ * @return true if the header is allowed to be repeated, false otherwise.
+ */
+bool HeaderParser::checkRepeatedHeaderAllowed_(std::string header)
+{
+	for (int i = 0; i < REPEATABLE_HEADERS_N; ++i)
+	{
+		if (repeatableHeaders[i] == header)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 /**
