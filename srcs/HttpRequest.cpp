@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <ostream>
 #include <string>
+#include "macros.hpp"
 
 HttpRequest::HttpRequest(
 	std::string &method,
@@ -22,13 +23,23 @@ HttpRequest::HttpRequest(
 
 HttpRequest::HttpRequest(const HttpRequest &src)
 {
-	method_ = src.method_;
-	httpVersion_ = src.httpVersion_;
-	target_ = src.target_;
-	headers_ = src.headers_;
-	body_ = src.body_;
+	*this = src;
 
 	return;
+}
+
+HttpRequest &HttpRequest::operator=(const HttpRequest &rhs)
+{
+	method_ = rhs.getMethod();
+	httpVersion_ = rhs.getHttpVersion();
+	target_ = rhs.getTarget();
+	uri_ = rhs.getUri();
+	host_ = rhs.getHost();
+	port_ = rhs.getPort();
+	headers_ = rhs.getHeaders();
+	body_ = rhs.getBody();
+
+	return *this;
 }
 
 HttpRequest::~HttpRequest(void)
@@ -163,7 +174,7 @@ std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
  */
 unsigned long HttpRequest::extractPort(std::string *str)
 {
-	unsigned long port = 80; // default port
+	unsigned long port = DEFAULT_PORT; // default port
 	size_t		  colonPos = str->find_last_of(':');
 	if (colonPos != std::string::npos)
 	{
@@ -187,12 +198,13 @@ unsigned long HttpRequest::extractPort(std::string *str)
 }
 
 /**
- * @brief Normalizes the HTTP request by extracting and storing relevant components.
+ * @brief Normalizes the HTTP request by extracting and storing relevant
+ * components.
  *
- * This function takes the method, HTTP version, URI, headers, and body of an HTTP
- * request and normalizes them by extracting and storing the relevant components
- * into the HttpRequest object. It also extracts the port number from the Host
- * header using the `extractPort` function.
+ * This function takes the method, HTTP version, URI, headers, and body of an
+ * HTTP request and normalizes them by extracting and storing the relevant
+ * components into the HttpRequest object. It also extracts the port number from
+ * the Host header using the `extractPort` function.
  *
  * @param method The HTTP method (e.g., GET, POST).
  * @param httpVersion The HTTP version (e.g., HTTP/1.1).
@@ -200,8 +212,8 @@ unsigned long HttpRequest::extractPort(std::string *str)
  * @param inputHeaders A map of the request headers.
  * @param body The body of the request.
  *
- * @note The port extraction is currently done from the Host header. In the future,
- *       this can be extended to also extract the port from the URI if needed.
+ * @note The port extraction is currently done from the Host header. In the
+ * future, this can be extended to also extract the port from the URI if needed.
  */
 void HttpRequest::normalizeRequest_(
 	std::string &method,
@@ -221,14 +233,4 @@ void HttpRequest::normalizeRequest_(
 	target_ = host_ + uri_;
 	headers_ = inputHeaders;
 	body_ = body;
-	if (!port_)
-		port_ = 80;
-
-	// Store body length if present
-	// clang-format off
-	std::map<std::string, std::vector<std::string> >::const_iterator it
-		= headers_.begin();
-	// clang-format on
-	bodyLength_
-		= (it != headers_.end()) ? std::atol(it->second[0].c_str()) : -1;
 }
