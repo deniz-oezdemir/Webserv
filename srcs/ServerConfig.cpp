@@ -821,7 +821,8 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 					isTest,
 					isTestPrint
 				);
-			std::map<std::string, std::vector<std::string>> listenMap;
+			// clang-format off
+			std::map<std::string, std::vector<std::string> > listenMap;
 			listenMap["host"] = std::vector<std::string>(1, "0.0.0.0");
 			listenMap["port"] = std::vector<std::string>(1, "80");
 			it->find("listen")->second.setMap(listenMap);
@@ -922,9 +923,11 @@ std::string ServerConfig::getGeneralConfigValue(std::string const &key) const
 }
 
 // Get all servers stored in a vector of maps.
+// clang-format off
 bool ServerConfig::getAllServersConfig(
-	std::vector<std::map<std::string, ConfigValue>> &serversConfig
+	std::vector<std::map<std::string, ConfigValue> > &serversConfig
 ) const
+// clang-format on
 {
 	if (this->serversConfig_.empty())
 		return false;
@@ -932,7 +935,9 @@ bool ServerConfig::getAllServersConfig(
 	return true;
 }
 
-std::vector<std::map<std::string, ConfigValue>> const &
+// clang-format off
+std::vector<std::map<std::string, ConfigValue> > const &
+// clang-format on
 ServerConfig::getAllServersConfig(void) const
 {
 	return this->serversConfig_;
@@ -961,9 +966,11 @@ bool ServerConfig::getServerConfigValue(
 bool ServerConfig::checkServerNameUnique_(std::string const &serverName)
 {
 	unsigned int													count(0);
-	std::vector<std::map<std::string, ConfigValue>>::const_iterator it(
+// clang-format off
+	std::vector<std::map<std::string, ConfigValue> >::const_iterator it(
 		this->serversConfig_.begin()
 	);
+// clang-format on
 	for (; it != this->serversConfig_.end(); ++it)
 	{
 		std::vector<std::string>::const_iterator it2(
@@ -985,7 +992,9 @@ bool ServerConfig::checkListenUnique_(
 	std::vector<std::string> const &ports
 )
 {
-	for (std::vector<std::map<std::string, ConfigValue>>::const_iterator it
+	// clang-format off
+	for (std::vector<std::map<std::string, ConfigValue> >::const_iterator it
+	// clang-format on
 		 = this->serversConfig_.begin();
 		 it != this->serversConfig_.end();
 		 ++it)
@@ -1054,9 +1063,11 @@ bool ServerConfig::checkServerListenUnique_(
 
 void ServerConfig::setRootToAllServers(std::string const &root)
 {
-	std::vector<std::map<std::string, ConfigValue>>::iterator it(
+	// clang-format off
+	std::vector<std::map<std::string, ConfigValue> >::iterator it(
 		this->serversConfig_.begin()
 	);
+	// clang-format on
 	for (; it != this->serversConfig_.end(); ++it)
 		it->find("root")->second.setVector(std::vector<std::string>(1, root));
 }

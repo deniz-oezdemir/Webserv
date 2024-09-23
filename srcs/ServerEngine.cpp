@@ -55,7 +55,8 @@ ServerEngine::~ServerEngine()
 	}
 }
 
-std::string const &getStatusCodeReason(unsigned int code)
+std::string const &ServerEngine::getStatusCodeReason(unsigned int statusCode
+) const
 {
 	static std::map<int, std::string> httpStatusCodes;
 	if (httpStatusCodes.empty())
@@ -82,9 +83,9 @@ std::string const &getStatusCodeReason(unsigned int code)
 		httpStatusCodes[501] = "Not Implemented";
 		httpStatusCodes[505] = "HTTP Version Not Supported";
 	}
-	if (httpStatusCodes.find(code) == httpStatusCodes.end())
+	if (httpStatusCodes.find(statusCode) == httpStatusCodes.end())
 		return httpStatusCodes[500];
-	return httpStatusCodes[code];
+	return httpStatusCodes[statusCode];
 }
 
 void ServerEngine::initServer_(
@@ -288,6 +289,8 @@ void ServerEngine::readClientRequest_(size_t &index)
 		<< "Read " << this->bytesRead_ << " bytes" << std::endl;
 }
 
+// TODO: The client Request Buffer should be for each client connection
+// and not a global buffer, bytesRead_ is also not optimal
 void ServerEngine::sendClientResponse_(size_t &index)
 {
 	HttpRequest *request = NULL;
@@ -736,6 +739,9 @@ std::string ServerEngine::generateAutoIndexPage_(
 		 << "</title></head>\n<body><h1>Index of " << uri << "</h1>\n";
 	html << "<ul>\n";
 
+	if (uri != "/")
+		html << "<li><a href=\"" << uri + "../\">Parent Directory</a></li>\n";
+
 	DIR *dir = opendir((root + uri).c_str());
 	if (dir == NULL)
 	{
@@ -768,7 +774,7 @@ std::string ServerEngine::generateAutoIndexPage_(
 			filename += "/";
 
 		// Generate links for each file/directory
-		html << "<li><a href=\"" << uri << "/" + filename << "\">" << filename
+		html << "<li><a href=\"" << uri << filename << "\">" << filename
 			 << "</a></li>\n";
 	}
 	closedir(dir);
