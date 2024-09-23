@@ -83,7 +83,7 @@ void BodyParser::checkBody_(
 			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 		}
 	}
-	else
+	else if (method == "POST")
 	{
 		if (headers.count("Content-Length") < 1)
 		{

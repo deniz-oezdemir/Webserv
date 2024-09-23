@@ -510,7 +510,7 @@ std::string ServerEngine::handleGetRequest_(
 	}
 
 	HttpResponse response;
-	// TODO: replace below with readFile_
+	// TODO: replace below with ft::readFile
 	std::ifstream file(filepath);
 	if (file.is_open())
 	{
@@ -542,7 +542,7 @@ std::string ServerEngine::handleGetRequest_(
 			response.setHeader("Date", createTimestamp_());
 			response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
-			std::string body = readFile_(rootdir + errorURI);
+			std::string body = ft::readFile(rootdir + errorURI);
 
 			response.setHeader("Content-Length", std::to_string(body.size()));
 			response.setHeader("Connection", "keep-alive");
@@ -592,7 +592,7 @@ std::string ServerEngine::handleDeleteRequest_(
 	}
 	else
 	{
-		std::string body = readFile_(rootdir + "/404.html");
+		std::string body = ft::readFile(rootdir + "/404.html");
 		response.setStatusCode(404);
 		response.setReasonPhrase("Not Found");
 		response.setHeader("Server", "Webserv/0.1");
@@ -639,7 +639,7 @@ std::string ServerEngine::handleNotImplementedRequest_()
 
 	// TODO: replace hardcoded /404.html with file from config? check
 	// with Seba if needed
-	std::string body = readFile_(rootdir + "/501.html");
+	std::string body = ft::readFile(rootdir + "/501.html");
 
 	response.setHeader("Content-Length", std::to_string(body.size()));
 	// nginx typically closes the TCP connection after sending a 501 response,
@@ -663,26 +663,6 @@ std::string ServerEngine::createTimestamp_()
 	return std::string(buf);
 }
 
-std::string ServerEngine::readFile_(const std::string &filePath)
-{
-	std::ifstream file(filePath);
-	if (!file.is_open())
-	{
-		Logger::log(Logger::ERROR, true)
-			<< "Failed to open file: " << filePath << std::endl;
-		return "";
-	}
-
-	std::stringstream buffer;
-	buffer << file.rdbuf();
-	if (buffer.str().empty())
-	{
-		Logger::log(Logger::ERROR, true)
-			<< "File is empty or could not be read: " << filePath << std::endl;
-	}
-	return buffer.str();
-}
-
 std::string
 ServerEngine::handleDefaultErrorResponse_(int statusCode, bool closeConnection)
 {
@@ -697,15 +677,15 @@ ServerEngine::handleDefaultErrorResponse_(int statusCode, bool closeConnection)
 	response.setHeader("Date", createTimestamp_());
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
-	std::string body = readFile_("www/" + std::to_string(statusCode) + ".html");
+	std::string body = ft::readFile("./www/" + std::to_string(statusCode) + ".html");
 	if (body.empty())
 	{
 		if (statusCode >= 400 && statusCode < 500)
-			body = readFile_("www/4xx.html");
+			body = ft::readFile("./www/4xx.html");
 		else if (statusCode >= 500 && statusCode < 600)
-			body = readFile_("www/5xx.html");
+			body = ft::readFile("./www/5xx.html");
 		else if (statusCode >= 300 && statusCode < 400)
-			body = readFile_("www/3xx.html");
+			body = ft::readFile("./www/3xx.html");
 	}
 	if (body.empty())
 		body = "<!DOCTYPE html>\n<html>\n<head><title>"

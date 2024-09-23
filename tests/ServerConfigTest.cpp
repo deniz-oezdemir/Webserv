@@ -146,7 +146,7 @@ Test(ServerConfig, CheckServerDirectives)
 		cr_assert(
 			eq(str,
 			   const_cast<std::string &>(value.getVectorValue(0)),
-			   "/50x.html")
+			   "/5xx.html")
 		);
 
 		if (!config.getServerConfigValue(0, "/", value))

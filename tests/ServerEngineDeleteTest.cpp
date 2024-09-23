@@ -1,8 +1,4 @@
-#include "HttpRequest.hpp"
-#include "Logger.hpp"
-#include "RequestParser.hpp"
-#include "ServerConfig.hpp"
-#include "ServerEngine.hpp"
+#include "test.hpp"
 #include <criterion/criterion.h>
 #include <fstream>
 #include <sstream>
