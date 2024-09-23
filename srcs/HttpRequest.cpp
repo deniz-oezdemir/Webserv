@@ -147,19 +147,8 @@ std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
 	return os;
 }
 
-void HttpRequest::normalizeRequest_(
-	std::string &method,
-	std::string &httpVersion,
-	std::string &uri,
-	// clang-format off
-	std::map<std::string, std::vector<std::string> > &inputHeaders,
-	// clang-format on
-	std::vector<char> &body
-)
+void HttpRequest::cleanURI_(std::string uri)
 {
-	method_ = method;
-	httpVersion_ = httpVersion;
-
 	// Remove all precedent chars to the URI target, in order to be latter
 	// appended to the Host. For ex: remoce the 'http://' part if any
 	// and store the port if any.
@@ -188,7 +177,21 @@ void HttpRequest::normalizeRequest_(
 			port_ = std::atol(tmpPort.c_str());
 		}
 	}
+}
 
+void HttpRequest::normalizeRequest_(
+	std::string &method,
+	std::string &httpVersion,
+	std::string &uri,
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > &inputHeaders,
+	// clang-format on
+	std::vector<char> &body
+)
+{
+	method_ = method;
+	httpVersion_ = httpVersion;
+	cleanURI_(uri);
 	uri_ = uri;
 	host_ = inputHeaders.at("Host")[0];
 	target_ = host_ + uri_;

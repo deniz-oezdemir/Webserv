@@ -6,8 +6,10 @@
 - [ ] Check: Set-Cookie header may be repeated and is a special case
 - [ ] Implement: check presence of Content-Length header in POST and its absense in GET and DELETE (double-check these rules!!) 
 - [ ] Implement: compare request length with limit set in congif
+- [ ] Change name of all abstrac classes to have A prefix
 
 ## In Progress
+- [ ] Implement: check presence of port in Host header and normalize
 
 ## Done
 - [x] Implement: add port_ and corresponding getter to HttpRequest

@@ -21,6 +21,7 @@ HttpRequest RequestParser::parseRequest(std::string str)
 	// clang-format on
 	std::vector<char> body;
 
+	// Initialize the map with accepted headers
 	// Only create map once, c++98 sucks!
 	if (!headerAcceptedChars.empty())
 		createHeaderAcceptedChars();
@@ -35,7 +36,7 @@ HttpRequest RequestParser::parseRequest(std::string str)
 
 	std::istringstream requestStream(str.c_str());
 
-	// Extract the start line
+	// Extract and parse the start line
 	std::string firstLine;
 	std::getline(requestStream, firstLine, '\n');
 	ParseReqFirstLine::checkStartLine(firstLine, &method, &uri, &httpVersion);
@@ -52,26 +53,3 @@ HttpRequest RequestParser::parseRequest(std::string str)
 	HttpRequest req(method, httpVersion, uri, headers, body);
 	return req;
 }
-
-// void RequestParser::
-// 	// clang-format off
-// 	checkTokenSyntax(std::map<std::string, std::vector<std::string> > headers)
-// // clang-format on
-// {
-// 	// clang-format off
-// 	for (std::map<std::string, std::vector<std::string> >::const_iterator it
-// 		// clang-format on
-// 		= headers.begin();
-// 		it != headers.end();
-// 		++it)
-// 	{
-// 		if (headerAcceptedChars.find(it->first) != headerAcceptedChars.end())
-// 		{
-// 			for (std::vector<char>::iterator vIt = it->second;
-// 				 vIt != it->second.end();
-// 				 ++vIt)
-// 			{
-// 			}
-// 		}
-// 	}
-// }

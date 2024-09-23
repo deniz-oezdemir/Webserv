@@ -53,7 +53,7 @@ const std::string delimeterChars = "(),/:;<=>?@[\\]{}\"";
 std::map<std::string, std::string> createHeaderAcceptedChars()
 {
     std::map<std::string, std::string> headerAcceptedChars;
-    headerAcceptedChars["Host"] = "";
+    headerAcceptedChars["Host"] = ":/";
     headerAcceptedChars["User-Agent"] = "()<>@,;:\\\"/[]?={} \t";
     headerAcceptedChars["Accept"] = "=/";
     headerAcceptedChars["Connection"] = "";
