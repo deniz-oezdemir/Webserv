@@ -483,9 +483,7 @@ std::string ServerEngine::handleGetRequest_(
 
 		// If the file requested matches the CGI extension (e.g., ".py")
 		if (uri.find(cgiExtension) != std::string::npos)
-		{
 			return handleCgiRequest_(filepath, cgiInterpreter, request);
-		}
 	}
 
 	// Check if the request is for a directory and handle autoindex
