@@ -84,7 +84,9 @@ void ServerConfig::initServersConfig_(void)
 {
 	std::map<std::string, ConfigValue> server;
 	server["server_name"] = ConfigValue();
+	// clang-format off
 	std::map<std::string, std::vector<std::string> > listenMap;
+	// clang-format on
 	listenMap["host"] = std::vector<std::string>();
 	listenMap["port"] = std::vector<std::string>();
 	server["listen"] = ConfigValue(listenMap);
@@ -394,8 +396,10 @@ void ServerConfig::parseLocationBlock_(
 	bool					 &isTestPrint
 )
 {
-	std::string										uri(tokens[1]);
+	std::string uri(tokens[1]);
+	// clang-format off
 	std::map<std::string, std::vector<std::string> > location;
+	// clang-format on
 	this->initLocationConfig_(location);
 	tokens.clear();
 	++lineIndex;
@@ -458,7 +462,23 @@ void ServerConfig::parseLocationBlock_(
 		++lineIndex;
 	}
 	if (this->serversConfig_.size() > 0)
+	{
+		if (location["limit_except"].empty())
+		{
+			std::vector<std::string> methods(4);
+			methods[0] = "GET";
+			methods[1] = "POST";
+			methods[2] = "DELETE";
+			methods[3] = "PUT";
+			location["limit_except"] = methods;
+		}
+		if (location["client_max_body_size"].empty())
+			location["client_max_body_size"]
+				= serversConfig_.back()["client_max_body_size"].getVector();
+		if (location["autoindex"].empty())
+			location["autoindex"] = std::vector<std::string>(1, "off");
 		this->serversConfig_.back()[uri].setMap(location);
+	}
 	else
 		this->errorHandler_(
 			"Invalid directive [" + tokens[0] + "] outside a server block",
@@ -750,9 +770,11 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 		);
 		return;
 	}
+	// clang-format off
 	std::vector<std::map<std::string, ConfigValue> >::iterator it(
 		this->serversConfig_.begin()
 	);
+	// clang-format on
 	for (; it != this->serversConfig_.end(); ++it)
 	{
 		if (it->find("server_name")->second.getVector().empty())
@@ -766,27 +788,29 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 					isTestPrint
 				);
 			it->find("server_name")
-				->second.setVector(std::vector<std::string>(1, "_"));
+				->second.setVector(std::vector<std::string>(1, "localhost"));
 		}
-		else
-		{
-			std::vector<std::string>::const_iterator it2(
-				it->find("server_name")->second.getVector().begin()
-			);
-			for (; it2 != it->find("server_name")->second.getVector().end();
-				 ++it2)
-			{
-				if (!this->checkServerNameUnique_(*it2))
-				{
-					this->errorHandler_(
-						"Duplicate server name [" + *it2 + "]",
-						0,
-						isTest,
-						isTestPrint
-					);
-				}
-			}
-		}
+		// NOTE: Uncomment the code below if the server_name should be unique.
+		//
+		// else
+		// {
+		// 	std::vector<std::string>::const_iterator it2(
+		// 		it->find("server_name")->second.getVector().begin()
+		// 	);
+		// 	for (; it2 != it->find("server_name")->second.getVector().end();
+		// 		 ++it2)
+		// 	{
+		// 		if (!this->checkServerNameUnique_(*it2))
+		// 		{
+		// 			this->errorHandler_(
+		// 				"Duplicate server name [" + *it2 + "]",
+		// 				0,
+		// 				isTest,
+		// 				isTestPrint
+		// 			);
+		// 		}
+		// 	}
+		// }
 		if (it->find("listen")->second.getMap().empty())
 		{
 			if (isTest || isTestPrint)
@@ -797,6 +821,7 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 					isTest,
 					isTestPrint
 				);
+			// clang-format off
 			std::map<std::string, std::vector<std::string> > listenMap;
 			listenMap["host"] = std::vector<std::string>(1, "0.0.0.0");
 			listenMap["port"] = std::vector<std::string>(1, "80");
@@ -898,9 +923,11 @@ std::string ServerConfig::getGeneralConfigValue(std::string const &key) const
 }
 
 // Get all servers stored in a vector of maps.
+// clang-format off
 bool ServerConfig::getAllServersConfig(
 	std::vector<std::map<std::string, ConfigValue> > &serversConfig
 ) const
+// clang-format on
 {
 	if (this->serversConfig_.empty())
 		return false;
@@ -908,7 +935,9 @@ bool ServerConfig::getAllServersConfig(
 	return true;
 }
 
+// clang-format off
 std::vector<std::map<std::string, ConfigValue> > const &
+// clang-format on
 ServerConfig::getAllServersConfig(void) const
 {
 	return this->serversConfig_;
@@ -937,9 +966,11 @@ bool ServerConfig::getServerConfigValue(
 bool ServerConfig::checkServerNameUnique_(std::string const &serverName)
 {
 	unsigned int													count(0);
+// clang-format off
 	std::vector<std::map<std::string, ConfigValue> >::const_iterator it(
 		this->serversConfig_.begin()
 	);
+// clang-format on
 	for (; it != this->serversConfig_.end(); ++it)
 	{
 		std::vector<std::string>::const_iterator it2(
@@ -961,7 +992,9 @@ bool ServerConfig::checkListenUnique_(
 	std::vector<std::string> const &ports
 )
 {
+	// clang-format off
 	for (std::vector<std::map<std::string, ConfigValue> >::const_iterator it
+	// clang-format on
 		 = this->serversConfig_.begin();
 		 it != this->serversConfig_.end();
 		 ++it)
@@ -1030,9 +1063,11 @@ bool ServerConfig::checkServerListenUnique_(
 
 void ServerConfig::setRootToAllServers(std::string const &root)
 {
+	// clang-format off
 	std::vector<std::map<std::string, ConfigValue> >::iterator it(
 		this->serversConfig_.begin()
 	);
+	// clang-format on
 	for (; it != this->serversConfig_.end(); ++it)
 		it->find("root")->second.setVector(std::vector<std::string>(1, root));
 }

@@ -12,7 +12,7 @@ class Server
 	Server(
 		std::map<std::string, ConfigValue> const &server,
 		unsigned int							  index = 0,
-		unsigned int								listenIndex = 0
+		unsigned int							  listenIndex = 0
 	);
 	Server(const Server &src);
 	~Server(void);
@@ -31,6 +31,17 @@ class Server
 	std::vector<std::string>				 getIndex(void) const;
 	std::vector<std::string>				 getServerName(void) const;
 	std::map<std::string, ConfigValue> const getServerConfig(void) const;
+	// Get the value of a key from a specific location map on the server config
+	bool getThisLocationValue(
+		const std::string		 &location,
+		const std::string		 &key,
+		std::vector<std::string> &value
+	) const;
+
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > const
+	getThisLocation(const std::string &location) const;
+	// clang-format on
 
 	// Setters
 	void setRoot(const std::string &root);
@@ -40,15 +51,8 @@ class Server
 	sockaddr_in const &getServerAddr(void) const;
 
 	// Get the location for an specific Error code
-	bool getErrorPageValue(int &errorCode, std::string &location) const;
+	bool getErrorPageValue(int errorCode, std::string &location) const;
 	bool getErrorPageValue(std::string &errorCode, std::string &location) const;
-
-	// Get the value of a key from a specific location map on the server config
-	bool getThisLocationValue(
-		const std::string		 &location,
-		const std::string		 &key,
-		std::vector<std::string> &value
-	) const;
 
 	void setPort(std::string const &port);
 	void setIPV4(std::string const &ipV4);

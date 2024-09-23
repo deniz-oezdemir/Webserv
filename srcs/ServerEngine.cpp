@@ -7,8 +7,11 @@
 #include "utils.hpp"
 
 #include <csignal>
+#include <dirent.h>
 #include <fcntl.h>
 #include <fstream>
+#include <sstream>
+#include <sys/stat.h>
 #include <unistd.h>
 
 extern bool g_shutdown;
@@ -50,6 +53,39 @@ ServerEngine::~ServerEngine()
 			pollFds_[i].fd = -1;
 		}
 	}
+}
+
+std::string const &ServerEngine::getStatusCodeReason(unsigned int statusCode
+) const
+{
+	static std::map<int, std::string> httpStatusCodes;
+	if (httpStatusCodes.empty())
+	{
+		httpStatusCodes[200] = "OK";
+		httpStatusCodes[201] = "Created";
+		httpStatusCodes[202] = "Accepted";
+		httpStatusCodes[204] = "No Content";
+		httpStatusCodes[301] = "Moved Permanently";
+		httpStatusCodes[302] = "Found";
+		httpStatusCodes[303] = "See Other";
+		httpStatusCodes[304] = "Not Modified";
+		httpStatusCodes[400] = "Bad Request";
+		httpStatusCodes[401] = "Unauthorized";
+		httpStatusCodes[403] = "Forbidden";
+		httpStatusCodes[404] = "Not Found";
+		httpStatusCodes[405] = "Method Not Allowed";
+		httpStatusCodes[408] = "Request Timeout";
+		httpStatusCodes[411] = "Length Required";
+		httpStatusCodes[413] = "Payload Too Large";
+		httpStatusCodes[414] = "URI Too Long";
+		httpStatusCodes[415] = "Unsupported Media Type";
+		httpStatusCodes[500] = "Internal Server Error";
+		httpStatusCodes[501] = "Not Implemented";
+		httpStatusCodes[505] = "HTTP Version Not Supported";
+	}
+	if (httpStatusCodes.find(statusCode) == httpStatusCodes.end())
+		return httpStatusCodes[500];
+	return httpStatusCodes[statusCode];
 }
 
 void ServerEngine::initServer_(
@@ -253,6 +289,8 @@ void ServerEngine::readClientRequest_(size_t &index)
 		<< "Read " << this->bytesRead_ << " bytes" << std::endl;
 }
 
+// TODO: The client Request Buffer should be for each client connection
+// and not a global buffer, bytesRead_ is also not optimal
 void ServerEngine::sendClientResponse_(size_t &index)
 {
 	HttpRequest *request = NULL;
@@ -260,12 +298,9 @@ void ServerEngine::sendClientResponse_(size_t &index)
 	{
 		std::string requestStr(this->clientRequestBuffer_, this->bytesRead_);
 		request = new HttpRequest(RequestParser::parseRequest(requestStr));
-		std::cout << "Hello from server. Your message was: "
-				  << this->clientRequestBuffer_;
-
-		std::cout << std::endl
-				  << "Request received: " << std::endl
-				  << *request << std::endl;
+		Logger::log(Logger::DEBUG) << "Request received:\n\nBuffer:\n"
+								   << requestStr << "Request:\n"
+								   << *request << std::flush;
 	}
 	catch (std::exception &e)
 	{
@@ -344,53 +379,135 @@ void ServerEngine::start()
 
 std::string ServerEngine::createResponse(const HttpRequest &request)
 {
+	int serverIndex = this->findServer_(request.getHost(), request.getPort());
+	if (serverIndex == -1)
+		return this->handleDefaultErrorResponse_(404, true);
 	if (request.getMethod() == "GET")
 	{
 		Logger::log(Logger::DEBUG) << "Handling GET" << std::endl;
-		return handleGetRequest_(request);
+		return handleGetRequest_(request, this->servers_[serverIndex]);
 	}
 	else if (request.getMethod() == "POST")
 	{
 		Logger::log(Logger::DEBUG) << "Handling POST" << std::endl;
-		return handlePostRequest_(request);
+		return handlePostRequest_(request, this->servers_[serverIndex]);
 	}
 	else if (request.getMethod() == "DELETE")
 	{
 		Logger::log(Logger::DEBUG) << "Handling DELETE" << std::endl;
-		return handleDeleteRequest_(request);
+		return handleDeleteRequest_(request, this->servers_[serverIndex]);
 	}
 	else
-	{
-		Logger::log(Logger::DEBUG) << "Handling Not Implemented" << std::endl;
-		return handleNotImplementedRequest_();
-	}
+		return this->handleDefaultErrorResponse_(501, true);
 }
 
-std::string ServerEngine::handleGetRequest_(const HttpRequest &request)
+int ServerEngine::findServer_(
+	std::string const	 &host,
+	unsigned short const &port
+)
 {
-	std::cout << request << std::endl;
+	for (size_t i = 0; i < this->totalServerInstances_; ++i)
+	{
+		std::vector<std::string> const &serverNames
+			= this->servers_[i].getServerName();
+		for (size_t j = 0; j < serverNames.size(); ++j)
+		{
+			if (serverNames[j] == host && this->servers_[i].getPort() == port)
+				return i;
+		}
+	}
+	return -1;
+}
 
-	// Get root path from config of server
-	std::string rootdir = servers_[0].getRoot();
-	// Combine root path with uri from request
-	std::string filepath;
-	if (request.getUri() == "/")
-		filepath = rootdir + "/index.html";
+std::string ServerEngine::handleGetRequest_(
+	const HttpRequest &request,
+	Server const	  &server
+)
+{
+	std::string uri = request.getUri();
+
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > location;
+	// clang-format on
+	if (server.isThisLocation(uri))
+		location = server.getThisLocation(uri);
 	else
-		filepath = rootdir + request.getUri();
+		return this->handleDefaultErrorResponse_(404);
 
-	Logger::log(Logger::DEBUG) << "Filepath: " << filepath << std::endl;
+	// clang-format off
+	std::map<std::string, std::vector<std::string> >::const_iterator it;
+	// clang-format on
 
-	// TODO: combine both paragraphs below
-	// TODO: implement check for file/directory, coordinate with Seba
-	// @Seba: what does isThisLocation expect?
-	// file is not for any of root, uri, filepath when running tests for
-	// ServerEngine
-	// @Seba: maybe because we do not start the server when testing?
-	if (servers_[0].isThisLocation(filepath))
-		Logger::log(Logger::DEBUG) << "File is on server" << std::endl;
-	else
-		Logger::log(Logger::DEBUG) << "File is not on server" << std::endl;
+	// Check for redirections
+	it = location.find("return");
+	if (it != location.end() && !it->second.empty())
+		return this->handleReturnDirective_(it->second);
+
+	// Check for authorized methods
+	it = location.find("limit_except");
+	if (it != location.end() && !it->second.empty())
+	{
+		if (std::find(it->second.begin(), it->second.end(), "GET")
+			== it->second.end())
+			return this->handleDefaultErrorResponse_(405, true);
+	}
+
+	// Check for max body size
+	it = location.find("client_body_size");
+	if (it != location.end() && !it->second.empty())
+	{
+		if (request.getBody().size() > ft::stringToULong(it->second[0]))
+			return this->handleDefaultErrorResponse_(413, true);
+	}
+	else if (request.getBody().size() > server.getClientMaxBodySize())
+		return this->handleDefaultErrorResponse_(413, true);
+
+	// Set root, index and file path
+	std::string rootdir = location.find("root") != location.end()
+								  && !location.at("root").empty()
+							  ? location.at("root")[0]
+							  : server.getRoot();
+
+	std::string filepath = rootdir + uri;
+
+	std::vector<std::string> index = location.find("index") != location.end()
+											 && !location.at("index").empty()
+										 ? location.at("index")
+										 : server.getIndex();
+
+	it = location.find("cgi");
+	if (it != location.end() && !it->second.empty())
+	{
+		std::string cgiExtension = it->second[0];	// ".py"
+		std::string cgiInterpreter = it->second[1]; // "/usr/bin/python3"
+
+		// If the file requested matches the CGI extension (e.g., ".py")
+		if (uri.find(cgiExtension) != std::string::npos)
+			return handleCgiRequest_(filepath, cgiInterpreter, request);
+	}
+
+	// Check if the request is for a directory and handle autoindex
+	struct stat fileStat;
+	if (stat(filepath.c_str(), &fileStat) == 0 && S_ISDIR(fileStat.st_mode))
+	{
+		if (location.find("autoindex") != location.end()
+			&& location.at("autoindex")[0] == "on")
+			return handleAutoIndex_(rootdir, uri);
+
+		// Try to serve index file
+		for (std::vector<std::string>::const_iterator it = index.begin();
+			 it != index.end();
+			 ++it)
+		{
+			std::string indexFilePath = filepath + "/" + *it;
+			if (stat(indexFilePath.c_str(), &fileStat) == 0
+				&& S_ISREG(fileStat.st_mode))
+			{
+				filepath = indexFilePath;
+				break;
+			}
+		}
+	}
 
 	HttpResponse response;
 	// TODO: replace below with readFile_
@@ -406,7 +523,7 @@ std::string ServerEngine::handleGetRequest_(const HttpRequest &request)
 		response.setReasonPhrase("OK");
 		response.setHeader("Server", "Webserv/0.1");
 		response.setHeader("Date", createTimestamp_());
-		response.setHeader("Content-Type", "text/html; charset=UTF-8");
+		response.setHeader("Content-Type", getMimeType(filepath));
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		response.setHeader("Connection", "keep-alive");
 		response.setBody(body);
@@ -415,28 +532,37 @@ std::string ServerEngine::handleGetRequest_(const HttpRequest &request)
 	{
 		Logger::log(Logger::DEBUG)
 			<< "Handling GET: file not found" << std::endl;
-		response.setStatusCode(404);
-		response.setReasonPhrase("Not Found");
-		response.setHeader("Server", "Webserv/0.1");
-		response.setHeader("Date", createTimestamp_());
-		response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
-		// TODO: replace hardcoded /404.html with file from config? check
-		// with Seba if needed
-		std::string body = readFile_(rootdir + "/404.html");
+		std::string errorURI;
+		if (server.getErrorPageValue(404, errorURI))
+		{
+			response.setStatusCode(404);
+			response.setReasonPhrase("Not Found");
+			response.setHeader("Server", "Webserv/0.1");
+			response.setHeader("Date", createTimestamp_());
+			response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
-		response.setHeader("Content-Length", std::to_string(body.size()));
-		response.setHeader("Connection", "keep-alive");
-		response.setBody(body);
+			std::string body = readFile_(rootdir + errorURI);
+
+			response.setHeader("Content-Length", std::to_string(body.size()));
+			response.setHeader("Connection", "keep-alive");
+			response.setBody(body);
+		}
+		else
+			return this->handleDefaultErrorResponse_(404);
 	}
 	Logger::log(Logger::DEBUG) << "Handling GET: responding" << std::endl;
 	return response.toString();
 }
 
 // TODO: implement check for file/directory, coordinate with Seba
-std::string ServerEngine::handleDeleteRequest_(const HttpRequest &request)
+std::string ServerEngine::handleDeleteRequest_(
+	const HttpRequest &request,
+	Server const	  &server
+)
 {
 	(void)request;
+	(void)server;
 	std::cout << request << std::endl;
 
 	// Get root path from config of server
@@ -484,9 +610,13 @@ std::string ServerEngine::handleDeleteRequest_(const HttpRequest &request)
 }
 
 // TODO: implement
-std::string ServerEngine::handlePostRequest_(const HttpRequest &request)
+std::string ServerEngine::handlePostRequest_(
+	const HttpRequest &request,
+	Server const	  &server
+)
 {
 	(void)request;
+	(void)server;
 	Logger::log(Logger::DEBUG) << "Handling POST: responding" << std::endl;
 	return "POST test\n";
 }
@@ -538,8 +668,8 @@ std::string ServerEngine::readFile_(const std::string &filePath)
 	std::ifstream file(filePath);
 	if (!file.is_open())
 	{
-		std::cerr << "Error: Could not open file: " << file.is_open() << " "
-				  << filePath << std::endl;
+		Logger::log(Logger::ERROR, true)
+			<< "Failed to open file: " << filePath << std::endl;
 		return "";
 	}
 
@@ -547,8 +677,277 @@ std::string ServerEngine::readFile_(const std::string &filePath)
 	buffer << file.rdbuf();
 	if (buffer.str().empty())
 	{
-		std::cerr << "Error: File " << filePath
-				  << " is empty or could not be read" << std::endl;
+		Logger::log(Logger::ERROR, true)
+			<< "File is empty or could not be read: " << filePath << std::endl;
 	}
 	return buffer.str();
+}
+
+std::string
+ServerEngine::handleDefaultErrorResponse_(int statusCode, bool closeConnection)
+{
+	Logger::log(Logger::DEBUG)
+		<< "Handling default error response: [" << statusCode << "] "
+		<< getStatusCodeReason(statusCode) << std::endl;
+
+	HttpResponse response;
+	response.setStatusCode(statusCode);
+	response.setReasonPhrase(getStatusCodeReason(statusCode));
+	response.setHeader("Server", "Webserv/0.1");
+	response.setHeader("Date", createTimestamp_());
+	response.setHeader("Content-Type", "text/html; charset=UTF-8");
+
+	std::string body = readFile_("www/" + std::to_string(statusCode) + ".html");
+	if (body.empty())
+	{
+		if (statusCode >= 400 && statusCode < 500)
+			body = readFile_("www/4xx.html");
+		else if (statusCode >= 500 && statusCode < 600)
+			body = readFile_("www/5xx.html");
+		else if (statusCode >= 300 && statusCode < 400)
+			body = readFile_("www/3xx.html");
+	}
+	if (body.empty())
+		body = "<!DOCTYPE html>\n<html>\n<head><title>"
+			   + std::to_string(statusCode) + " "
+			   + getStatusCodeReason(statusCode) + "</title></head>\n<body><h1>"
+			   + std::to_string(statusCode) + " "
+			   + getStatusCodeReason(statusCode) + "</h1></body>\n</html>\n";
+
+	response.setHeader("Content-Length", std::to_string(body.size()));
+	if (closeConnection)
+		response.setHeader("Connection", "close");
+	response.setBody(body);
+
+	return response.toString();
+}
+
+std::string ServerEngine::handleReturnDirective_(
+	std::vector<std::string> const &returnDirective
+)
+{
+	HttpResponse response;
+	int			 statusCode = 301;
+
+	if (returnDirective.size() == 2)
+	{
+		statusCode = std::atoi(returnDirective[0].c_str());
+		response.setHeader("Location", returnDirective[1]);
+	}
+	else if (returnDirective.size() == 1)
+	{
+		response.setHeader("Location", returnDirective[0]);
+	}
+
+	Logger::log(Logger::DEBUG)
+		<< "Handling return directive: [" << statusCode << "] "
+		<< getStatusCodeReason(statusCode)
+		<< "To: " << response.getHeader("Location") << std::endl;
+
+	response.setStatusCode(statusCode);
+	response.setReasonPhrase(getStatusCodeReason(statusCode));
+	response.setHeader("Server", "Webserv/0.1");
+	response.setHeader("Date", createTimestamp_());
+	response.setHeader("Content-Type", "text/html; charset=UTF-8");
+	response.setHeader("Content-Length", "0");
+
+	return response.toString();
+}
+
+std::string ServerEngine::generateAutoIndexPage_(
+	std::string const &root,
+	std::string const &uri
+)
+{
+	std::stringstream html;
+
+	html << "<!DOCTYPE html>\n<html>\n<head><title>Index of " << uri
+		 << "</title></head>\n<body><h1>Index of " << uri << "</h1>\n";
+	html << "<ul>\n";
+
+	if (uri != "/")
+		html << "<li><a href=\"" << uri + "../\">Parent Directory</a></li>\n";
+
+	DIR *dir = opendir((root + uri).c_str());
+	if (dir == NULL)
+	{
+		Logger::log(Logger::ERROR, true)
+			<< "Failed to open directory: " << root + uri << std::endl;
+		return handleDefaultErrorResponse_(404, true);
+	}
+
+	struct dirent *entry;
+	while ((entry = readdir(dir)) != NULL)
+	{
+		std::string filename(entry->d_name);
+
+		// Skip "." and ".." directories
+		if (filename == "." || filename == "..")
+			continue;
+
+		std::string fullPath = root + uri + "/" + filename;
+
+		// Check if it is a directory
+		struct stat fileStat;
+		if (stat(fullPath.c_str(), &fileStat) == -1)
+		{
+			Logger::log(Logger::ERROR, true)
+				<< "Failed to get file stats: " << fullPath << "Error: ["
+				<< errno << "] " << strerror(errno) << std::endl;
+			continue;
+		}
+		else if (S_ISDIR(fileStat.st_mode))
+			filename += "/";
+
+		// Generate links for each file/directory
+		html << "<li><a href=\"" << uri << filename << "\">" << filename
+			 << "</a></li>\n";
+	}
+	closedir(dir);
+	html << "</ul>\n</body>\n</html>\n";
+	return html.str();
+}
+
+std::string
+ServerEngine::handleAutoIndex_(std::string const &root, std::string const &uri)
+{
+	Logger::log(Logger::DEBUG)
+		<< "Handling auto index on: " << root << uri << std::endl;
+
+	std::string body = generateAutoIndexPage_(root, uri);
+
+	HttpResponse response;
+	response.setStatusCode(200);
+	response.setReasonPhrase("OK");
+	response.setHeader("Content-Type", "text/html; charset=UTF-8");
+	response.setHeader("Content-Length", ft::toString(body.size()));
+	response.setBody(body);
+	return response.toString();
+}
+
+std::string ServerEngine::handleCgiRequest_(
+	const std::string &filepath,
+	const std::string &interpreter,
+	const HttpRequest &request
+)
+{
+	int pipefd[2];
+	if (pipe(pipefd) == -1)
+	{
+		Logger::log(Logger::ERROR, true) << "Pipe creation failed" << std::endl;
+		return this->handleDefaultErrorResponse_(500);
+	}
+
+	pid_t pid = fork();
+	if (pid == -1)
+	{
+		Logger::log(Logger::ERROR, true) << "Fork failed" << std::endl;
+		return this->handleDefaultErrorResponse_(500);
+	}
+	else if (pid == 0)
+	{
+		close(pipefd[0]);
+
+		std::string cgiDir = ft::getDirectory(filepath);
+		if (chdir(cgiDir.c_str()) == -1)
+		{
+			Logger::log(Logger::ERROR, true)
+				<< "Failed to change directory to: " << cgiDir << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+		dup2(pipefd[1], STDOUT_FILENO);
+		close(pipefd[1]);
+
+		std::vector<std::string> envVariables;
+		envVariables.push_back("GATEWAY_INTERFACE=CGI/1.1");
+		envVariables.push_back("SERVER_PROTOCOL=HTTP/1.1");
+		envVariables.push_back("REQUEST_METHOD=" + request.getMethod());
+		envVariables.push_back("SCRIPT_FILENAME=" + filepath);
+		envVariables.push_back("PATH_INFO=" + request.getUri());
+
+		std::vector<char *> envp;
+		for (std::vector<std::string>::iterator it = envVariables.begin();
+			 it != envVariables.end();
+			 ++it)
+		{
+			envp.push_back(const_cast<char *>(it->c_str()));
+		}
+		envp.push_back(NULL);
+
+		char *argv[]
+			= {const_cast<char *>(interpreter.c_str()),
+			   const_cast<char *>(filepath.c_str()),
+			   NULL};
+
+		execve(interpreter.c_str(), argv, &envp[0]);
+
+		exit(EXIT_FAILURE);
+	}
+	else
+	{
+		close(pipefd[1]);
+
+		char			  buffer[1024];
+		std::stringstream output;
+		ssize_t			  bytesRead;
+
+		// TODO: ask Manu how to handle chunked requests
+		// if (request.isChunked())
+		// {
+		//     while ()
+		//     {
+		//     }
+		// }
+
+		while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer))) > 0)
+			output.write(buffer, bytesRead);
+
+		close(pipefd[0]);
+
+		int status;
+		waitpid(pid, &status, 0);
+
+		if (status != 0)
+		{
+			Logger::log(Logger::ERROR, true)
+				<< "CGI script execution failed" << std::endl;
+			return this->handleDefaultErrorResponse_(500);
+		}
+
+		HttpResponse response;
+		response.setStatusCode(200);
+		response.setReasonPhrase("OK");
+		response.setHeader("Server", "Webserv/0.1");
+		response.setHeader("Date", createTimestamp_());
+		response.setHeader("Content-Type", "text/html; charset=UTF-8");
+		response.setHeader(
+			"Content-Length", std::to_string(output.str().size())
+		);
+		// TODO: when to close the connection?
+		// response.setHeader("Connection", "close");
+		response.setBody(output.str());
+
+		return response.toString();
+	}
+}
+
+std::string ServerEngine::getMimeType(std::string const &filePath) const
+{
+	static std::map<std::string, std::string> const mimeTypes
+		= ft::createMimeTypesMap();
+
+	size_t dotPos = filePath.rfind('.');
+	if (dotPos != std::string::npos)
+	{
+		std::string extension = filePath.substr(dotPos);
+		std::map<std::string, std::string>::const_iterator it
+			= mimeTypes.find(extension);
+		if (it != mimeTypes.end())
+		{
+			return it->second;
+		}
+	}
+
+	return "application/octet-stream";
 }
