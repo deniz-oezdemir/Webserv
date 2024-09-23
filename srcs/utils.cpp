@@ -1,8 +1,11 @@
 #include "utils.hpp"
 #include "ServerException.hpp"
+#include "Logger.hpp"
 
 #include <climits>
 #include <cstdlib>
+#include <sstream>
+#include <fstream>
 
 namespace ft
 {
@@ -173,6 +176,26 @@ std::string getDirectory(const std::string &filepath) {
         return filepath.substr(0, pos);
     }
     return ".";
+}
+
+std::string readFile(const std::string &filePath)
+{
+	std::fstream file(filePath);
+	if (!file.is_open())
+	{
+		Logger::log(Logger::ERROR, true)
+			<< "Failed to open file: " << filePath << std::endl;
+		return "";
+	}
+
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+	if (buffer.str().empty())
+	{
+		Logger::log(Logger::ERROR, true)
+			<< "File is empty or could not be read: " << filePath << std::endl;
+	}
+	return buffer.str();
 }
 
 } // namespace ft

@@ -80,5 +80,4 @@ class ServerEngine
 	handleDefaultErrorResponse_(int errorCode, bool closeConnection = false);
 
 	std::string createTimestamp_();
-	std::string readFile_(const std::string &filePath);
 };

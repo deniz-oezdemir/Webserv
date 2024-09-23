@@ -1,8 +1,4 @@
-#include "HttpRequest.hpp"
-#include "Logger.hpp"
-#include "request_parser/RequestParser.hpp"
-#include "ServerConfig.hpp"
-#include "ServerEngine.hpp"
+#include "test.hpp"
 #include <chrono>
 #include <criterion/criterion.h>
 #include <fstream>
@@ -105,7 +101,7 @@ Test(ServerEngine, handleGetRequest_NotImplemented)
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 
 	// Create a request string with an unsupported method (e.g., TRACE)
-	std::string requestStr = readFile_("traceRequest.txt");
+	std::string requestStr = ft::readFile("traceRequest.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
@@ -144,7 +140,7 @@ Test(ServerEngine, handleGetRequest_Root)
 	std::this_thread::sleep_for(std::chrono::seconds(3));
 
 	// Read the request from getRequest.txt
-	std::string requestStr = readFile_("getRequestRoot.txt");
+	std::string requestStr = ft::readFile("getRequestRoot.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
