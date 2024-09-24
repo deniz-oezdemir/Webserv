@@ -39,6 +39,11 @@ ServerEngine::ServerEngine(
 		this->initServer_(servers[serverIndex], serverIndex, globalServerIndex);
 	}
 	this->totalServerInstances_ = globalServerIndex;
+
+	clientRequestBuffer_.clear();
+	totalBytesRead_.clear();
+	isDoneReading_.clear();
+	clientIndex_ = 0;
 }
 
 ServerEngine::~ServerEngine()
@@ -197,6 +202,13 @@ void ServerEngine::acceptConnection_(size_t &index)
 	pollFds_.push_back(clientPollFd);
 	Logger::log(Logger::DEBUG)
 		<< "Client connection added to pollFds_[" << index << "]" << std::endl;
+
+	clientRequestBuffer_.push_back(std::string());
+	totalBytesRead_.push_back(-1);
+	isDoneReading_.push_back(false);
+	Logger::log(Logger::DEBUG) << "Empty ClientRequestBuffer and -1 "
+								  "totalBytesReads initialized for pollFds_["
+							   << index << "]" << std::endl;
 }
 
 void ServerEngine::pollFdError_(size_t &index)
@@ -229,6 +241,9 @@ void ServerEngine::pollFdError_(size_t &index)
 			<< "]: " << pollFds_[index].fd << std::endl;
 		close(pollFds_[index].fd);
 		this->pollFds_.erase(this->pollFds_.begin() + index);
+		clientRequestBuffer_.erase(clientRequestBuffer_.begin() + clientIndex_);
+		totalBytesRead_.erase(totalBytesRead_.begin() + clientIndex_);
+		isDoneReading_.erase(isDoneReading_.begin() + clientIndex_);
 	}
 	else
 	{
@@ -250,18 +265,21 @@ void ServerEngine::initializePollEvents()
 		<< "poll() returned " << pollCount << " events" << std::endl;
 }
 
-// TODO: parse request in parts; append buffer to previously parsed request
-// until full request parsed
 void ServerEngine::readClientRequest_(size_t &index)
 {
+	if (!isDoneReadings[clientIndex_])
+	{
+		// TODO: Manu implement read function
+		// TODO: Deniz refactor Manu's read function to access the vector
+		// elements itself
+		manusAwesomeReadFunction(&index, clientIndex_);
+		return;
+	}
+
 	Logger::log(Logger::INFO)
 		<< "Reading client request at pollFds_[" << index << ']' << std::endl;
 
-	this->bytesRead_ = read(
-		this->pollFds_[index].fd, this->clientRequestBuffer_, BUFFER_SIZE
-	);
-
-	if (this->bytesRead_ < 0)
+	if (totalBytesRead_[clientIndex_] < 0)
 	{
 		if (errno != EWOULDBLOCK && errno != EAGAIN)
 		{
@@ -271,7 +289,7 @@ void ServerEngine::readClientRequest_(size_t &index)
 		}
 		return;
 	}
-	else if (this->bytesRead_ == 0)
+	else if (totalBytesRead_[clientIndex_] == 0)
 	{
 		// Client disconnected
 		Logger::log(Logger::DEBUG)
@@ -279,6 +297,9 @@ void ServerEngine::readClientRequest_(size_t &index)
 			<< ", closing socket and deleting it from pollFds_" << std::endl;
 		close(pollFds_[index].fd);
 		pollFds_.erase(pollFds_.begin() + index);
+		clientRequestBuffer_.erase(clientRequestBuffer_.begin() + clientIndex_);
+		totalBytesRead_.erase(totalBytesRead_.begin() + clientIndex_);
+		isDoneReading_.erase(isDoneReading_.begin() + clientIndex_);
 		return;
 	}
 
@@ -289,14 +310,15 @@ void ServerEngine::readClientRequest_(size_t &index)
 		<< "Read " << this->bytesRead_ << " bytes" << std::endl;
 }
 
-// TODO: The client Request Buffer should be for each client connection
-// and not a global buffer, bytesRead_ is also not optimal
 void ServerEngine::sendClientResponse_(size_t &index)
 {
+	// TODO: check if program  faster without  manual allocation of HttpRequest
 	HttpRequest *request = NULL;
 	try
 	{
-		std::string requestStr(this->clientRequestBuffer_, this->bytesRead_);
+		std::string requestStr(
+			clientRequestBuffer_[clientIndex_], totalBytesRead_[clientIndex_]
+		);
 		request = new HttpRequest(RequestParser::parseRequest(requestStr));
 		Logger::log(Logger::DEBUG) << "Request received:\n\nBuffer:\n"
 								   << requestStr << "Request:\n"
@@ -314,6 +336,11 @@ void ServerEngine::sendClientResponse_(size_t &index)
 		Logger::log(Logger::DEBUG) << "Sending response" << std::endl;
 		int retCode
 			= send(pollFds_[index].fd, response.c_str(), response.size(), 0);
+		// offset of totalServerInstances_ in index
+		clientRequestBuffers[clientIndex_].str("");
+		clientRequestBuffers[clientIndex_].clear();
+		totalBytesReads[clientIndex_] = -1;
+
 		if (retCode < 0)
 		{
 			Logger::log(Logger::ERROR, true)
@@ -321,6 +348,11 @@ void ServerEngine::sendClientResponse_(size_t &index)
 				<< ") " << strerror(errno) << std::endl;
 			close(pollFds_[index].fd);
 			pollFds_.erase(pollFds_.begin() + index);
+			clientRequestBuffer_.erase(
+				clientRequestBuffer_.begin() + clientIndex_
+			);
+			totalBytesRead_.erase(totalBytesRead_.begin() + clientIndex_);
+			isDoneReading_.erase(isDoneReading_.begin() + clientIndex_);
 			delete request;
 			return;
 		}
@@ -332,6 +364,11 @@ void ServerEngine::sendClientResponse_(size_t &index)
 				<< std::endl;
 			close(pollFds_[index].fd);
 			pollFds_.erase(pollFds_.begin() + index);
+			clientRequestBuffer_.erase(
+				clientRequestBuffer_.begin() + clientIndex_
+			);
+			totalBytesRead_.erase(totalBytesRead_.begin() + clientIndex_);
+			isDoneReading_.erase(isDoneReading_.begin() + clientIndex_);
 			delete request;
 			return;
 		}
@@ -344,24 +381,30 @@ void ServerEngine::sendClientResponse_(size_t &index)
 
 void ServerEngine::processPollEvents()
 {
-	for (size_t i = 0; i < pollFds_.size(); ++i)
+	for (size_t pollIndex = 0; pollIndex < pollFds_.size(); ++pollIndex)
 	{
+		// Calculate offset only once per iteration
+		if (pollIndex >= totalServerInstances_)
+			clientIndex_ = pollIndex - totalServerInstances_;
+		Logger::log(Logger::DEBUG)
+			<< "clientIndex is set to " << clientIndex_ << std::endl;
+
 		// Check if fd has some errors(pollerr, pollnval) or if the
 		// connection was broken(pollhup)
-		if (pollFds_[i].revents & (POLLERR | POLLHUP | POLLNVAL))
-			pollFdError_(i);
-		else if (pollFds_[i].revents & POLLIN)
+		if (pollFds_[pollIndex].revents & (POLLERR | POLLHUP | POLLNVAL))
+			pollFdError_(pollIndex);
+		else if (pollFds_[pollIndex].revents & POLLIN)
 		{
-			Logger::log(Logger::DEBUG)
-				<< "pollFds_[" << i << "] is ready for read" << std::endl;
+			Logger::log(Logger::DEBUG) << "pollFds_[" << pollIndex
+									   << "] is ready for read" << std::endl;
 			// If fd is a server socket accept a new client connection
-			if (this->isPollFdServer_(pollFds_[i].fd))
-				acceptConnection_(i);
+			if (this->isPollFdServer_(pollFds_[pollIndex].fd))
+				acceptConnection_(pollIndex);
 			else
-				readClientRequest_(i);
+				readClientRequest_(pollIndex);
 		}
-		else if (pollFds_[i].revents & POLLOUT)
-			sendClientResponse_(i);
+		else if (pollFds_[pollIndex].revents & POLLOUT)
+			sendClientResponse_(pollIndex);
 	}
 }
 
@@ -677,7 +720,8 @@ ServerEngine::handleDefaultErrorResponse_(int statusCode, bool closeConnection)
 	response.setHeader("Date", createTimestamp_());
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
-	std::string body = ft::readFile("./www/" + std::to_string(statusCode) + ".html");
+	std::string body
+		= ft::readFile("./www/" + std::to_string(statusCode) + ".html");
 	if (body.empty())
 	{
 		if (statusCode >= 400 && statusCode < 500)
@@ -901,9 +945,7 @@ std::string ServerEngine::handleCgiRequest_(
 		response.setHeader("Server", "Webserv/0.1");
 		response.setHeader("Date", createTimestamp_());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
-		response.setHeader(
-			"Content-Length", ft::toString(output.str().size())
-		);
+		response.setHeader("Content-Length", ft::toString(output.str().size()));
 		// TODO: when to close the connection?
 		// response.setHeader("Connection", "close");
 		response.setBody(output.str());

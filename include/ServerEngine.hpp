@@ -38,9 +38,13 @@ class ServerEngine
 	unsigned int		totalServerInstances_;
 	std::vector<pollfd> pollFds_;
 	std::vector<Server> servers_;
+	// TODO: introduce pollIndex_ such that we do not have to pass it as arg
 
-	char clientRequestBuffer_[BUFFER_SIZE];
-	long bytesRead_;
+	// TODO: combine into one vector of triplets to improve cache usage
+	std::vector<std::stringstream> clientRequestBuffer_;
+	std::vector<long long>		   totalBytesRead_;
+	std::vector<bool>			   isDoneReading_;
+	size_t						   clientIndex_;
 
 	void initServer_(
 		std::map<std::string, ConfigValue> const &serverConfig,
@@ -81,5 +85,6 @@ class ServerEngine
 	std::string
 	handleDefaultErrorResponse_(int errorCode, bool closeConnection = false);
 
+	// TODO: move to utils
 	std::string createTimestamp_();
 };
