@@ -47,7 +47,7 @@ HEADERS := 	colors.hpp \
 			ServerEngine.hpp \
 			HttpResponse.hpp \
 			signals.hpp \
-			request_parser/RequestParser.hpp \
+			request_parser/ARequestParser.hpp \
 			request_parser/FirstLineParser.hpp \
 			request_parser/HeaderParser.hpp \
 			request_parser/HttpHeaders.hpp \
@@ -62,7 +62,7 @@ SOURCE := 	main.cpp \
 			utils.cpp \
 			Server.cpp \
 			HttpRequest.cpp \
-			request_parser/RequestParser.cpp \
+			request_parser/ARequestParser.cpp \
 			request_parser/FirstLineParser.cpp \
 			request_parser/HeaderParser.cpp \
 			request_parser/HttpHeaders.cpp \

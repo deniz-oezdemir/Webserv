@@ -1,4 +1,4 @@
-#include "request_parser/RequestParser.hpp"
+#include "request_parser/ARequestParser.hpp"
 #include "request_parser/BodyParser.hpp"
 #include "request_parser/FirstLineParser.hpp"
 #include "request_parser/HeaderParser.hpp"
@@ -10,7 +10,7 @@
 #include <sstream>
 #include <vector>
 
-HttpRequest RequestParser::parseRequest(std::string str)
+HttpRequest ARequestParser::parseRequest(std::string str)
 {
 	std::string								method;
 	std::string								httpVersion;

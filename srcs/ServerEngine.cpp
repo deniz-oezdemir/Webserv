@@ -3,7 +3,7 @@
 #include "HttpResponse.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
-#include "request_parser/RequestParser.hpp"
+#include "request_parser/ARequestParser.hpp"
 #include "utils.hpp"
 
 #include <csignal>
@@ -297,7 +297,7 @@ void ServerEngine::sendClientResponse_(size_t &index)
 	try
 	{
 		std::string requestStr(this->clientRequestBuffer_, this->bytesRead_);
-		request = new HttpRequest(RequestParser::parseRequest(requestStr));
+		request = new HttpRequest(ARequestParser::parseRequest(requestStr));
 		Logger::log(Logger::DEBUG) << "Request received:\n\nBuffer:\n"
 								   << requestStr << "Request:\n"
 								   << *request << std::flush;
@@ -622,7 +622,7 @@ std::string ServerEngine::handlePostRequest_(
 }
 
 // commented out similar functionality via exception by
-// RequestParser::checkMethod_() as it should be handled with a 501 response to
+// ARequestParser::checkMethod_() as it should be handled with a 501 response to
 // the client
 std::string ServerEngine::handleNotImplementedRequest_()
 {

@@ -26,6 +26,6 @@
         - [x] check headerName syntax
         - [x] decide how to handle empty list items
         - [x] check values special chars are escaped
-- [x] Refactor: all HTTP request normalization into RequestParser
+- [x] Refactor: all HTTP request normalization into ARequestParser
 - [x] Test: headers with multiple values
 - [x] Test: headers with multiple values with semicolon
