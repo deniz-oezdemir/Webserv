@@ -1,4 +1,4 @@
-#include "request_parser/TokenValidator.hpp"
+#include "request_parser/ATokenValidator.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-void TokenValidator::validateTokens(
+void ATokenValidator::validateTokens(
 	// clang-format off
 	std::map<std::string, std::vector<std::string> > &headers
 	// clang-format on

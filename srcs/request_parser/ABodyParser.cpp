@@ -1,4 +1,4 @@
-#include "request_parser/BodyParser.hpp"
+#include "request_parser/ABodyParser.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
@@ -16,7 +16,7 @@
  * @param headers The headers of the HTTP request.
  * @param body A pointer to a vector where the parsed body will be stored.
  */
-void BodyParser::parseBody(
+void ABodyParser::parseBody(
 	std::istream	  &requestStream,
 	const std::string &method,
 	// clang-format off
@@ -54,7 +54,7 @@ void BodyParser::parseBody(
  * @param body The parsed body of the HTTP request.
  * @throws HttpException if any of the checks fail.
  */
-void BodyParser::checkBody_(
+void ABodyParser::checkBody_(
 	const std::string &method,
 	// clang-format off
 	const std::map<std::string, std::vector<std::string> > &headers,

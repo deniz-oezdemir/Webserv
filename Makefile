@@ -48,11 +48,11 @@ HEADERS := 	colors.hpp \
 			HttpResponse.hpp \
 			signals.hpp \
 			request_parser/ARequestParser.hpp \
-			request_parser/FirstLineParser.hpp \
-			request_parser/HeaderParser.hpp \
+			request_parser/AFirstLineParser.hpp \
+			request_parser/AHeaderParser.hpp \
 			request_parser/HttpHeaders.hpp \
-			request_parser/BodyParser.hpp \
-			request_parser/TokenValidator.hpp \
+			request_parser/ABodyParser.hpp \
+			request_parser/ATokenValidator.hpp \
 
 SOURCE := 	main.cpp \
 			ServerInput.cpp \
@@ -63,11 +63,11 @@ SOURCE := 	main.cpp \
 			Server.cpp \
 			HttpRequest.cpp \
 			request_parser/ARequestParser.cpp \
-			request_parser/FirstLineParser.cpp \
-			request_parser/HeaderParser.cpp \
+			request_parser/AFirstLineParser.cpp \
+			request_parser/AHeaderParser.cpp \
 			request_parser/HttpHeaders.cpp \
-			request_parser/BodyParser.cpp \
-			request_parser/TokenValidator.cpp \
+			request_parser/ABodyParser.cpp \
+			request_parser/ATokenValidator.cpp \
           	Logger.cpp \
 			HttpException.cpp \
 			ServerEngine.cpp \
