@@ -3,7 +3,7 @@
 #include "HttpResponse.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
-#include "request_parser/RequestParser.hpp"
+#include "request_parser/ARequestParser.hpp"
 #include "utils.hpp"
 
 #include <algorithm>
@@ -299,7 +299,7 @@ void ServerEngine::sendClientResponse_(size_t &index)
 	try
 	{
 		std::string requestStr(this->clientRequestBuffer_, this->bytesRead_);
-		request = new HttpRequest(RequestParser::parseRequest(requestStr));
+		request = new HttpRequest(ARequestParser::parseRequest(requestStr));
 		Logger::log(Logger::DEBUG) << "Request received:\n\nBuffer:\n"
 								   << requestStr << "Request:\n"
 								   << *request << std::flush;

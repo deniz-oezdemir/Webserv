@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-class HeaderParser
+class AHeaderParser
 {
   public:
 	void static parseHeaders(
@@ -15,10 +15,10 @@ class HeaderParser
 	);
 
   private:
-	HeaderParser(void);
-	HeaderParser(const HeaderParser &src);
-	~HeaderParser(void);
-	HeaderParser &operator=(const HeaderParser &rhs);
+	AHeaderParser(void);
+	AHeaderParser(const AHeaderParser &src);
+	~AHeaderParser(void);
+	AHeaderParser &operator=(const AHeaderParser &rhs);
 
 	static void
 	checkRawHeaders_(const std::multimap<std::string, std::string> &headers);

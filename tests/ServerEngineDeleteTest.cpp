@@ -30,7 +30,7 @@ Test(ServerEngine, handleDeleteRequest_)
 	std::string requestStr = readFile_("deleteRequest.txt");
 
 	// Parse the request string into an HttpRequest object
-	HttpRequest request = RequestParser::parseRequest(requestStr);
+	HttpRequest request = ARequestParser::parseRequest(requestStr);
 
 	ServerConfig config("test.config");
 	config.parseFile(false, false);
