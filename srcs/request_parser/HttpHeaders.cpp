@@ -55,7 +55,7 @@ std::map<std::string, std::string> createHeaderAcceptedChars()
     std::map<std::string, std::string> headerAcceptedChars;
     headerAcceptedChars["Host"] = ":/";
     headerAcceptedChars["User-Agent"] = "()<>@,;:\\\"/[]?={} \t";
-    headerAcceptedChars["Accept"] = "=/";
+    headerAcceptedChars["Accept"] = "=/;";
     headerAcceptedChars["Connection"] = "";
     headerAcceptedChars["Content-Length"] = "";
     headerAcceptedChars["Cookie"] = "=;,";
