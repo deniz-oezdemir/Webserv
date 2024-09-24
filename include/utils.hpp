@@ -1,9 +1,9 @@
 #pragma once
 
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <map>
 
 // Fourty-two namespace contains utility functions.
 namespace ft
@@ -38,10 +38,12 @@ unsigned long stringToULong(std::string const &str);
 bool isURI(std::string const &str);
 bool isURL(std::string const &str);
 
-std::string getDirectory(std::string const &path);
+std::string								 getDirectory(std::string const &path);
 std::map<std::string, std::string> const createMimeTypesMap(void);
 
-std::string readFile(const std::string &filePath);
+std::string		   readFile(const std::string &filePath);
+std::string		   createTimestamp();
+std::string const &getStatusCodeReason(unsigned int statusCode);
 
 template <typename C, typename T>
 typename C::iterator find(C &container, T const &value)

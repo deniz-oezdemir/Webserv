@@ -56,39 +56,6 @@ ServerEngine::~ServerEngine()
 	}
 }
 
-std::string const &ServerEngine::getStatusCodeReason(unsigned int statusCode
-) const
-{
-	static std::map<int, std::string> httpStatusCodes;
-	if (httpStatusCodes.empty())
-	{
-		httpStatusCodes[200] = "OK";
-		httpStatusCodes[201] = "Created";
-		httpStatusCodes[202] = "Accepted";
-		httpStatusCodes[204] = "No Content";
-		httpStatusCodes[301] = "Moved Permanently";
-		httpStatusCodes[302] = "Found";
-		httpStatusCodes[303] = "See Other";
-		httpStatusCodes[304] = "Not Modified";
-		httpStatusCodes[400] = "Bad Request";
-		httpStatusCodes[401] = "Unauthorized";
-		httpStatusCodes[403] = "Forbidden";
-		httpStatusCodes[404] = "Not Found";
-		httpStatusCodes[405] = "Method Not Allowed";
-		httpStatusCodes[408] = "Request Timeout";
-		httpStatusCodes[411] = "Length Required";
-		httpStatusCodes[413] = "Payload Too Large";
-		httpStatusCodes[414] = "URI Too Long";
-		httpStatusCodes[415] = "Unsupported Media Type";
-		httpStatusCodes[500] = "Internal Server Error";
-		httpStatusCodes[501] = "Not Implemented";
-		httpStatusCodes[505] = "HTTP Version Not Supported";
-	}
-	if (httpStatusCodes.find(statusCode) == httpStatusCodes.end())
-		return httpStatusCodes[500];
-	return httpStatusCodes[statusCode];
-}
-
 void ServerEngine::initServer_(
 	std::map<std::string, ConfigValue> const &serverConfig,
 	size_t									 &serverIndex,
@@ -608,57 +575,6 @@ std::string ServerEngine::createFileResponse_(
 	return response.toString();
 }
 
-// clang-format off
-std::string ServerEngine::handleGetRequest_(
-	const HttpRequest &request,
-	Server const	  &server
-)
-{
-	std::string uri = request.getUri();
-	bool keepAlive = request.getKeepAlive();
-	std::map<std::string, std::vector<std::string> > location;
-
-	if (server.isThisLocation(uri))
-		location = server.getThisLocation(uri);
-	else
-		return this->handleDefaultErrorResponse_(404, !keepAlive);
-
-	std::map<std::string, std::vector<std::string> >::const_iterator it;
-
-	// Check for redirections
-	std::string redirection = handleRedirection_(location, keepAlive);
-	if (!redirection.empty())
-		return redirection;
-
-	// Check for authorized methods
-	if (!validateMethod_(location, "GET"))
-		return this->handleDefaultErrorResponse_(405, !keepAlive);
-
-	// Check for max body size
-	if (!validateBodySize_(location, request, server))
-		return this->handleDefaultErrorResponse_(413, !keepAlive);
-
-	std::string filepath = getFilePath_(uri, location, server);
-	std::string rootdir = getRootDir_(location, server);
-
-	if (isCgiRequest_(location, uri))
-		return handleCgiRequest_(
-			filepath, getCgiInterpreter_(location), request, keepAlive
-		);
-
-	// Check if the request is for a directory and handle autoindex
-	if (isDirectory_(filepath))
-	{
-		if (isAutoIndexEnabled_(location))
-			return handleAutoIndex_(rootdir, uri, keepAlive);
-		// Search for index file in the directory
-		filepath = findIndexFile_(filepath, location, server);
-	}
-
-	// Check if the file exists and return the response
-	return createFileResponse_(filepath, rootdir, server, keepAlive);
-}
-// clang-format on
 
 // TODO: implement check for file/directory, coordinate with Seba
 std::string ServerEngine::handleDeleteRequest_(
@@ -724,92 +640,6 @@ std::string ServerEngine::handlePostRequest_(
 	(void)server;
 	Logger::log(Logger::DEBUG) << "Handling POST: responding" << std::endl;
 	return "POST test\n";
-}
-
-std::string ServerEngine::createTimestamp_()
-{
-	time_t	   now = time(0);
-	struct tm *tstruct = localtime(&now);
-	if (tstruct == nullptr)
-	{
-		throw std::runtime_error("Failed to get local time");
-	}
-
-	char buf[80];
-	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", tstruct);
-	return std::string(buf);
-}
-
-std::string ServerEngine::handleServerErrorResponse_(
-	Server const	  &server,
-	int				   statusCode,
-	std::string const &rootdir,
-	bool			  &keepAlive
-)
-{
-	HttpResponse response;
-	std::string	 errorURI;
-
-	if (server.getErrorPageValue(statusCode, errorURI))
-	{
-		response.setStatusCode(statusCode);
-		response.setReasonPhrase(getStatusCodeReason(statusCode));
-		response.setHeader("Server", SERVER_NAME);
-		response.setHeader("Date", createTimestamp_());
-		response.setHeader("Content-Type", getMimeType(errorURI));
-
-		std::string body = ft::readFile(rootdir + errorURI);
-
-		response.setHeader("Content-Length", std::to_string(body.size()));
-		if (keepAlive)
-			response.setHeader("Connection", "keep-alive");
-		else
-			response.setHeader("Connection", "close");
-		response.setBody(body);
-
-		return response.toString();
-	}
-	return "";
-}
-
-std::string
-ServerEngine::handleDefaultErrorResponse_(int statusCode, bool closeConnection)
-{
-	Logger::log(Logger::DEBUG)
-		<< "Handling default error response: [" << statusCode << "] "
-		<< getStatusCodeReason(statusCode) << std::endl;
-
-	HttpResponse response;
-	response.setStatusCode(statusCode);
-	response.setReasonPhrase(getStatusCodeReason(statusCode));
-	response.setHeader("Server", SERVER_NAME);
-	response.setHeader("Date", createTimestamp_());
-	response.setHeader("Content-Type", "text/html; charset=UTF-8");
-
-	std::string body
-		= ft::readFile("./www/" + std::to_string(statusCode) + ".html");
-	if (body.empty())
-	{
-		if (statusCode >= 400 && statusCode < 500)
-			body = ft::readFile("./www/4xx.html");
-		else if (statusCode >= 500 && statusCode < 600)
-			body = ft::readFile("./www/5xx.html");
-		else if (statusCode >= 300 && statusCode < 400)
-			body = ft::readFile("./www/3xx.html");
-	}
-	if (body.empty())
-		body = "<!DOCTYPE html>\n<html>\n<head><title>"
-			   + std::to_string(statusCode) + " "
-			   + getStatusCodeReason(statusCode) + "</title></head>\n<body><h1>"
-			   + std::to_string(statusCode) + " "
-			   + getStatusCodeReason(statusCode) + "</h1></body>\n</html>\n";
-
-	response.setHeader("Content-Length", std::to_string(body.size()));
-	if (closeConnection)
-		response.setHeader("Connection", "close");
-	response.setBody(body);
-
-	return response.toString();
 }
 
 std::string ServerEngine::handleReturnDirective_(

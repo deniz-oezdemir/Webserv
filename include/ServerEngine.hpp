@@ -22,7 +22,6 @@ class ServerEngine
 	~ServerEngine();
 
 	void			   start(void);
-	std::string const &getStatusCodeReason(unsigned int statusCode) const;
 	std::string		   getMimeType(std::string const &filePath) const;
 
 	// TODO: move createResponse() to private as only public for testing
@@ -57,6 +56,9 @@ class ServerEngine
 	void pollFdError_(size_t &index);
 
 	int findServer_(std::string const &host, unsigned short const &port);
+
+	// TODO: create a new static class for these functions
+
 	std::string
 	generateAutoIndexPage_(std::string const &root, std::string const &uri);
 	// clang-format off
@@ -133,14 +135,13 @@ class ServerEngine
 	handlePostRequest_(const HttpRequest &request, Server const &server);
 	std::string
 	handleDeleteRequest_(const HttpRequest &request, Server const &server);
-	std::string
-	handleDefaultErrorResponse_(int errorCode, bool closeConnection = false);
-	std::string handleServerErrorResponse_(
-		Server const	  &server,
-		int				   statusCode,
-		std::string const &rootdir,
-		bool			  &keepAlive
-	);
+	// std::string
+	// handleDefaultErrorResponse_(int errorCode, bool closeConnection = false);
+	// std::string handleServerErrorResponse_(
+	// 	Server const	  &server,
+	// 	int				   statusCode,
+	// 	std::string const &rootdir,
+	// 	bool			  &keepAlive
+	// );
 
-	std::string createTimestamp_();
 };
