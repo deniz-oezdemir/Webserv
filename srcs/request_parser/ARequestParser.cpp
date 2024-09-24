@@ -1,16 +1,16 @@
-#include "request_parser/RequestParser.hpp"
-#include "request_parser/BodyParser.hpp"
-#include "request_parser/FirstLineParser.hpp"
-#include "request_parser/HeaderParser.hpp"
+#include "request_parser/ARequestParser.hpp"
+#include "request_parser/ABodyParser.hpp"
+#include "request_parser/AFirstLineParser.hpp"
+#include "request_parser/AHeaderParser.hpp"
 #include "request_parser/HttpHeaders.hpp"
-#include "request_parser/TokenValidator.hpp"
+#include "request_parser/ATokenValidator.hpp"
 #include <cctype>
 #include <cstdlib>
 #include <map>
 #include <sstream>
 #include <vector>
 
-HttpRequest RequestParser::parseRequest(std::string str)
+HttpRequest ARequestParser::parseRequest(std::string str)
 {
 	std::string								method;
 	std::string								httpVersion;
@@ -42,13 +42,13 @@ HttpRequest RequestParser::parseRequest(std::string str)
 	ParseReqFirstLine::checkStartLine(firstLine, &method, &uri, &httpVersion);
 
 	// Extract, parse and normalize headers
-	HeaderParser::parseHeaders(requestStream, &headers);
+	AHeaderParser::parseHeaders(requestStream, &headers);
 	
 	// Check token syntax
-	TokenValidator::validateTokens(headers);
+	ATokenValidator::validateTokens(headers);
 
 	// Extract and check the body
-	BodyParser::parseBody(requestStream, method, headers, &body);
+	ABodyParser::parseBody(requestStream, method, headers, &body);
 
 	HttpRequest req(method, httpVersion, uri, headers, body);
 	return req;
