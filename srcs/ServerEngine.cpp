@@ -294,6 +294,7 @@ void ServerEngine::readClientRequest_(size_t &index)
 // and not a global buffer, bytesRead_ is also not optimal
 void ServerEngine::sendClientResponse_(size_t &index)
 {
+	std::string	 response;
 	HttpRequest *request = NULL;
 	try
 	{
@@ -305,42 +306,41 @@ void ServerEngine::sendClientResponse_(size_t &index)
 	}
 	catch (std::exception &e)
 	{
-		std::cerr << RED BOLD "Error:\t" RESET RED << e.what() << RESET
-				  << std::endl;
+		response = handleDefaultErrorResponse_(400, true);
+		Logger::log(Logger::ERROR, true)
+			<< "Failed to parse the reguest: " << e.what() << std::endl;
 	}
-
 	if (request != NULL)
 	{
-		std::string response = createResponse(*request);
+		response = createResponse(*request);
 		Logger::log(Logger::DEBUG) << "Sending response" << std::endl;
-		int retCode
-			= send(pollFds_[index].fd, response.c_str(), response.size(), 0);
-		if (retCode < 0)
-		{
-			Logger::log(Logger::ERROR, true)
-				<< "Failed to send response to client: (" << ft::toString(errno)
-				<< ") " << strerror(errno) << std::endl;
-			close(pollFds_[index].fd);
-			pollFds_.erase(pollFds_.begin() + index);
-			delete request;
-			return;
-		}
-		else if (retCode == 0)
-		{
-			Logger::log(Logger::DEBUG)
-				<< "Client disconnected pollFds_[" << index
-				<< "], closing socket and deleting it from pollFds_"
-				<< std::endl;
-			close(pollFds_[index].fd);
-			pollFds_.erase(pollFds_.begin() + index);
-			delete request;
-			return;
-		}
-		// After sending the response, prepare to read the next request
-		pollFds_[index].events = POLLIN;
-
-		delete request;
 	}
+
+	int retCode
+		= send(pollFds_[index].fd, response.c_str(), response.size(), 0);
+	if (retCode < 0)
+	{
+		Logger::log(Logger::ERROR, true)
+			<< "Failed to send response to client: (" << ft::toString(errno)
+			<< ") " << strerror(errno) << std::endl;
+	}
+	else if (retCode == 0)
+	{
+		Logger::log(Logger::DEBUG)
+			<< "Client disconnected pollFds_[" << index
+			<< "], closing socket and deleting it from pollFds_" << std::endl;
+	}
+	if (retCode <= 0)
+	{
+		close(pollFds_[index].fd);
+		pollFds_.erase(pollFds_.begin() + index);
+		delete request;
+		return;
+	}
+	// After sending the response, prepare to read the next request
+	pollFds_[index].events = POLLIN;
+
+	delete request;
 }
 
 void ServerEngine::processPollEvents()
