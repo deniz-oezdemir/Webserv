@@ -4,6 +4,7 @@
 #define QUEUE_SIZE	 1
 #define POLL_TIMEOUT -1
 #define BUFFER_SIZE	 8192
+#define SERVER_NAME	"webserv/0.5"
 
 #define HTTP_ACCEPTED_METHODS                                                  \
 	{                                                                          \
