@@ -9,7 +9,9 @@
 #include <dirent.h>
 #include <fstream>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
+#include <cstring>
 
 std::string HttpMethodHandler::handleRequest(
 	HttpRequest const &request,
