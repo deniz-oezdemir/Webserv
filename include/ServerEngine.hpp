@@ -56,7 +56,6 @@ class ServerEngine
 	void initServerPollFds_(void);
 	void initializePollEvents(void);
 	void processPollEvents(void);
-	bool readClientFd(size_t pollFDIndex, size_t clientIndex);
 	void readClientRequest_(size_t &index);
 	void sendClientResponse_(size_t &index);
 	bool isPollFdServer_(int &fd);

@@ -274,7 +274,6 @@ void ServerEngine::readClientRequest_(size_t &index)
 		// TODO: Manu implement read function
 		// TODO: Deniz refactor Manu's read function to access the vector
 		// elements itself
-		readClientFd(index, clientIndex_);
 		return;
 	}
 
@@ -339,9 +338,9 @@ void ServerEngine::sendClientResponse_(size_t &index)
 		int retCode
 			= send(pollFds_[index].fd, response.c_str(), response.size(), 0);
 		// offset of totalServerInstances_ in index
-		clientRequestBuffers[clientIndex_].str("");
-		clientRequestBuffers[clientIndex_].clear();
-		totalBytesReads[clientIndex_] = -1;
+		clientRequestBuffer_[clientIndex_].str("");
+		clientRequestBuffer_[clientIndex_].clear();
+		totalBytesRead_[clientIndex_] = -1;
 
 		if (retCode < 0)
 		{
@@ -408,61 +407,6 @@ void ServerEngine::processPollEvents()
 		else if (pollFds_[pollIndex].revents & POLLOUT)
 			sendClientResponse_(pollIndex);
 	}
-}
-
-bool ServerEngine::readClientFd(size_t pollFDIndex, size_t clientIndex)
-{
-	size_t			   bytesToRead = 10;
-	bool			   isChunked = false;
-	bool			   hasContentSize = false;
-	std::stringstream *bufferStream = &(clientRequestBuffer_[clientIndex]);
-	std::string *clientReadFullRequest = &(clientReadFullRequest_[clientIndex]);
-	long long	*bytesRead = &(totalBytesRead_[clientIndex]);
-
-	// first read buffer to see if size to read is there
-	std::string tmpStr = bufferStream->str();
-	size_t		targetPosition = tmpStr.find("Content-length");
-	if (targetPosition == std::string::npos)
-	{
-		targetPosition = tmpStr.find("content-length");
-	}
-
-	if (targetPosition != std::string::npos)
-	{
-		size_t colonPosition = tmpStr.find(":", targetPosition);
-		if (colonPosition != std::string::npos)
-		{
-			size_t		valueStart = colonPosition + 1;
-			size_t		valueEnd = tmpStr.find("\r\n", valueStart);
-			std::string lengthStr
-				= tmpStr.substr(valueStart, valueEnd - valueStart);
-			// Trim any leading or trailing whitespace
-			lengthStr.erase(0, lengthStr.find_first_not_of(" \t"));
-			lengthStr.erase(lengthStr.find_last_not_of(" \t") + 1);
-			bytesToRead = std::atol(lengthStr.c_str());
-			hasContentSize = true;
-		}
-	}
-	else if (tmpStr.find("Transfer-encoding: chunked") != std::string::npos)
-	{
-		isChunked = true;
-	}
-	else if (tmpStr.find("transfer-encoding: chunked") != std::string::npos)
-	{
-		isChunked = true;
-	}
-
-	// read aproppiate piece from fd not surpassing limit of bytes read
-	if (*bytesRead + bytesToRead > ((size_t)FD_READ_LIMIT))
-	{
-		// trigger error
-	}
-	*bytesRead = read(pollFds_[pollFDIndex].fd, bufferStream, bytesToRead);
-	
-	// check buffer for if full request has been reached
-	clientRequestBuffer_[clientIndex];
-
-	return false;
 }
 
 void ServerEngine::start()
