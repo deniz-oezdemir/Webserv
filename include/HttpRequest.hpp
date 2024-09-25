@@ -11,7 +11,7 @@
  *
  * The HttpRequest class encapsulates all the required information of an HTTP
  * request, including the method, HTTP version, URI, headers, and body. It is
- * designed to be constructed by the RequestParser after a request passes all
+ * designed to be constructed by the ARequestParser after a request passes all
  * parsing tests. The class ensures consistency by normalizing itself upon
  * initialization, adhering to the HTTP/1.1 specification.
  */

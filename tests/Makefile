@@ -16,8 +16,9 @@ WHITE       := \033[0;97m
 ##                                  WEBSERV                                   ##
 ################################################################################
 
+# TODO: these are not the test file names
 # Add here the name of the file that contain an specific group of tests.
-TESTS							:= ServerInput ServerConfig utils HttpRequest RequestParser \
+TESTS							:= ServerInput ServerConfig utils HttpRequest ARequestParser \
 										 Logger ServerException ServerEngineGet ServerEngineDelete
 CXX								:= c++
 RM								:= rm -rf
@@ -80,8 +81,8 @@ utils: $(OBJECTS) utilsTest.cpp
 HttpRequest: $(OBJECTS) HttpRequestTest.cpp
 	@$(call run, "$^")
 
-.PHONY: RequestParser
-RequestParser: $(OBJECTS) RequestParserTest.cpp
+.PHONY: ARequestParser
+ARequestParser: $(OBJECTS) ARequestParserTest.cpp
 	@$(call run, "$^")
 
 .PHONY: Logger
