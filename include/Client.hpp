@@ -26,7 +26,9 @@ class Client
 
 	void readClientBuffer_(void);
 	bool isCompleteRequest_(void);
-	bool hasSizeIndicator(void);
+	bool hasSizeIndicator_(void);
+	bool isBodyFullyReceived_(size_t headerEndPos);
+	void extractExtraChars_(size_t pos);
 
 	int				 *fd_;
 	std::stringstream clientBuffer_;

@@ -1,13 +1,16 @@
 #pragma once
 
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <map>
 
 // Fourty-two namespace contains utility functions.
 namespace ft
 {
+
+// Helper function to perform case-insensitive comparison
+bool caseInsensitiveFind(const std::string &str, const std::string &substr);
 
 template <typename T> std::string toString(T const &value)
 {
@@ -38,7 +41,7 @@ unsigned long stringToULong(std::string const &str);
 bool isURI(std::string const &str);
 bool isURL(std::string const &str);
 
-std::string getDirectory(std::string const &path);
+std::string								 getDirectory(std::string const &path);
 std::map<std::string, std::string> const createMimeTypesMap(void);
 
 std::string readFile(const std::string &filePath);

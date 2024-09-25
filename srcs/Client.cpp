@@ -1,7 +1,7 @@
 #include "Client.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
-#include <algorithm>
+#include "utils.hpp"
 #include <cstddef>
 #include <cstdlib>
 #include <string>
@@ -85,17 +85,17 @@ bool Client::isCompleteRequest_(void)
 	size_t headerEndPos = requestStr_.find("\r\n\r\n");
 	if (headerEndPos != std::string::npos)
 	{
-		if (!hasSizeIndicator())
+		if (!hasSizeIndicator_())
 		{
 			// No body, request ends at the first \r\n\r\n
 			hasCompleteRequest_ = true;
-			extractExtraChars(headerEndPos + 4);
+			extractExtraChars_(headerEndPos + 4);
 			return true;
 		}
 		else
 		{
 			// Request has a body, check if the body is fully received
-			if (isBodyFullyReceived(headerEndPos))
+			if (isBodyFullyReceived_(headerEndPos))
 			{
 				hasCompleteRequest_ = true;
 				return true;
@@ -106,17 +106,7 @@ bool Client::isCompleteRequest_(void)
 	return false;
 }
 
-// Helper function to perform case-insensitive comparison
-bool caseInsensitiveFind(const std::string &str, const std::string &substr)
-{
-    std::string strLower = str;
-    std::string substrLower = substr;
-    std::transform(strLower.begin(), strLower.end(), strLower.begin(), ::tolower);
-    std::transform(substrLower.begin(), substrLower.end(), substrLower.begin(), ::tolower);
-    return strLower.find(substrLower) != std::string::npos;
-}
-
-bool Client::isBodyFullyReceived(size_t headerEndPos)
+bool Client::isBodyFullyReceived_(size_t headerEndPos)
 {
 	size_t bodyStartPos = headerEndPos + 4;
 	if (requestStr_.find("Content-Length") != std::string::npos)
@@ -129,7 +119,7 @@ bool Client::isBodyFullyReceived(size_t headerEndPos)
 		size_t contentLength = std::atoi(contentLengthStr.c_str());
 		if (requestStr_.size() >= bodyStartPos + contentLength)
 		{
-			extractExtraChars(bodyStartPos + contentLength);
+			extractExtraChars_(bodyStartPos + contentLength);
 			return true;
 		}
 	}
@@ -139,14 +129,14 @@ bool Client::isBodyFullyReceived(size_t headerEndPos)
 		size_t chunkEndPos = requestStr_.find("0\r\n\r\n", bodyStartPos);
 		if (chunkEndPos != std::string::npos)
 		{
-			extractExtraChars(chunkEndPos + 5);
+			extractExtraChars_(chunkEndPos + 5);
 			return true;
 		}
 	}
 	return false;
 }
 
-void Client::extractExtraChars(size_t pos)
+void Client::extractExtraChars_(size_t pos)
 {
 	std::string extraChars = requestStr_.substr(pos);
 	requestStr_ = requestStr_.substr(0, pos);
@@ -154,10 +144,10 @@ void Client::extractExtraChars(size_t pos)
 	clientBuffer_.seekg(0, std::ios::beg); // Reset the get pointer
 }
 
-bool Client::hasSizeIndicator(void)
+bool Client::hasSizeIndicator_(void)
 {
-    return caseInsensitiveFind(requestStr_, "Content-Length") ||
-           caseInsensitiveFind(requestStr_, "Transfer-Encoding");
+	return ft::caseInsensitiveFind(requestStr_, "Content-Length")
+		   || ft::caseInsensitiveFind(requestStr_, "Transfer-Encoding");
 }
 
 std::string Client::extractRequestStr(void)

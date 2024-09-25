@@ -172,7 +172,7 @@ std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
  * @brief Extracts the port number from a given string.
  *
  * @param str Pointer to the string from which to extract the port number.
- * @return The extracted port number, or the default port (80) if no valid
+ * @return The extracted port number, or the default port if no valid
  *         port number is found.
  *
  * @note This function currently extracts the port from the Host header.

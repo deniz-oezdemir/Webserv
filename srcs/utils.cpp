@@ -10,6 +10,16 @@
 namespace ft
 {
 
+// Helper function to perform case-insensitive comparison
+bool caseInsensitiveFind(const std::string &str, const std::string &substr)
+{
+    std::string strLower = str;
+    std::string substrLower = substr;
+    std::transform(strLower.begin(), strLower.end(), strLower.begin(), ::tolower);
+    std::transform(substrLower.begin(), substrLower.end(), substrLower.begin(), ::tolower);
+    return strLower.find(substrLower) != std::string::npos;
+}
+
 std::string &trim(std::string &str, std::string const &delimiters)
 {
 	str.erase(0, str.find_first_not_of(delimiters));
