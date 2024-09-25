@@ -2,6 +2,7 @@
 #include "ServerException.hpp"
 #include "colors.hpp"
 #include "utils.hpp"
+#include "macros.hpp"
 
 #include <fcntl.h>
 #include <iostream>
@@ -315,8 +316,8 @@ void ServerConfig::setListenDirective_(
 	bool						   &isTestPrint
 )
 {
-	std::string host("0.0.0.0");
-	std::string port("80");
+	std::string host(DEFAULT_IP);
+	std::string port(DEFAULT_PORT_STR);
 	try
 	{
 		// If the argument is a port number, set the port.
@@ -788,7 +789,7 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 					isTestPrint
 				);
 			it->find("server_name")
-				->second.setVector(std::vector<std::string>(1, "localhost"));
+				->second.setVector(std::vector<std::string>(1, DEFAULT_HOST));
 		}
 		// NOTE: Uncomment the code below if the server_name should be unique.
 		//
@@ -816,15 +817,15 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 			if (isTest || isTestPrint)
 				this->errorHandler_(
 					"Missing [listen] directive, set default value: "
-					"'0.0.0.0:80'",
+					"'0.0.0.0:8080'",
 					0,
 					isTest,
 					isTestPrint
 				);
 			// clang-format off
 			std::map<std::string, std::vector<std::string> > listenMap;
-			listenMap["host"] = std::vector<std::string>(1, "0.0.0.0");
-			listenMap["port"] = std::vector<std::string>(1, "80");
+			listenMap["host"] = std::vector<std::string>(1, DEFAULT_IP);
+			listenMap["port"] = std::vector<std::string>(1, DEFAULT_PORT_STR);
 			it->find("listen")->second.setMap(listenMap);
 		}
 		else
