@@ -583,7 +583,7 @@ std::string ServerEngine::createFileResponse_(
 		response.setStatusCode(200);
 		response.setReasonPhrase("OK");
 		response.setHeader("Server", SERVER_NAME);
-		response.setHeader("Date", createTimestamp_());
+		response.setHeader("Date", ft::createTimestamp_());
 		response.setHeader("Content-Type", getMimeType(filepath));
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		if (keepAlive)
@@ -687,7 +687,7 @@ std::string ServerEngine::handleDeleteRequest_(
 		response.setStatusCode(200);
 		response.setReasonPhrase("OK");
 		response.setHeader("Server", SERVER_NAME);
-		response.setHeader("Date", createTimestamp_());
+		response.setHeader("Date", ft::createTimestamp_());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		response.setHeader("Connection", "keep-alive");
@@ -701,7 +701,7 @@ std::string ServerEngine::handleDeleteRequest_(
 		response.setStatusCode(404);
 		response.setReasonPhrase("Not Found");
 		response.setHeader("Server", SERVER_NAME);
-		response.setHeader("Date", createTimestamp_());
+		response.setHeader("Date", ft::createTimestamp_());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
 		response.setHeader("Content-Length", std::to_string(body.size()));
 		response.setHeader("Connection", "keep-alive");
@@ -726,20 +726,6 @@ std::string ServerEngine::handlePostRequest_(
 	return "POST test\n";
 }
 
-std::string ServerEngine::createTimestamp_()
-{
-	time_t	   now = time(0);
-	struct tm *tstruct = localtime(&now);
-	if (tstruct == nullptr)
-	{
-		throw std::runtime_error("Failed to get local time");
-	}
-
-	char buf[80];
-	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", tstruct);
-	return std::string(buf);
-}
-
 std::string ServerEngine::handleServerErrorResponse_(
 	Server const	  &server,
 	int				   statusCode,
@@ -755,7 +741,7 @@ std::string ServerEngine::handleServerErrorResponse_(
 		response.setStatusCode(statusCode);
 		response.setReasonPhrase(getStatusCodeReason(statusCode));
 		response.setHeader("Server", SERVER_NAME);
-		response.setHeader("Date", createTimestamp_());
+		response.setHeader("Date", ft::createTimestamp_());
 		response.setHeader("Content-Type", getMimeType(errorURI));
 
 		std::string body = ft::readFile(rootdir + errorURI);
@@ -783,7 +769,7 @@ ServerEngine::handleDefaultErrorResponse_(int statusCode, bool closeConnection)
 	response.setStatusCode(statusCode);
 	response.setReasonPhrase(getStatusCodeReason(statusCode));
 	response.setHeader("Server", SERVER_NAME);
-	response.setHeader("Date", createTimestamp_());
+	response.setHeader("Date", ft::createTimestamp_());
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
 	std::string body
@@ -838,7 +824,7 @@ std::string ServerEngine::handleReturnDirective_(
 	response.setStatusCode(statusCode);
 	response.setReasonPhrase(getStatusCodeReason(statusCode));
 	response.setHeader("Server", SERVER_NAME);
-	response.setHeader("Date", createTimestamp_());
+	response.setHeader("Date", ft::createTimestamp_());
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
 	response.setHeader("Content-Length", "0");
 	if (keepAlive)
@@ -919,7 +905,7 @@ std::string ServerEngine::handleAutoIndex_(
 	response.setStatusCode(200);
 	response.setReasonPhrase("OK");
 	response.setHeader("Server", SERVER_NAME);
-	response.setHeader("Date", createTimestamp_());
+	response.setHeader("Date", ft::createTimestamp_());
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
 	response.setHeader("Content-Length", ft::toString(body.size()));
 	if (keepAlive)
@@ -1025,7 +1011,7 @@ std::string ServerEngine::handleCgiRequest_(
 		response.setStatusCode(200);
 		response.setReasonPhrase("OK");
 		response.setHeader("Server", SERVER_NAME);
-		response.setHeader("Date", createTimestamp_());
+		response.setHeader("Date", ft::createTimestamp_());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
 		response.setHeader("Content-Length", ft::toString(output.str().size()));
 		if (keepAlive)

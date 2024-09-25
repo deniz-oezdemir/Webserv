@@ -141,6 +141,4 @@ class ServerEngine
 		std::string const &rootdir,
 		bool			  &keepAlive
 	);
-
-	std::string createTimestamp_();
 };
