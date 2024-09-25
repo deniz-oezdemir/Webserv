@@ -31,7 +31,6 @@ class Client
 	int				 *fd_;
 	std::stringstream clientBuffer_;
 	std::string		  requestStr_;
-	size_t			  bytesRead_;
 	bool			  isChunked_;
 	bool			  hasCompleteRequest_;
 	bool			  isClosed_;
