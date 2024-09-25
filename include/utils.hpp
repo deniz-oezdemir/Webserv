@@ -9,6 +9,9 @@
 namespace ft
 {
 
+// Helper function to convert a string to lowercase
+std::string toLower(const std::string &str);
+
 // Helper function to perform case-insensitive comparison
 bool caseInsensitiveFind(const std::string &str, const std::string &substr);
 
