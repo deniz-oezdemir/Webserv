@@ -4,16 +4,6 @@
 #include <sstream>
 #include <string>
 
-/**
- * @class Client
- * @brief Handles client connections and processes incoming requests.
- *
- * The Client class is responsible for managing client connections in a server
- * program. It reads data from a file descriptor, processes incoming requests,
- * and maintains the state of the connection. The class provides methods to
- * check if a complete request has been received, extract the request string,
- * and determine if the connection is closed.
- */
 class Client
 {
   public:
