@@ -153,27 +153,42 @@ bool isURL(std::string const &str)
 	return true;
 }
 
-std::map<std::string, std::string> const createMimeTypesMap()
+std::string getMimeType(std::string const &filePath)
 {
-	std::map<std::string, std::string> mimeTypes;
-	mimeTypes["html"] = "text/html; charset=UTF-8";
-	mimeTypes["htm"] = "text/html; charset=UTF-8";
-	mimeTypes["css"] = "text/css; charset=UTF-8";
-	mimeTypes["js"] = "application/javascript; charset=UTF-8";
-	mimeTypes["json"] = "application/json; charset=UTF-8";
-	mimeTypes["jpg"] = "image/jpeg";
-	mimeTypes["jpeg"] = "image/jpeg";
-	mimeTypes["png"] = "image/png";
-	mimeTypes["gif"] = "image/gif";
-	mimeTypes["txt"] = "text/plain; charset=UTF-8";
-	mimeTypes["xml"] = "application/xml; charset=UTF-8";
-	mimeTypes["pdf"] = "application/pdf";
-	mimeTypes["zip"] = "application/zip";
-	mimeTypes["mp3"] = "audio/mpeg";
-	mimeTypes["mp4"] = "video/mp4";
-	mimeTypes["avi"] = "video/x-msvideo";
+	static std::map<std::string, std::string> mimeTypes;
+	if (mimeTypes.empty())
+	{
+		mimeTypes["html"] = "text/html; charset=UTF-8";
+		mimeTypes["htm"] = "text/html; charset=UTF-8";
+		mimeTypes["css"] = "text/css; charset=UTF-8";
+		mimeTypes["js"] = "application/javascript; charset=UTF-8";
+		mimeTypes["json"] = "application/json; charset=UTF-8";
+		mimeTypes["jpg"] = "image/jpeg";
+		mimeTypes["jpeg"] = "image/jpeg";
+		mimeTypes["png"] = "image/png";
+		mimeTypes["gif"] = "image/gif";
+		mimeTypes["txt"] = "text/plain; charset=UTF-8";
+		mimeTypes["xml"] = "application/xml; charset=UTF-8";
+		mimeTypes["pdf"] = "application/pdf";
+		mimeTypes["zip"] = "application/zip";
+		mimeTypes["mp3"] = "audio/mpeg";
+		mimeTypes["mp4"] = "video/mp4";
+		mimeTypes["avi"] = "video/x-msvideo";
+	}
 
-	return mimeTypes;
+	size_t dotPos = filePath.rfind('.');
+	if (dotPos != std::string::npos)
+	{
+		std::string extension = filePath.substr(dotPos + 1);
+		std::map<std::string, std::string>::const_iterator it
+			= mimeTypes.find(extension);
+		if (it != mimeTypes.end())
+		{
+			return it->second;
+		}
+	}
+
+	return "application/octet-stream";
 }
 
 std::string getDirectory(const std::string &filepath)
@@ -220,7 +235,7 @@ std::string createTimestamp()
 	return std::string(buf);
 }
 
-std::string const &getStatusCodeReason(unsigned int &statusCode)
+std::string const &getStatusCodeReason(int const &statusCode)
 {
 	static std::map<int, std::string> httpStatusCodes;
 	if (httpStatusCodes.empty())

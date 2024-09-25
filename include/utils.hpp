@@ -38,12 +38,11 @@ unsigned long stringToULong(std::string const &str);
 bool isURI(std::string const &str);
 bool isURL(std::string const &str);
 
-std::string								 getDirectory(std::string const &path);
-std::map<std::string, std::string> const createMimeTypesMap(void);
-
+std::string		   getDirectory(std::string const &path);
 std::string		   readFile(const std::string &filePath);
 std::string		   createTimestamp();
-std::string const &getStatusCodeReason(unsigned int statusCode);
+std::string const &getStatusCodeReason(int const &statusCode);
+std::string		   getMimeType(std::string const &filePath);
 
 template <typename C, typename T>
 typename C::iterator find(C &container, T const &value)

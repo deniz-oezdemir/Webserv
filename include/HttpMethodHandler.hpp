@@ -65,27 +65,28 @@ class HttpMethodHandler
 		std::string const &filepath,
 		std::string const &rootdir,
 		Server const	  &server,
-		bool			  &keepAlive
+		bool const		  &keepAlive
 	);
 
+	// clang-format off
 	static std::string handleRedirection_(
 		std::map<std::string, std::vector<std::string> > const &location,
-		bool												  &keepAlive
-	);
+		bool const											  &keepAlive
+	); // clang-format on
 	static std::string handleReturnDirective_(
 		std::vector<std::string> const &returnDirective,
-		bool						   &keepAlive
+		bool const					   &keepAlive
 	);
 	static std::string handleAutoIndex_(
 		std::string const &root,
 		std::string const &uri,
-		bool			  &keepAlive
+		bool const		  &keepAlive
 	);
 	static std::string handleCgiRequest_(
 		std::string const &filepath,
 		std::string const &interpreter,
 		HttpRequest const &request,
-		bool			  &keepAlive
+		bool const		  &keepAlive
 	);
 
 	static std::string

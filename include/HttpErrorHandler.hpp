@@ -8,7 +8,7 @@ class HttpErrorHandler
 {
   public:
 	static std::string
-	getErrorPage(unsigned int const &statusCode, bool const &keepAlive = false);
+	getErrorPage(unsigned int const &statusCode, bool const &keepAlive = true);
 	static std::string getErrorPage(
 		Server const	  &server,
 		unsigned int const &statusCode,
