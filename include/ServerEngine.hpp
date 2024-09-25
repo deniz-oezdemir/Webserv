@@ -5,6 +5,7 @@
 #include "Server.hpp"
 #include "macros.hpp"
 #include <algorithm>
+#include <cstddef>
 #include <cstring>
 #include <map>
 #include <poll.h>
@@ -42,6 +43,7 @@ class ServerEngine
 
 	// TODO: combine into one vector of triplets to improve cache usage
 	std::vector<std::stringstream> clientRequestBuffer_;
+	std::vector<std::string>	   clientReadFullRequest_;
 	std::vector<long long>		   totalBytesRead_;
 	std::vector<bool>			   isDoneReading_;
 	size_t						   clientIndex_;
@@ -52,8 +54,9 @@ class ServerEngine
 		size_t									 &globalServerIndex
 	);
 	void initServerPollFds_(void);
-	void initializePollEvents();
-	void processPollEvents();
+	void initializePollEvents(void);
+	void processPollEvents(void);
+	bool readClientFd(size_t pollFDIndex, size_t clientIndex);
 	void readClientRequest_(size_t &index);
 	void sendClientResponse_(size_t &index);
 	bool isPollFdServer_(int &fd);
