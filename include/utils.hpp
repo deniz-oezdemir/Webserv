@@ -68,6 +68,6 @@ Iterator find(Iterator begin, Iterator end, T const &value)
 	return end;
 }
 
-std::string createTimestamp_();
+std::string createTimestamp();
 
 } // namespace ft

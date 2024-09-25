@@ -206,7 +206,7 @@ std::string readFile(const std::string &filePath)
 	return buffer.str();
 }
 
-std::string createTimestamp_()
+std::string createTimestamp()
 {
 	time_t	   now = time(0);
 	struct tm *tstruct = localtime(&now);
