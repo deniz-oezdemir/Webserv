@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
+#include <map>
 
 namespace ft
 {
@@ -266,5 +267,4 @@ std::string const &getStatusCodeReason(int const &statusCode)
 		return httpStatusCodes[500];
 	return httpStatusCodes[statusCode];
 }
-
 } // namespace ft

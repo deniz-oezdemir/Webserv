@@ -1,6 +1,5 @@
 #pragma once
 
-#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -68,5 +67,7 @@ Iterator find(Iterator begin, Iterator end, T const &value)
 	}
 	return end;
 }
+
+std::string createTimestamp();
 
 } // namespace ft
