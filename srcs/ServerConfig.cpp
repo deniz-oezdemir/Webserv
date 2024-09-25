@@ -621,7 +621,7 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 					&& !this->checkDirective_(tokens))
 					this->errorHandler_(
 						"Invalid value [" + tokens[1] + "] for " + tokens[0]
-							+ " directive, expected a port nu mber",
+							+ " directive",
 						lineIndex,
 						isTest,
 						isTestPrint
