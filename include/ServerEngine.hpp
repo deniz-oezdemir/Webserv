@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Client.hpp"
 #include "ConfigValue.hpp"
 #include "HttpRequest.hpp"
 #include "Server.hpp"
@@ -11,6 +12,9 @@
 #include <poll.h>
 #include <string>
 #include <sys/wait.h>
+
+// TODO: add one header "Webserve" that includes all headers, then we can
+// just include Webserv everywhere?
 
 extern bool g_shutdown;
 
@@ -41,12 +45,8 @@ class ServerEngine
 	std::vector<Server> servers_;
 	// TODO: introduce pollIndex_ such that we do not have to pass it as arg
 
-	// TODO: combine into one vector of triplets to improve cache usage
-	std::vector<std::stringstream> clientRequestBuffer_;
-	std::vector<std::string>	   clientReadFullRequest_;
-	std::vector<long long>		   totalBytesRead_;
-	std::vector<bool>			   isDoneReading_;
-	size_t						   clientIndex_;
+	std::vector<Client> clients_;
+	size_t				clientIndex_;
 
 	void initServer_(
 		std::map<std::string, ConfigValue> const &serverConfig,

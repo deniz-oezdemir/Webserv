@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Client.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: migmanu <jmanuelmigoya@gmail.com>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/25 18:28:17 by migmanu           #+#    #+#             */
-/*   Updated: 2024/09/25 19:04:45 by migmanu          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Client.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
@@ -20,9 +8,11 @@
 #include <unistd.h>
 #include <vector>
 
-Client::Client(int *fd)
+Client::Client(int *pollFd)
 {
-	fd_ = fd;
+	//@Manu: does it need to be a pointer here? we do not want to erase the
+	// pollFd here
+	*pollFd_ = pollFd;
 	hasCompleteRequest_ = false;
 	isChunked_ = false;
 	isClosed_ = false;
@@ -34,14 +24,28 @@ Client::~Client(void)
 }
 
 /**
+ * @brief Resets the state of the Client object. Necessary after response has
+ * been sent to client.
+ */
+void Client::reset()
+{
+	//@Manu: correct?
+	this->requestStr_.str("");
+	this->requestStr_.clear();
+	this->hasCompleteRequest_ = false;
+	this->isChunked_ = false;
+	this->isClosed_ = false;
+}
+
+/**
  * @brief Checks if there is a complete request from the client.
- * 
+ *
  * Reads data from the file descriptor into the client buffer and processes
  * it to determine if a complete request has been received.
- * 
+ *
  * @return true if a complete request has been received, false otherwise.
  */
-bool Client::hasRequest(void)
+bool Client::hasRequestReady(void)
 {
 	if (isClosed_)
 	{
@@ -65,6 +69,16 @@ bool Client::hasRequest(void)
 	ssize_t			  bytesReadFromFd
 		= read(*fd_, buffer.data(), buffer.size()); // TODO: remove magic number
 
+	if (bytesReadFromFd < 0)
+	{
+		if (errno != EWOULDBLOCK && errno != EAGAIN)
+		{
+			Logger::log(Logger::ERROR, true)
+				<< "Failed to read from client: (" << ft::toString(errno)
+				<< ") " << strerror(errno) << std::endl;
+		}
+		return false;
+	}
 	// If both buffer and file descriptor are empty connection is closed
 	if (bytesReadFromFd == 0 && clientBuffer_.str().empty())
 	{
@@ -81,7 +95,7 @@ bool Client::hasRequest(void)
 
 /**
  * @brief Reads data from the client buffer and processes it.
- * 
+ *
  * Reads lines from the client buffer into the request string and checks if
  * a complete request has been received.
  */
@@ -108,11 +122,11 @@ void Client::readClientBuffer_(void)
 
 /**
  * @brief Checks if the current request is complete.
- * 
+ *
  * Determines if the request string contains a complete HTTP request by
  * checking for the end of headers and the presence of a body if indicated
  * by the headers.
- * 
+ *
  * @return true if the request is complete, false otherwise.
  */
 bool Client::isCompleteRequest_(void)
@@ -143,57 +157,60 @@ bool Client::isCompleteRequest_(void)
 
 /**
  * @brief Checks if the body of the request is fully received.
- * 
+ *
  * Determines if the body of the request has been fully received based on
  * the Content-Length or Transfer-Encoding headers.
- * 
+ *
  * @param headerEndPos The position in the request string where the headers end.
  * @return true if the body is fully received, false otherwise.
  */
 bool Client::isBodyFullyReceived_(size_t headerEndPos)
 {
-    size_t bodyStartPos = headerEndPos + 4;
-    if (ft::caseInsensitiveFind(requestStr_, "Content-Length"))
-    {
-        size_t contentLengthPos = requestStr_.find("Content-Length");
-        if (contentLengthPos == std::string::npos)
-        {
-            contentLengthPos = requestStr_.find("content-length");
-        }
-        size_t contentLengthEndPos = requestStr_.find("\r\n", contentLengthPos);
-        std::string contentLengthStr = requestStr_.substr(contentLengthPos + 15, contentLengthEndPos - (contentLengthPos + 15));
-        size_t contentLength = std::atoi(contentLengthStr.c_str());
-        if (requestStr_.size() >= bodyStartPos + contentLength)
-        {
-            extractExtraChars_(bodyStartPos + contentLength);
-            return true;
-        }
-    }
-    else if (ft::caseInsensitiveFind(requestStr_, "Transfer-Encoding"))
-    {
-        size_t transferEncodingPos = requestStr_.find("Transfer-Encoding");
-        if (transferEncodingPos == std::string::npos)
-        {
-            transferEncodingPos = requestStr_.find("transfer-encoding");
-        }
-        // Handle chunked transfer encoding
-        size_t chunkEndPos = requestStr_.find("0\r\n\r\n", bodyStartPos);
-        if (chunkEndPos != std::string::npos)
-        {
-            extractExtraChars_(chunkEndPos + 5);
-            return true;
-        }
-    }
-    return false;
+	size_t bodyStartPos = headerEndPos + 4;
+	if (ft::caseInsensitiveFind(requestStr_, "Content-Length"))
+	{
+		size_t contentLengthPos = requestStr_.find("Content-Length");
+		if (contentLengthPos == std::string::npos)
+		{
+			contentLengthPos = requestStr_.find("content-length");
+		}
+		size_t contentLengthEndPos = requestStr_.find("\r\n", contentLengthPos);
+		std::string contentLengthStr = requestStr_.substr(
+			contentLengthPos + 15, contentLengthEndPos - (contentLengthPos + 15)
+		);
+		size_t contentLength = std::atoi(contentLengthStr.c_str());
+		if (requestStr_.size() >= bodyStartPos + contentLength)
+		{
+			extractExtraChars_(bodyStartPos + contentLength);
+			return true;
+		}
+	}
+	else if (ft::caseInsensitiveFind(requestStr_, "Transfer-Encoding"))
+	{
+		size_t transferEncodingPos = requestStr_.find("Transfer-Encoding");
+		if (transferEncodingPos == std::string::npos)
+		{
+			transferEncodingPos = requestStr_.find("transfer-encoding");
+		}
+		// Handle chunked transfer encoding
+		size_t chunkEndPos = requestStr_.find("0\r\n\r\n", bodyStartPos);
+		if (chunkEndPos != std::string::npos)
+		{
+			extractExtraChars_(chunkEndPos + 5);
+			return true;
+		}
+	}
+	return false;
 }
 
 /**
  * @brief Extracts extra characters from the request string.
- * 
+ *
  * Removes extra characters from the request string and adds them back to
  * the beginning of the client buffer for the next read.
- * 
- * @param pos The position in the request string where the extra characters start.
+ *
+ * @param pos The position in the request string where the extra characters
+ * start.
  */
 void Client::extractExtraChars_(size_t pos)
 {
@@ -205,10 +222,10 @@ void Client::extractExtraChars_(size_t pos)
 
 /**
  * @brief Checks for the presence of size-indicating headers.
- * 
+ *
  * Determines if the request contains headers that indicate the presence
  * of a body, such as Content-Length or Transfer-Encoding.
- * 
+ *
  * @return true if size-indicating headers are present, false otherwise.
  */
 bool Client::hasSizeIndicator_(void)

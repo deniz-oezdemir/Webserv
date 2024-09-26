@@ -42,9 +42,7 @@ ServerEngine::ServerEngine(
 	}
 	this->totalServerInstances_ = globalServerIndex;
 
-	clientRequestBuffer_.clear();
-	totalBytesRead_.clear();
-	isDoneReading_.clear();
+	clients_.clear();
 	clientIndex_ = 0;
 }
 
@@ -205,12 +203,10 @@ void ServerEngine::acceptConnection_(size_t &index)
 	Logger::log(Logger::DEBUG)
 		<< "Client connection added to pollFds_[" << index << "]" << std::endl;
 
-	clientRequestBuffer_.push_back(std::string());
-	totalBytesRead_.push_back(-1);
-	isDoneReading_.push_back(false);
-	Logger::log(Logger::DEBUG) << "Empty ClientRequestBuffer and -1 "
-								  "totalBytesReads initialized for pollFds_["
-							   << index << "]" << std::endl;
+	Client client(&clientPollFd.fd);
+	clients_.push_back(client);
+	Logger::log(Logger::DEBUG)
+		<< "Client added to clients_[" << clientIndex_ << "]" << std::endl;
 }
 
 void ServerEngine::pollFdError_(size_t &index)
@@ -243,9 +239,7 @@ void ServerEngine::pollFdError_(size_t &index)
 			<< "]: " << pollFds_[index].fd << std::endl;
 		close(pollFds_[index].fd);
 		this->pollFds_.erase(this->pollFds_.begin() + index);
-		clientRequestBuffer_.erase(clientRequestBuffer_.begin() + clientIndex_);
-		totalBytesRead_.erase(totalBytesRead_.begin() + clientIndex_);
-		isDoneReading_.erase(isDoneReading_.begin() + clientIndex_);
+		clients_.erase(clients_.begin() + clientIndex_);
 	}
 	else
 	{
@@ -269,60 +263,42 @@ void ServerEngine::initializePollEvents()
 
 void ServerEngine::readClientRequest_(size_t &index)
 {
-	if (!isDoneReadings[clientIndex_])
-	{
-		// TODO: Manu implement read function
-		// TODO: Deniz refactor Manu's read function to access the vector
-		// elements itself
-		return;
-	}
-
 	Logger::log(Logger::INFO)
 		<< "Reading client request at pollFds_[" << index << ']' << std::endl;
 
-	if (totalBytesRead_[clientIndex_] < 0)
+	if (clients_[clientIndex_].hasRequestReady() == false)
 	{
-		if (errno != EWOULDBLOCK && errno != EAGAIN)
+		if (clients_[clientIndex_].isClosed() == true)
 		{
-			Logger::log(Logger::ERROR, true)
-				<< "Failed to read from client: (" << ft::toString(errno)
-				<< ") " << strerror(errno) << std::endl;
+			Logger::log(Logger::DEBUG)
+				<< "Client disconnected:"
+				<< "Erase clients_[" << clientIndex_ << "], "
+				<< "close and erase pollFds_[" << index << "]" << std::endl;
+			clients_.erase(clients_.begin() + clientIndex_);
+			close(pollFds_[index].fd);
+			pollFds_.erase(pollFds_.begin() + index);
 		}
-		return;
-	}
-	else if (totalBytesRead_[clientIndex_] == 0)
-	{
-		// Client disconnected
-		Logger::log(Logger::DEBUG)
-			<< "Client disconnected: pollFds_[" << index << "]"
-			<< ", closing socket and deleting it from pollFds_" << std::endl;
-		close(pollFds_[index].fd);
-		pollFds_.erase(pollFds_.begin() + index);
-		clientRequestBuffer_.erase(clientRequestBuffer_.begin() + clientIndex_);
-		totalBytesRead_.erase(totalBytesRead_.begin() + clientIndex_);
-		isDoneReading_.erase(isDoneReading_.begin() + clientIndex_);
 		return;
 	}
 
 	// After reading the request, prepare to send a response
 	pollFds_[index].events = POLLOUT;
-
 	Logger::log(Logger::DEBUG)
-		<< "Read " << this->bytesRead_ << " bytes" << std::endl;
+		<< "Read complete client request at pollFds_[" << index
+		<< "] and set it to POLLOUT" << std::endl;
 }
 
 void ServerEngine::sendClientResponse_(size_t &index)
 {
-	// TODO: check if program  faster without  manual allocation of HttpRequest
+	// TODO: check if program  faster without  manual allocation of
+	// HttpRequest
 	HttpRequest *request = NULL;
 	try
 	{
-		std::string requestStr(
-			clientRequestBuffer_[clientIndex_], totalBytesRead_[clientIndex_]
-		);
-		request = new HttpRequest(RequestParser::parseRequest(requestStr));
-		Logger::log(Logger::DEBUG) << "Request received:\n\nBuffer:\n"
-								   << requestStr << "Request:\n"
+		request = new HttpRequest(RequestParser::parseRequest(
+			clients_[clientIndex_].extractRequeststr()
+		));
+		Logger::log(Logger::DEBUG) << "Request received:\n"
 								   << *request << std::flush;
 	}
 	catch (std::exception &e)
@@ -337,39 +313,36 @@ void ServerEngine::sendClientResponse_(size_t &index)
 		Logger::log(Logger::DEBUG) << "Sending response" << std::endl;
 		int retCode
 			= send(pollFds_[index].fd, response.c_str(), response.size(), 0);
-		// offset of totalServerInstances_ in index
-		clientRequestBuffer_[clientIndex_].str("");
-		clientRequestBuffer_[clientIndex_].clear();
-		totalBytesRead_[clientIndex_] = -1;
+
+		//@Manu: should ServerEngine or Client handle the Client reset after
+		//sending response?
+		clients_[clientIndex_].reset();
 
 		if (retCode < 0)
 		{
 			Logger::log(Logger::ERROR, true)
 				<< "Failed to send response to client: (" << ft::toString(errno)
 				<< ") " << strerror(errno) << std::endl;
+			Logger::log(Logger::DEBUG)
+				<< "Erase clients_[" << clientIndex_ << "], "
+				<< "close and erase pollFds_[" << index << "]" << std::endl;
+			clients_.erase(clients_.begin() + clientIndex_);
 			close(pollFds_[index].fd);
 			pollFds_.erase(pollFds_.begin() + index);
-			clientRequestBuffer_.erase(
-				clientRequestBuffer_.begin() + clientIndex_
-			);
-			totalBytesRead_.erase(totalBytesRead_.begin() + clientIndex_);
-			isDoneReading_.erase(isDoneReading_.begin() + clientIndex_);
 			delete request;
 			return;
 		}
 		else if (retCode == 0)
 		{
 			Logger::log(Logger::DEBUG)
-				<< "Client disconnected pollFds_[" << index
-				<< "], closing socket and deleting it from pollFds_"
-				<< std::endl;
+				<< "Client disconnected: clients_[" << clientIndex_
+				<< "] disconnected" << std::endl;
+			Logger::log(Logger::DEBUG)
+				<< "Erase clients_[" << clientIndex_ << "], "
+				<< "close and erase pollFds_[" << index << "]" << std::endl;
+			clients_.erase(clients_.begin() + clientIndex_);
 			close(pollFds_[index].fd);
 			pollFds_.erase(pollFds_.begin() + index);
-			clientRequestBuffer_.erase(
-				clientRequestBuffer_.begin() + clientIndex_
-			);
-			totalBytesRead_.erase(totalBytesRead_.begin() + clientIndex_);
-			isDoneReading_.erase(isDoneReading_.begin() + clientIndex_);
 			delete request;
 			return;
 		}
@@ -620,9 +593,9 @@ std::string ServerEngine::handleDeleteRequest_(
 
 	if (remove(filepath.c_str()) == 0)
 	{
-		std::string body
-			= "<!DOCTYPE html>\n<html>\n<head><title>200 OK</title></head>\n"
-			  "<body><h1>File deleted.</h1></body>\n</html>\n";
+		std::string body = "<!DOCTYPE html>\n<html>\n<head><title>200 "
+						   "OK</title></head>\n"
+						   "<body><h1>File deleted.</h1></body>\n</html>\n";
 		response.setStatusCode(200);
 		response.setReasonPhrase("OK");
 		response.setHeader("Server", "Webserv/0.1");
@@ -666,8 +639,8 @@ std::string ServerEngine::handlePostRequest_(
 }
 
 // commented out similar functionality via exception by
-// RequestParser::checkMethod_() as it should be handled with a 501 response to
-// the client
+// RequestParser::checkMethod_() as it should be handled with a 501 response
+// to the client
 std::string ServerEngine::handleNotImplementedRequest_()
 {
 	// Get root path from config of server
@@ -686,8 +659,8 @@ std::string ServerEngine::handleNotImplementedRequest_()
 	std::string body = ft::readFile(rootdir + "/501.html");
 
 	response.setHeader("Content-Length", std::to_string(body.size()));
-	// nginx typically closes the TCP connection after sending a 501 response,
-	// do we want to implement it?
+	// nginx typically closes the TCP connection after sending a 501
+	// response, do we want to implement it?
 	response.setHeader("Connection", "close");
 	response.setBody(body);
 	return response.toString();

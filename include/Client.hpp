@@ -10,7 +10,7 @@ class Client
 	Client(int *fd);
 	~Client(void);
 
-	bool hasRequest(void);
+	bool hasRequestReady(void);
 
 	std::string extractRequestStr(void);
 
@@ -30,7 +30,7 @@ class Client
 	bool isBodyFullyReceived_(size_t headerEndPos);
 	void extractExtraChars_(size_t pos);
 
-	int				 *fd_;
+	int				 *pollFd_;
 	std::stringstream clientBuffer_;
 	std::string		  requestStr_;
 	bool			  isChunked_;
