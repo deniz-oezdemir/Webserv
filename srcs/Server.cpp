@@ -5,6 +5,7 @@
 
 #include <fcntl.h>
 #include <netdb.h>
+#include <errno.h>
 #include <unistd.h>
 
 Server::Server(

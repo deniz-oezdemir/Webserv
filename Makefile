@@ -53,6 +53,8 @@ HEADERS := 	colors.hpp \
 			request_parser/HttpHeaders.hpp \
 			request_parser/ABodyParser.hpp \
 			request_parser/ATokenValidator.hpp \
+			HttpMethodHandler.hpp \
+			HttpErrorHandler.hpp
 
 SOURCE := 	main.cpp \
 			ServerInput.cpp \
@@ -73,7 +75,9 @@ SOURCE := 	main.cpp \
 			ServerEngine.cpp \
 			HttpResponse.cpp \
 			signals.cpp \
-			globals.cpp
+			globals.cpp \
+			HttpMethodHandler.cpp \
+			HttpErrorHandler.cpp
 
 OBJECTS := $(addprefix $(OBJ_DIR)/, $(notdir $(SOURCE:.cpp=.o)))
 

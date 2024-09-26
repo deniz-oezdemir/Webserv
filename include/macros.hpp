@@ -1,6 +1,9 @@
 #pragma once
 
-#define DEFAULT_PORT 80
+#define DEFAULT_PORT 8080
+#define DEFAULT_PORT_STR "8080"
+#define DEFAULT_IP	 "0.0.0.0"
+#define DEFAULT_HOST "localhost"
 #define QUEUE_SIZE	 1
 #define POLL_TIMEOUT -1
 #define BUFFER_SIZE	 8192
