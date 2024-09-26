@@ -1,7 +1,7 @@
-#include "request_parser/HeaderParser.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
+#include "request_parser/HeaderParser.hpp"
 #include "request_parser/HttpHeaders.hpp"
 #include <map>
 #include <string>
@@ -352,11 +352,11 @@ std::vector<std::string> HeaderParser::splitHeaderValue_(
 
 /**
  * @brief Unifies the headers from a multimap into a map of vectors.
- * 
+ *
  * This function converts a multimap of headers into a map where each header name
  * maps to a vector of its values. It handles both single and repeated headers,
  * splitting the values as necessary.
- * 
+ *
  * @param multimap The multimap containing the headers.
  * @return std::map<std::string, std::vector<std::string>> A map containing the unified headers.
  */

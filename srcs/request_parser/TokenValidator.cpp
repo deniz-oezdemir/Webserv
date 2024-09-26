@@ -1,8 +1,8 @@
-#include "request_parser/TokenValidator.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
 #include "request_parser/HttpHeaders.hpp"
+#include "request_parser/TokenValidator.hpp"
 #include <map>
 #include <string>
 #include <vector>
@@ -33,7 +33,7 @@ void TokenValidator::validateTokens(
 				// whithin the exceptions allowed for its header
 				if (delimeterChars.find(*c) != std::string::npos
 					&& headerAcceptedChars.find(header->first)->second.find(*c)
-					== std::string::npos)
+						   == std::string::npos)
 				{
 					Logger::log(Logger::INFO)
 						<< "Header contains token with invalid delimeter "

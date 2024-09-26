@@ -4,3 +4,5 @@ webServ
 obj/
 *.o
 .vscode/
+tests/*
+!tests/*.*

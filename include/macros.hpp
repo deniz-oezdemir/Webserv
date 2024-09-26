@@ -1,14 +1,15 @@
 #pragma once
 
-#define DEFAULT_PORT 80
-#define QUEUE_SIZE	 1
-#define POLL_TIMEOUT -1
-#define BUFFER_SIZE	 8192
+#define DEFAULT_PORT	 8080
+#define DEFAULT_PORT_STR "8080"
+#define DEFAULT_IP		 "0.0.0.0"
+#define DEFAULT_HOST	 "localhost"
+#define QUEUE_SIZE		 1
+#define POLL_TIMEOUT	 -1
+#define BUFFER_SIZE		 16384
+#define SERVER_NAME		 "webserv/0.5"
 
-#define HTTP_ACCEPTED_METHODS                                                  \
-	{                                                                          \
-		"GET", "POST", "DELETE"                                                \
-	}
+#define HTTP_ACCEPTED_METHODS {"GET", "POST", "DELETE"}
 
 // HTTP CODES
 #define HTTP_200_CODE	200

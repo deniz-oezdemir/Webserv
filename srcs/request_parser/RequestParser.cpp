@@ -43,7 +43,7 @@ HttpRequest RequestParser::parseRequest(std::string str)
 
 	// Extract, parse and normalize headers
 	HeaderParser::parseHeaders(requestStream, &headers);
-	
+
 	// Check token syntax
 	TokenValidator::validateTokens(headers);
 

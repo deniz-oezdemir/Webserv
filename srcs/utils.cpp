@@ -1,11 +1,12 @@
 #include "utils.hpp"
-#include "ServerException.hpp"
 #include "Logger.hpp"
+#include "ServerException.hpp"
 
 #include <climits>
 #include <cstdlib>
-#include <sstream>
 #include <fstream>
+#include <sstream>
+#include <map>
 
 namespace ft
 {
@@ -88,9 +89,11 @@ bool strToUShort(std::string const &str, unsigned short &result)
 	unsigned long value = std::strtoul(str.c_str(), &end, 10);
 
 	if (*end != '\0')
-		throw ServerException("Invalid string passed to stringToUint16: %", errno, str);
+		throw ServerException(
+			"Invalid string passed to stringToUint16: %", errno, str
+		);
 	if (value == USHRT_MAX || errno == ERANGE)
-		throw ServerException("Overflow in stringToUint16: " +  str);
+		throw ServerException("Overflow in stringToUint16: " + str);
 	result = static_cast<unsigned short>(value);
 	return true;
 }
@@ -104,9 +107,11 @@ unsigned short strToUShort(std::string const &str)
 	unsigned long value = std::strtoul(str.c_str(), &end, 10);
 
 	if (*end != '\0')
-		throw ServerException("Invalid string passed to stringToUint16: %", errno, str);
+		throw ServerException(
+			"Invalid string passed to stringToUint16: %", errno, str
+		);
 	if (value == USHRT_MAX || errno == ERANGE)
-		throw ServerException("Overflow in stringToUint16: " +  str);
+		throw ServerException("Overflow in stringToUint16: " + str);
 	return static_cast<unsigned short>(value);
 }
 
@@ -133,11 +138,13 @@ unsigned long stringToULong(std::string const &str)
 	if (str.empty())
 		throw ServerException("Empty string passed to stringToULong");
 
-	char *end;
+	char		 *end;
 	unsigned long value = std::strtoul(str.c_str(), &end, 10);
 
 	if (*end != '\0')
-		throw ServerException("Invalid string passed to stringToULong: %", errno, str);
+		throw ServerException(
+			"Invalid string passed to stringToULong: %", errno, str
+		);
 	if (value == ULONG_MAX && errno == ERANGE)
 		throw ServerException("Overflow in stringToULong: %", errno, str);
 
@@ -166,35 +173,52 @@ bool isURL(std::string const &str)
 	return true;
 }
 
-std::map<std::string, std::string> const createMimeTypesMap()
+std::string getMimeType(std::string const &filePath)
 {
-    std::map<std::string, std::string> mimeTypes;
-    mimeTypes["html"] = "text/html; charset=UTF-8";
-    mimeTypes["htm"] = "text/html; charset=UTF-8";
-    mimeTypes["css"] = "text/css; charset=UTF-8";
-    mimeTypes["js"] = "application/javascript; charset=UTF-8";
-    mimeTypes["json"] = "application/json; charset=UTF-8";
-    mimeTypes["jpg"] = "image/jpeg";
-    mimeTypes["jpeg"] = "image/jpeg";
-    mimeTypes["png"] = "image/png";
-    mimeTypes["gif"] = "image/gif";
-    mimeTypes["txt"] = "text/plain; charset=UTF-8";
-    mimeTypes["xml"] = "application/xml; charset=UTF-8";
-    mimeTypes["pdf"] = "application/pdf";
-    mimeTypes["zip"] = "application/zip";
-    mimeTypes["mp3"] = "audio/mpeg";
-    mimeTypes["mp4"] = "video/mp4";
-    mimeTypes["avi"] = "video/x-msvideo";
-    
-    return mimeTypes;
+	static std::map<std::string, std::string> mimeTypes;
+	if (mimeTypes.empty())
+	{
+		mimeTypes["html"] = "text/html; charset=UTF-8";
+		mimeTypes["htm"] = "text/html; charset=UTF-8";
+		mimeTypes["css"] = "text/css; charset=UTF-8";
+		mimeTypes["js"] = "application/javascript; charset=UTF-8";
+		mimeTypes["json"] = "application/json; charset=UTF-8";
+		mimeTypes["jpg"] = "image/jpeg";
+		mimeTypes["jpeg"] = "image/jpeg";
+		mimeTypes["png"] = "image/png";
+		mimeTypes["gif"] = "image/gif";
+		mimeTypes["txt"] = "text/plain; charset=UTF-8";
+		mimeTypes["xml"] = "application/xml; charset=UTF-8";
+		mimeTypes["pdf"] = "application/pdf";
+		mimeTypes["zip"] = "application/zip";
+		mimeTypes["mp3"] = "audio/mpeg";
+		mimeTypes["mp4"] = "video/mp4";
+		mimeTypes["avi"] = "video/x-msvideo";
+	}
+
+	size_t dotPos = filePath.rfind('.');
+	if (dotPos != std::string::npos)
+	{
+		std::string extension = filePath.substr(dotPos + 1);
+		std::map<std::string, std::string>::const_iterator it
+			= mimeTypes.find(extension);
+		if (it != mimeTypes.end())
+		{
+			return it->second;
+		}
+	}
+
+	return "application/octet-stream";
 }
 
-std::string getDirectory(const std::string &filepath) {
-    std::string::size_type pos = filepath.find_last_of("/\\");
-    if (pos != std::string::npos) {
-        return filepath.substr(0, pos);
-    }
-    return ".";
+std::string getDirectory(const std::string &filepath)
+{
+	std::string::size_type pos = filepath.find_last_of("/\\");
+	if (pos != std::string::npos)
+	{
+		return filepath.substr(0, pos);
+	}
+	return ".";
 }
 
 std::string readFile(const std::string &filePath)
@@ -217,4 +241,49 @@ std::string readFile(const std::string &filePath)
 	return buffer.str();
 }
 
+std::string createTimestamp()
+{
+	time_t	   now = time(0);
+	struct tm *tstruct = localtime(&now);
+	if (tstruct == nullptr)
+	{
+		throw std::runtime_error("Failed to get local time");
+	}
+
+	char buf[80];
+	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", tstruct);
+	return std::string(buf);
+}
+
+std::string const &getStatusCodeReason(int const &statusCode)
+{
+	static std::map<int, std::string> httpStatusCodes;
+	if (httpStatusCodes.empty())
+	{
+		httpStatusCodes[200] = "OK";
+		httpStatusCodes[201] = "Created";
+		httpStatusCodes[202] = "Accepted";
+		httpStatusCodes[204] = "No Content";
+		httpStatusCodes[301] = "Moved Permanently";
+		httpStatusCodes[302] = "Found";
+		httpStatusCodes[303] = "See Other";
+		httpStatusCodes[304] = "Not Modified";
+		httpStatusCodes[400] = "Bad Request";
+		httpStatusCodes[401] = "Unauthorized";
+		httpStatusCodes[403] = "Forbidden";
+		httpStatusCodes[404] = "Not Found";
+		httpStatusCodes[405] = "Method Not Allowed";
+		httpStatusCodes[408] = "Request Timeout";
+		httpStatusCodes[411] = "Length Required";
+		httpStatusCodes[413] = "Payload Too Large";
+		httpStatusCodes[414] = "URI Too Long";
+		httpStatusCodes[415] = "Unsupported Media Type";
+		httpStatusCodes[500] = "Internal Server Error";
+		httpStatusCodes[501] = "Not Implemented";
+		httpStatusCodes[505] = "HTTP Version Not Supported";
+	}
+	if (httpStatusCodes.find(statusCode) == httpStatusCodes.end())
+		return httpStatusCodes[500];
+	return httpStatusCodes[statusCode];
+}
 } // namespace ft

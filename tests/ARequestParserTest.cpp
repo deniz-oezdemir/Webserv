@@ -372,7 +372,7 @@ Test(RequestParser, testHeaderWithWrongSeparator)
 	std::map<std::string, std::vector<std::string>> headers;
 	headers["Host"].push_back(host);
 	headers["Accept"].push_back(
-		"text/html; application/xhtml+xml; application/xml"
+		"text/html; application/xhtml+xml;@ application/xml"
 	); // Wrong separator
 	std::vector<char> body;
 

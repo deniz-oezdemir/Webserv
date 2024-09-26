@@ -129,13 +129,15 @@ void Client::readClientBuffer_(void)
 {
 	while (clientBuffer_.str().empty() == false)
 	{
-		std::getline(clientBuffer_, requestStr_, '\n');
-		requestStr_.append("\n");
+		std::string line;
+		std::getline(clientBuffer_, line, '\n');
+		requestStr_ += line + "\n";
 		if (requestStr_.length() > BUFFER_SIZE)
 		{
 			Logger::log(Logger::INFO)
-				<< "Client received request over default buffer size limit."
-				<< std::endl;
+				<< "Client sent request over default buffer size limit."
+				<< "\nrequestStr_.length(): " << requestStr_.length()
+				<< "\nrequesStr_: " << requestStr_ << std::endl;
 			isClosed_ = true;
 			return;
 		}

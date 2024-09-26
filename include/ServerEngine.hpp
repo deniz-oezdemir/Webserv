@@ -5,7 +5,6 @@
 #include "HttpRequest.hpp"
 #include "Server.hpp"
 #include "macros.hpp"
-#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <map>
@@ -28,8 +27,6 @@ class ServerEngine
 	~ServerEngine();
 
 	void			   start(void);
-	std::string const &getStatusCodeReason(unsigned int statusCode) const;
-	std::string		   getMimeType(std::string const &filePath) const;
 
 	// TODO: move createResponse() to private as only public for testing
 	std::string createResponse(const HttpRequest &request);
@@ -64,29 +61,4 @@ class ServerEngine
 	void pollFdError_(size_t &index);
 
 	int findServer_(std::string const &host, unsigned short const &port);
-	std::string
-	generateAutoIndexPage_(std::string const &root, std::string const &uri);
-
-	std::string
-	handleReturnDirective_(std::vector<std::string> const &returnDirective);
-	std::string
-	handleAutoIndex_(std::string const &root, std::string const &uri);
-	std::string handleCgiRequest_(
-		std::string const &filepath,
-		std::string const &interpreter,
-		HttpRequest const &request
-	);
-
-	std::string
-	handleGetRequest_(const HttpRequest &request, Server const &server);
-	std::string
-	handlePostRequest_(const HttpRequest &request, Server const &server);
-	std::string
-	handleDeleteRequest_(const HttpRequest &request, Server const &server);
-	std::string handleNotImplementedRequest_();
-	std::string
-	handleDefaultErrorResponse_(int errorCode, bool closeConnection = false);
-
-	// TODO: move to utils
-	std::string createTimestamp_();
 };
