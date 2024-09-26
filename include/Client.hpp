@@ -7,12 +7,13 @@
 class Client
 {
   public:
-	Client(int *fd);
+	Client(int fd);
 	~Client(void);
 
 	bool hasRequestReady(void);
 
 	std::string extractRequestStr(void);
+	// TODO: use reset_()
 
 	// Getters
 	bool hasCompleteRequest(void) const;
@@ -29,8 +30,9 @@ class Client
 	bool hasSizeIndicator_(void);
 	bool isBodyFullyReceived_(size_t headerEndPos);
 	void extractExtraChars_(size_t pos);
+	void reset_();
 
-	int				 *pollFd_;
+	int				  pollFd_;
 	std::stringstream clientBuffer_;
 	std::string		  requestStr_;
 	bool			  isChunked_;

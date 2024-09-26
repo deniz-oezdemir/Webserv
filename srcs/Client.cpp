@@ -8,11 +8,9 @@
 #include <unistd.h>
 #include <vector>
 
-Client::Client(int *pollFd)
+Client::Client(int pollFd)
 {
-	//@Manu: does it need to be a pointer here? we do not want to erase the
-	// pollFd here
-	*pollFd_ = pollFd;
+	pollFd_ = pollFd;
 	hasCompleteRequest_ = false;
 	isChunked_ = false;
 	isClosed_ = false;
@@ -27,14 +25,12 @@ Client::~Client(void)
  * @brief Resets the state of the Client object. Necessary after response has
  * been sent to client.
  */
-void Client::reset()
+void Client::reset_()
 {
-	//@Manu: correct?
 	this->requestStr_.str("");
 	this->requestStr_.clear();
 	this->hasCompleteRequest_ = false;
 	this->isChunked_ = false;
-	this->isClosed_ = false;
 }
 
 /**
@@ -77,6 +73,7 @@ bool Client::hasRequestReady(void)
 				<< "Failed to read from client: (" << ft::toString(errno)
 				<< ") " << strerror(errno) << std::endl;
 		}
+		isClosed_ = true;
 		return false;
 	}
 	// If both buffer and file descriptor are empty connection is closed

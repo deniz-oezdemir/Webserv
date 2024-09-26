@@ -203,7 +203,7 @@ void ServerEngine::acceptConnection_(size_t &index)
 	Logger::log(Logger::DEBUG)
 		<< "Client connection added to pollFds_[" << index << "]" << std::endl;
 
-	Client client(&clientPollFd.fd);
+	Client client(clientPollFd.fd);
 	clients_.push_back(client);
 	Logger::log(Logger::DEBUG)
 		<< "Client added to clients_[" << clientIndex_ << "]" << std::endl;
@@ -237,6 +237,7 @@ void ServerEngine::pollFdError_(size_t &index)
 		Logger::log(Logger::DEBUG)
 			<< "Closing and deleting client socket: pollFds_[" << index
 			<< "]: " << pollFds_[index].fd << std::endl;
+		// TODO: summarize below three lines into function
 		close(pollFds_[index].fd);
 		this->pollFds_.erase(this->pollFds_.begin() + index);
 		clients_.erase(clients_.begin() + clientIndex_);
@@ -313,10 +314,6 @@ void ServerEngine::sendClientResponse_(size_t &index)
 		Logger::log(Logger::DEBUG) << "Sending response" << std::endl;
 		int retCode
 			= send(pollFds_[index].fd, response.c_str(), response.size(), 0);
-
-		//@Manu: should ServerEngine or Client handle the Client reset after
-		//sending response?
-		clients_[clientIndex_].reset();
 
 		if (retCode < 0)
 		{
