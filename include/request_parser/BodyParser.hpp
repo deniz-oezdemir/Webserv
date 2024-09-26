@@ -4,7 +4,7 @@
 #include <map>
 #include <vector>
 
-class ABodyParser
+class BodyParser
 {
   public:
 	static void parseBody(
@@ -17,10 +17,10 @@ class ABodyParser
 	);
 
   private:
-	ABodyParser(void);
-	ABodyParser(const ABodyParser &src);
-	~ABodyParser(void);
-	ABodyParser &operator=(const ABodyParser &rhs);
+	BodyParser(void);
+	BodyParser(const BodyParser &src);
+	~BodyParser(void);
+	BodyParser &operator=(const BodyParser &rhs);
 
 	static void checkBody_(
 		const std::string &method,

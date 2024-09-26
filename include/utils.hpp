@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -7,6 +8,12 @@
 // Fourty-two namespace contains utility functions.
 namespace ft
 {
+
+// Helper function to convert a string to lowercase
+std::string toLower(const std::string &str);
+
+// Helper function to perform case-insensitive comparison
+bool caseInsensitiveFind(const std::string &str, const std::string &substr);
 
 template <typename T> std::string toString(T const &value)
 {
@@ -37,7 +44,7 @@ unsigned long stringToULong(std::string const &str);
 bool isURI(std::string const &str);
 bool isURL(std::string const &str);
 
-std::string		   getDirectory(std::string const &path);
+std::string										   getDirectory(std::string const &path);
 std::string		   readFile(const std::string &filePath);
 std::string		   createTimestamp();
 std::string const &getStatusCodeReason(int const &statusCode);

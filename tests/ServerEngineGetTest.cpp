@@ -31,7 +31,7 @@ Test(ServerEngine, handleGetRequest_FileExists)
 	std::string requestStr = readFile_("getRequest.txt");
 
 	// Parse the request string into an HttpRequest object
-	HttpRequest request = ARequestParser::parseRequest(requestStr);
+	HttpRequest request = RequestParser::parseRequest(requestStr);
 
 	ServerConfig config("test.config");
 	config.parseFile(false, false);
@@ -67,7 +67,7 @@ Test(ServerEngine, handleGetRequest_FileNotFound)
 	std::string requestStr = readFile_("nofileGetRequest.txt");
 
 	// Parse the request string into an HttpRequest object
-	HttpRequest request = ARequestParser::parseRequest(requestStr);
+	HttpRequest request = RequestParser::parseRequest(requestStr);
 
 	ServerConfig config("test.config");
 	config.parseFile(false, false);
@@ -104,7 +104,7 @@ Test(ServerEngine, handleGetRequest_NotImplemented)
 	std::string requestStr = ft::readFile("traceRequest.txt");
 
 	// Parse the request string into an HttpRequest object
-	HttpRequest request = ARequestParser::parseRequest(requestStr);
+	HttpRequest request = RequestParser::parseRequest(requestStr);
 
 	ServerConfig config("test.config");
 	config.parseFile(false, false);
@@ -143,7 +143,7 @@ Test(ServerEngine, handleGetRequest_Root)
 	std::string requestStr = ft::readFile("getRequestRoot.txt");
 
 	// Parse the request string into an HttpRequest object
-	HttpRequest request = ARequestParser::parseRequest(requestStr);
+	HttpRequest request = RequestParser::parseRequest(requestStr);
 
 	ServerConfig config("test.config");
 	config.parseFile(false, false);

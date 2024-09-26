@@ -4,12 +4,16 @@
 #include "HttpRequest.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
-#include "request_parser/ARequestParser.hpp"
+#include "request_parser/RequestParser.hpp"
 #include "utils.hpp"
 
 #include <csignal>
+#include <cstddef>
 #include <dirent.h>
 #include <fcntl.h>
+#include <fstream>
+#include <sstream>
+#include <string>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -38,6 +42,9 @@ ServerEngine::ServerEngine(
 		this->initServer_(servers[serverIndex], serverIndex, globalServerIndex);
 	}
 	this->totalServerInstances_ = globalServerIndex;
+
+	clients_.clear();
+	clientIndex_ = 0;
 }
 
 ServerEngine::~ServerEngine()
@@ -163,6 +170,11 @@ void ServerEngine::acceptConnection_(size_t &index)
 	pollFds_.push_back(clientPollFd);
 	Logger::log(Logger::DEBUG)
 		<< "Client connection added to pollFds_[" << index << "]" << std::endl;
+
+	Client client(clientPollFd.fd);
+	clients_.push_back(client);
+	Logger::log(Logger::DEBUG)
+		<< "Client added to clients_[" << clientIndex_ << "]" << std::endl;
 }
 
 void ServerEngine::pollFdError_(size_t &index)
@@ -181,20 +193,27 @@ void ServerEngine::pollFdError_(size_t &index)
 			<< "Client disconnected on pollFds_[" << index
 			<< "]: " << pollFds_[index].fd << std::endl;
 	}
+	else if (error == "|POLLERR|")
+	{
+		Logger::log(Logger::DEBUG) << "General error on pollFds_[" << index
+								   << "]: " << pollFds_[index].fd << std::endl;
+	}
 	else
 	{
 		Logger::log(Logger::ERROR, true)
-			<< "Descriptor error on pollFds_[" << index
-			<< "]: " << pollFds_[index].fd << " : (" << error << ") "
-			<< std::endl;
+			<< "Descriptor is not valid on pollFds_[" << index
+			<< "]: " << pollFds_[index].fd << std::endl;
 	}
 	if (!this->isPollFdServer_(this->pollFds_[index].fd))
 	{
 		Logger::log(Logger::DEBUG)
 			<< "Closing and deleting client socket: pollFds_[" << index
 			<< "]: " << pollFds_[index].fd << std::endl;
+		// TODO: summarize below three lines into function
+		// TODO: add close() to client desctructor if erase calls destructor
 		close(pollFds_[index].fd);
 		this->pollFds_.erase(this->pollFds_.begin() + index);
+		clients_.erase(clients_.begin() + clientIndex_);
 	}
 	else
 	{
@@ -216,57 +235,45 @@ void ServerEngine::initializePollEvents()
 		<< "poll() returned " << pollCount << " events" << std::endl;
 }
 
-// TODO: parse request in parts; append buffer to previously parsed request
-// until full request parsed
 void ServerEngine::readClientRequest_(size_t &index)
 {
 	Logger::log(Logger::INFO)
 		<< "Reading client request at pollFds_[" << index << ']' << std::endl;
 
-	this->bytesRead_ = read(
-		this->pollFds_[index].fd, this->clientRequestBuffer_, BUFFER_SIZE
-	);
-
-	if (this->bytesRead_ < 0)
+	if (clients_[clientIndex_].hasRequestReady() == false)
 	{
-		if (errno != EWOULDBLOCK && errno != EAGAIN)
+		if (clients_[clientIndex_].isClosed() == true)
 		{
-			Logger::log(Logger::ERROR, true)
-				<< "Failed to read from client: (" << ft::toString(errno)
-				<< ") " << strerror(errno) << std::endl;
+			Logger::log(Logger::DEBUG)
+				<< "Client disconnected:"
+				<< "Erase clients_[" << clientIndex_ << "], "
+				<< "close and erase pollFds_[" << index << "]" << std::endl;
+			clients_.erase(clients_.begin() + clientIndex_);
+			close(pollFds_[index].fd);
+			pollFds_.erase(pollFds_.begin() + index);
 		}
-		return;
-	}
-	else if (this->bytesRead_ == 0)
-	{
-		// Client disconnected
-		Logger::log(Logger::DEBUG)
-			<< "Client disconnected: pollFds_[" << index << "]"
-			<< ", closing socket and deleting it from pollFds_" << std::endl;
-		close(pollFds_[index].fd);
-		pollFds_.erase(pollFds_.begin() + index);
 		return;
 	}
 
 	// After reading the request, prepare to send a response
 	pollFds_[index].events = POLLOUT;
-
 	Logger::log(Logger::DEBUG)
-		<< "Read " << this->bytesRead_ << " bytes" << std::endl;
+		<< "Read complete client request at pollFds_[" << index
+		<< "] and set it to POLLOUT" << std::endl;
 }
 
-// TODO: The client Request Buffer should be for each client connection
-// and not a global buffer, bytesRead_ is also not optimal
 void ServerEngine::sendClientResponse_(size_t &index)
 {
-	std::string	 response;
+	// TODO: check if program  faster without  manual allocation of
+	// HttpRequest
 	HttpRequest *request = NULL;
+	std::string	 response;
 	try
 	{
-		std::string requestStr(this->clientRequestBuffer_, this->bytesRead_);
-		request = new HttpRequest(ARequestParser::parseRequest(requestStr));
-		Logger::log(Logger::DEBUG) << "Request received:\n\nBuffer:\n"
-								   << requestStr << "Request:\n"
+		request = new HttpRequest(RequestParser::parseRequest(
+			clients_[clientIndex_].extractRequestStr()
+		));
+		Logger::log(Logger::DEBUG) << "Request received:\n"
 								   << *request << std::flush;
 	}
 	catch (std::exception &e)
@@ -278,56 +285,78 @@ void ServerEngine::sendClientResponse_(size_t &index)
 	if (request != NULL)
 	{
 		response = createResponse(*request);
-		Logger::log(Logger::DEBUG) << "Sending response..." << std::endl;
-	}
+		Logger::log(Logger::DEBUG) << "Sending response" << std::endl;
+		int retCode
+			= send(pollFds_[index].fd, response.c_str(), response.size(), 0);
 
-	int retCode
-		= send(pollFds_[index].fd, response.c_str(), response.size(), 0);
-	if (retCode < 0)
-	{
-		Logger::log(Logger::ERROR, true)
-			<< "Failed to send response to client: (" << ft::toString(errno)
-			<< ") " << strerror(errno) << std::endl;
-	}
-	else if (retCode == 0)
-	{
-		Logger::log(Logger::DEBUG)
-			<< "Client disconnected pollFds_[" << index
-			<< "], closing socket and deleting it from pollFds_" << std::endl;
-	}
-	if (retCode <= 0)
-	{
-		close(pollFds_[index].fd);
-		pollFds_.erase(pollFds_.begin() + index);
+		if (retCode < 0)
+		{
+			Logger::log(Logger::ERROR, true)
+				<< "Failed to send response to client: (" << ft::toString(errno)
+				<< ") " << strerror(errno) << std::endl;
+			Logger::log(Logger::DEBUG)
+				<< "Erase clients_[" << clientIndex_ << "], "
+				<< "close and erase pollFds_[" << index << "]" << std::endl;
+			clients_.erase(clients_.begin() + clientIndex_);
+			close(pollFds_[index].fd);
+			pollFds_.erase(pollFds_.begin() + index);
+			delete request;
+			return;
+		}
+		else if (retCode == 0)
+		{
+			Logger::log(Logger::DEBUG)
+				<< "Client disconnected: clients_[" << clientIndex_
+				<< "] disconnected" << std::endl;
+			Logger::log(Logger::DEBUG)
+				<< "Erase clients_[" << clientIndex_ << "], "
+				<< "close and erase pollFds_[" << index << "]" << std::endl;
+			clients_.erase(clients_.begin() + clientIndex_);
+			close(pollFds_[index].fd);
+			pollFds_.erase(pollFds_.begin() + index);
+			delete request;
+			return;
+		}
+		if (clients_[clientIndex_].isClosed())
+		{
+			clients_.erase(clients_.begin() + clientIndex_);
+			close(pollFds_[index].fd);
+			pollFds_.erase(pollFds_.begin() + index);
+		}
+		else
+			pollFds_[index].events = POLLIN;
+		// After sending the response, prepare to read the next request
+
 		delete request;
-		return;
 	}
-	// After sending the response, prepare to read the next request
-	pollFds_[index].events = POLLIN;
-
-	delete request;
 }
 
 void ServerEngine::processPollEvents()
 {
-	for (size_t i = 0; i < pollFds_.size(); ++i)
+	for (size_t pollIndex = 0; pollIndex < pollFds_.size(); ++pollIndex)
 	{
+		// Calculate offset only once per iteration
+		if (pollIndex >= totalServerInstances_)
+			clientIndex_ = pollIndex - totalServerInstances_;
+		Logger::log(Logger::DEBUG)
+			<< "clientIndex is set to " << clientIndex_ << std::endl;
+
 		// Check if fd has some errors(pollerr, pollnval) or if the
 		// connection was broken(pollhup)
-		if (pollFds_[i].revents & (POLLERR | POLLHUP | POLLNVAL))
-			pollFdError_(i);
-		else if (pollFds_[i].revents & POLLIN)
+		if (pollFds_[pollIndex].revents & (POLLERR | POLLHUP | POLLNVAL))
+			pollFdError_(pollIndex);
+		else if (pollFds_[pollIndex].revents & POLLIN)
 		{
-			Logger::log(Logger::DEBUG)
-				<< "pollFds_[" << i << "] is ready for read" << std::endl;
+			Logger::log(Logger::DEBUG) << "pollFds_[" << pollIndex
+									   << "] is ready for read" << std::endl;
 			// If fd is a server socket accept a new client connection
-			if (this->isPollFdServer_(pollFds_[i].fd))
-				acceptConnection_(i);
+			if (this->isPollFdServer_(pollFds_[pollIndex].fd))
+				acceptConnection_(pollIndex);
 			else
-				readClientRequest_(i);
+				readClientRequest_(pollIndex);
 		}
-		else if (pollFds_[i].revents & POLLOUT)
-			sendClientResponse_(i);
+		else if (pollFds_[pollIndex].revents & POLLOUT)
+			sendClientResponse_(pollIndex);
 	}
 }
 

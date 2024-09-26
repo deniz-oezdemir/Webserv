@@ -33,7 +33,7 @@ std::string createRequestString(
 	return requestStr;
 }
 
-Test(ARequestParser, testStartLine)
+Test(RequestParser, testStartLine)
 {
 	char **argv = new char *[2];
 	argv[0] = (char *)"./server";
@@ -52,7 +52,7 @@ Test(ARequestParser, testStartLine)
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
 
-	HttpRequest request = ARequestParser::parseRequest(requestStr);
+	HttpRequest request = RequestParser::parseRequest(requestStr);
 
 	cr_assert_str_eq(request.getMethod().c_str(), method.c_str());
 	cr_assert_str_eq(request.getHttpVersion().c_str(), httpVersion.c_str());
@@ -61,7 +61,7 @@ Test(ARequestParser, testStartLine)
 	delete[] argv;
 }
 
-Test(ARequestParser, testHeaders)
+Test(RequestParser, testHeaders)
 {
 	char **argv = new char *[2];
 	argv[0] = (char *)"./server";
@@ -81,7 +81,7 @@ Test(ARequestParser, testHeaders)
 		= createRequestString(method, uri, httpVersion, headers, body);
 	std::cout << "request string: " << std::endl << requestStr << std::endl;
 
-	HttpRequest request = ARequestParser::parseRequest(requestStr);
+	HttpRequest request = RequestParser::parseRequest(requestStr);
 
 	for (std::map<std::string, std::vector<std::string>>::const_iterator it
 		 = headers.begin();
@@ -96,7 +96,7 @@ Test(ARequestParser, testHeaders)
 	delete[] argv;
 }
 
-Test(ARequestParser, testBody)
+Test(RequestParser, testBody)
 {
 	char **argv = new char *[2];
 	argv[0] = (char *)"./server";
@@ -126,7 +126,7 @@ Test(ARequestParser, testBody)
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
 
-	HttpRequest request = ARequestParser::parseRequest(requestStr);
+	HttpRequest request = RequestParser::parseRequest(requestStr);
 
 	std::vector<char> actualBody = request.getBody();
 	std::string		  actualBodyStr(actualBody.begin(), actualBody.end());
@@ -139,7 +139,7 @@ Test(ARequestParser, testBody)
 	delete[] argv;
 }
 
-Test(ARequestParser, testBodyLengthZero)
+Test(RequestParser, testBodyLengthZero)
 {
 	char **argv = new char *[2];
 	argv[0] = (char *)"./server";
@@ -165,7 +165,7 @@ Test(ARequestParser, testBodyLengthZero)
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
 
-	HttpRequest request = ARequestParser::parseRequest(requestStr);
+	HttpRequest request = RequestParser::parseRequest(requestStr);
 
 	std::vector<char> actualBody = request.getBody();
 	std::string		  actualBodyStr(actualBody.begin(), actualBody.end());
@@ -178,7 +178,7 @@ Test(ARequestParser, testBodyLengthZero)
 	delete[] argv;
 }
 
-Test(ARequestParser, testInvalidMethod)
+Test(RequestParser, testInvalidMethod)
 {
 	std::string										method("INVALID_METHOD");
 	std::string										httpVersion("HTTP/1.1");
@@ -192,10 +192,10 @@ Test(ARequestParser, testInvalidMethod)
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
 
-	cr_assert_throw(ARequestParser::parseRequest(requestStr), HttpException);
+	cr_assert_throw(RequestParser::parseRequest(requestStr), HttpException);
 }
 
-Test(ARequestParser, testInvalidHttpVersion)
+Test(RequestParser, testInvalidHttpVersion)
 {
 	std::string method("GET");
 	std::string httpVersion("INVALID_HTTP_VERSION");
@@ -209,10 +209,10 @@ Test(ARequestParser, testInvalidHttpVersion)
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
 
-	cr_assert_throw(ARequestParser::parseRequest(requestStr), HttpException);
+	cr_assert_throw(RequestParser::parseRequest(requestStr), HttpException);
 }
 
-Test(ARequestParser, testInvalidURI)
+Test(RequestParser, testInvalidURI)
 {
 	std::string method("GET");
 	std::string httpVersion("HTTP/1.1");
@@ -226,10 +226,10 @@ Test(ARequestParser, testInvalidURI)
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
 
-	cr_assert_throw(ARequestParser::parseRequest(requestStr), HttpException);
+	cr_assert_throw(RequestParser::parseRequest(requestStr), HttpException);
 }
 
-Test(ARequestParser, testMissingHostHeader)
+Test(RequestParser, testMissingHostHeader)
 {
 	std::string										method("GET");
 	std::string										httpVersion("HTTP/1.1");
@@ -241,10 +241,10 @@ Test(ARequestParser, testMissingHostHeader)
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
 
-	cr_assert_throw(ARequestParser::parseRequest(requestStr), HttpException);
+	cr_assert_throw(RequestParser::parseRequest(requestStr), HttpException);
 }
 
-Test(ARequestParser, testHeadersWithListValues)
+Test(RequestParser, testHeadersWithListValues)
 {
 	std::string										method("GET");
 	std::string										httpVersion("HTTP/1.1");
@@ -260,7 +260,7 @@ Test(ARequestParser, testHeadersWithListValues)
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
 
-	HttpRequest request = ARequestParser::parseRequest(requestStr);
+	HttpRequest request = RequestParser::parseRequest(requestStr);
 
 	cr_assert_eq(request.getHeaders().at("Accept").size(), 3);
 	cr_assert_str_eq(request.getHeaders().at("Accept")[0].c_str(), "text/html");
@@ -272,7 +272,7 @@ Test(ARequestParser, testHeadersWithListValues)
 	);
 }
 
-Test(ARequestParser, testHeadersWithListValuesAndRepeatedHeaders)
+Test(RequestParser, testHeadersWithListValuesAndRepeatedHeaders)
 {
 	std::string										method("GET");
 	std::string										httpVersion("HTTP/1.1");
@@ -287,7 +287,7 @@ Test(ARequestParser, testHeadersWithListValuesAndRepeatedHeaders)
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
 
-	HttpRequest request = ARequestParser::parseRequest(requestStr);
+	HttpRequest request = RequestParser::parseRequest(requestStr);
 
 	cr_assert_eq(request.getHeaders().at("Accept").size(), 3);
 	cr_assert_str_eq(request.getHeaders().at("Accept")[0].c_str(), "text/html");
@@ -299,7 +299,7 @@ Test(ARequestParser, testHeadersWithListValuesAndRepeatedHeaders)
 	);
 }
 
-Test(ARequestParser, testHeadersWithSemicolonSeparatedValues)
+Test(RequestParser, testHeadersWithSemicolonSeparatedValues)
 {
 	std::string										method("GET");
 	std::string										httpVersion("HTTP/1.1");
@@ -314,7 +314,7 @@ Test(ARequestParser, testHeadersWithSemicolonSeparatedValues)
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
 
-	HttpRequest request = ARequestParser::parseRequest(requestStr);
+	HttpRequest request = RequestParser::parseRequest(requestStr);
 
 	cr_assert_eq(request.getHeaders().at("Cookie").size(), 3);
 	cr_assert_str_eq(
@@ -328,7 +328,7 @@ Test(ARequestParser, testHeadersWithSemicolonSeparatedValues)
 	);
 }
 
-Test(ARequestParser, testRepeatedHeadersNotAllowed)
+Test(RequestParser, testRepeatedHeadersNotAllowed)
 {
 	std::string										method("GET");
 	std::string										httpVersion("HTTP/1.1");
@@ -343,10 +343,10 @@ Test(ARequestParser, testRepeatedHeadersNotAllowed)
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
 
-	cr_assert_throw(ARequestParser::parseRequest(requestStr), HttpException);
+	cr_assert_throw(RequestParser::parseRequest(requestStr), HttpException);
 }
 
-Test(ARequestParser, testHeaderWithListValuesNotAllowed)
+Test(RequestParser, testHeaderWithListValuesNotAllowed)
 {
 	std::string										method("GET");
 	std::string										httpVersion("HTTP/1.1");
@@ -360,10 +360,10 @@ Test(ARequestParser, testHeaderWithListValuesNotAllowed)
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
 
-	cr_assert_throw(ARequestParser::parseRequest(requestStr), HttpException);
+	cr_assert_throw(RequestParser::parseRequest(requestStr), HttpException);
 }
 
-Test(ARequestParser, testHeaderWithWrongSeparator)
+Test(RequestParser, testHeaderWithWrongSeparator)
 {
 	std::string										method("GET");
 	std::string										httpVersion("HTTP/1.1");
@@ -379,10 +379,10 @@ Test(ARequestParser, testHeaderWithWrongSeparator)
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
 
-	cr_assert_throw(ARequestParser::parseRequest(requestStr), HttpException);
+	cr_assert_throw(RequestParser::parseRequest(requestStr), HttpException);
 }
 
-Test(ARequestParser, testIgnoredHeader)
+Test(RequestParser, testIgnoredHeader)
 {
 	std::string										method("GET");
 	std::string										httpVersion("HTTP/1.1");
@@ -396,12 +396,12 @@ Test(ARequestParser, testIgnoredHeader)
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
 
-	HttpRequest request = ARequestParser::parseRequest(requestStr);
+	HttpRequest request = RequestParser::parseRequest(requestStr);
 
 	cr_assert_eq(request.getHeaders().count("Proxy-Authenticate"), 0);
 }
 
-Test(ARequestParser, testPortGetter)
+Test(RequestParser, testPortGetter)
 {
 	std::string										method("GET");
 	std::string										httpVersion("HTTP/1.1");
@@ -414,7 +414,7 @@ Test(ARequestParser, testPortGetter)
 	std::string requestStr
 		= createRequestString(method, uri, httpVersion, headers, body);
 
-	HttpRequest request = ARequestParser::parseRequest(requestStr);
+	HttpRequest request = RequestParser::parseRequest(requestStr);
 
 	cr_assert_eq(request.getPort(), 8080);
 }

@@ -3,7 +3,7 @@
 #include <map>
 #include <string>
 #include <vector>
-class ATokenValidator
+class TokenValidator
 {
   public:
 	// clang-format off
@@ -13,8 +13,8 @@ class ATokenValidator
 	// clang-format on
 
   private:
-	ATokenValidator(void);
-	ATokenValidator(const ATokenValidator &src);
-	~ATokenValidator(void);
-	ATokenValidator &operator=(const ATokenValidator &rhs);
+	TokenValidator(void);
+	TokenValidator(const TokenValidator &src);
+	~TokenValidator(void);
+	TokenValidator &operator=(const TokenValidator &rhs);
 };

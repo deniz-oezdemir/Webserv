@@ -11,6 +11,25 @@
 namespace ft
 {
 
+// Helper function to convert a string to lowercase
+std::string toLower(const std::string &str)
+{
+    std::string lowerStr = str;
+    for (size_t i = 0; i < lowerStr.size(); ++i)
+    {
+        lowerStr[i] = std::tolower(lowerStr[i]);
+    }
+    return lowerStr;
+}
+
+// Helper function to perform case-insensitive comparison
+bool caseInsensitiveFind(const std::string &str, const std::string &substr)
+{
+    std::string strLower = toLower(str);
+    std::string substrLower = toLower(substr);
+    return strLower.find(substrLower) != std::string::npos;
+}
+
 std::string &trim(std::string &str, std::string const &delimiters)
 {
 	str.erase(0, str.find_first_not_of(delimiters));

@@ -1,14 +1,19 @@
 #pragma once
 
+#include "Client.hpp"
 #include "ConfigValue.hpp"
 #include "HttpRequest.hpp"
 #include "Server.hpp"
 #include "macros.hpp"
+#include <cstddef>
 #include <cstring>
 #include <map>
 #include <poll.h>
 #include <string>
 #include <sys/wait.h>
+
+// TODO: add one header "Webserve" that includes all headers, then we can
+// just include Webserv everywhere?
 
 extern bool g_shutdown;
 
@@ -35,9 +40,10 @@ class ServerEngine
 	unsigned int		totalServerInstances_;
 	std::vector<pollfd> pollFds_;
 	std::vector<Server> servers_;
+	// TODO: introduce pollIndex_ such that we do not have to pass it as arg
 
-	char clientRequestBuffer_[BUFFER_SIZE];
-	long bytesRead_;
+	std::vector<Client> clients_;
+	size_t				clientIndex_;
 
 	void initServer_(
 		std::map<std::string, ConfigValue> const &serverConfig,
@@ -45,8 +51,8 @@ class ServerEngine
 		size_t									 &globalServerIndex
 	);
 	void initServerPollFds_(void);
-	void initializePollEvents();
-	void processPollEvents();
+	void initializePollEvents(void);
+	void processPollEvents(void);
 	void readClientRequest_(size_t &index);
 	void sendClientResponse_(size_t &index);
 	bool isPollFdServer_(int &fd);

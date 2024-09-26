@@ -1,7 +1,7 @@
-#include "request_parser/AHeaderParser.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
+#include "request_parser/HeaderParser.hpp"
 #include "request_parser/HttpHeaders.hpp"
 #include <map>
 #include <string>
@@ -18,7 +18,7 @@
  * parsed headers.
  * @throws HttpException if there are syntax errors in the headers.
  */
-void AHeaderParser::parseHeaders(
+void HeaderParser::parseHeaders(
 	std::istream &requestStream,
 	// clang-format off
 	std::map<std::string, std::vector<std::string> > *headers
@@ -94,7 +94,7 @@ void AHeaderParser::parseHeaders(
  * @param headerLine The header line to check.
  * @throws HttpException if there are syntax errors in the header.
  */
-void AHeaderParser::checkSingleHeader_(std::string &headerLine)
+void HeaderParser::checkSingleHeader_(std::string &headerLine)
 {
 	std::string headerName;
 	std::string headerValue;
@@ -146,7 +146,7 @@ void AHeaderParser::checkSingleHeader_(std::string &headerLine)
 	}
 }
 
-bool AHeaderParser::checkIfHeaderAccepted_(std::string &headerName)
+bool HeaderParser::checkIfHeaderAccepted_(std::string &headerName)
 {
 	for (int i = 0; i < ACCEPTED_HEADERS_N; ++i)
 	{
@@ -168,7 +168,7 @@ bool AHeaderParser::checkIfHeaderAccepted_(std::string &headerName)
  * @param rawHeaders The multimap of raw headers to check.
  * @throws HttpException if there are errors in the headers.
  */
-void AHeaderParser::checkRawHeaders_(
+void HeaderParser::checkRawHeaders_(
 	const std::multimap<std::string, std::string> &rawHeaders
 )
 {
@@ -235,7 +235,7 @@ void AHeaderParser::checkRawHeaders_(
  * @param headerName The header name to validate.
  * @return true if the header name is valid, false otherwise.
  */
-bool AHeaderParser::isValidHeaderName_(std::string headerName)
+bool HeaderParser::isValidHeaderName_(std::string headerName)
 {
 	for (std::string::iterator it = headerName.begin(); it != headerName.end();
 		 ++it)
@@ -255,7 +255,7 @@ bool AHeaderParser::isValidHeaderName_(std::string headerName)
  * @param headerValue The header value to validate.
  * @return true if the header value is valid, false otherwise.
  */
-bool AHeaderParser::isValidHeaderValue_(std::string headerValue)
+bool HeaderParser::isValidHeaderValue_(std::string headerValue)
 {
 	// TODO: check this rule and understand tokens. Check if needed
 	// std::string specialChars = "()<>@,;:\"/[]?={} \t";
@@ -293,7 +293,7 @@ bool AHeaderParser::isValidHeaderValue_(std::string headerValue)
  * @param header The name of the header to check.
  * @return true if the header is allowed to be repeated, false otherwise.
  */
-bool AHeaderParser::checkRepeatedHeaderAllowed_(std::string header)
+bool HeaderParser::checkRepeatedHeaderAllowed_(std::string header)
 {
 	for (int i = 0; i < REPEATABLE_HEADERS_N; ++i)
 	{
@@ -317,7 +317,7 @@ bool AHeaderParser::checkRepeatedHeaderAllowed_(std::string header)
  * @param headerValue The value of the header to be split.
  * @return std::vector<std::string> A vector containing the split values.
  */
-std::vector<std::string> AHeaderParser::splitHeaderValue_(
+std::vector<std::string> HeaderParser::splitHeaderValue_(
 	const std::string &headerName,
 	const std::string &headerValue
 )
@@ -352,16 +352,16 @@ std::vector<std::string> AHeaderParser::splitHeaderValue_(
 
 /**
  * @brief Unifies the headers from a multimap into a map of vectors.
- * 
+ *
  * This function converts a multimap of headers into a map where each header name
  * maps to a vector of its values. It handles both single and repeated headers,
  * splitting the values as necessary.
- * 
+ *
  * @param multimap The multimap containing the headers.
  * @return std::map<std::string, std::vector<std::string>> A map containing the unified headers.
  */
 std::map<std::string, std::vector<std::string> >
-AHeaderParser::unifyHeaders_(std::multimap<std::string, std::string> multimap)
+HeaderParser::unifyHeaders_(std::multimap<std::string, std::string> multimap)
 {
 	std::map<std::string, std::vector<std::string> > headers;
 	// clang-format on
