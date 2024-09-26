@@ -3,9 +3,9 @@
 #include "ServerException.hpp"
 #include "utils.hpp"
 
+#include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
-#include <errno.h>
 #include <unistd.h>
 
 Server::Server(
@@ -313,7 +313,11 @@ bool Server::isThisLocation(const std::string &location) const
 	std::map<std::string, ConfigValue>::const_iterator it;
 	it = serverConfig_.find(location);
 	if (it == serverConfig_.end())
+	{
+		Logger::log(Logger::INFO)
+			<< "Could not find location: " << location << std::endl;
 		return false;
+	}
 	return true;
 }
 

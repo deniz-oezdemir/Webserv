@@ -6,12 +6,12 @@
 #include "utils.hpp"
 
 #include <algorithm>
+#include <cstring>
 #include <dirent.h>
 #include <fstream>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <cstring>
 
 std::string HttpMethodHandler::handleRequest(
 	HttpRequest const &request,
@@ -53,7 +53,10 @@ std::string HttpMethodHandler::handleGetRequest_(
 	if (server.isThisLocation(uri))
 		location = server.getThisLocation(uri);
 	else
+	{
+		std::cout << "Test\n" << std::endl;
 		return HttpErrorHandler::getErrorPage(404, keepAlive);
+	}
 
 	// Check for redirections
 	std::string redirection = handleRedirection_(location, keepAlive);
