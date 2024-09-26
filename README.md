@@ -76,3 +76,15 @@ make test T=SpecificTestName
 | `client_max_body_size` | Limits the maximum size of the client request body for a specific location.                          |
 | `upload_store`         | Specifies the directory where uploaded files should be saved.                                        |
 | `cgi`                  | Specifies the CGI extension script and the binary path to execute. e.g., `cgi .py /usr/bin/python3`. |
+
+
+## Stress tresting
+
+To test the performance and measure its response under load, you  use the `siege` command. Here's an example of how to use it:
+
+```bash
+siege -c 255 -t 10s http://127.00.00:8080/
+```
+
+In this command, the options `-c` and `-t` are used to specify the number of concurrent users and the duration of the test. The URL `http://127.00.00:8080/` should be replaced with the actual URL of your server.
+

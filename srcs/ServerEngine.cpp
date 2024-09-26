@@ -193,12 +193,16 @@ void ServerEngine::pollFdError_(size_t &index)
 			<< "Client disconnected on pollFds_[" << index
 			<< "]: " << pollFds_[index].fd << std::endl;
 	}
+	else if (error == "|POLLERR|")
+	{
+		Logger::log(Logger::DEBUG) << "General error on pollFds_[" << index
+								   << "]: " << pollFds_[index].fd << std::endl;
+	}
 	else
 	{
 		Logger::log(Logger::ERROR, true)
-			<< "Descriptor error on pollFds_[" << index
-			<< "]: " << pollFds_[index].fd << " : (" << error << ") "
-			<< std::endl;
+			<< "Descriptor is not valid on pollFds_[" << index
+			<< "]: " << pollFds_[index].fd << std::endl;
 	}
 	if (!this->isPollFdServer_(this->pollFds_[index].fd))
 	{
@@ -206,6 +210,7 @@ void ServerEngine::pollFdError_(size_t &index)
 			<< "Closing and deleting client socket: pollFds_[" << index
 			<< "]: " << pollFds_[index].fd << std::endl;
 		// TODO: summarize below three lines into function
+		// TODO: add close() to client desctructor if erase calls destructor
 		close(pollFds_[index].fd);
 		this->pollFds_.erase(this->pollFds_.begin() + index);
 		clients_.erase(clients_.begin() + clientIndex_);
@@ -312,8 +317,15 @@ void ServerEngine::sendClientResponse_(size_t &index)
 			delete request;
 			return;
 		}
+		if (clients_[clientIndex_].isClosed())
+		{
+			clients_.erase(clients_.begin() + clientIndex_);
+			close(pollFds_[index].fd);
+			pollFds_.erase(pollFds_.begin() + index);
+		}
+		else
+			pollFds_[index].events = POLLIN;
 		// After sending the response, prepare to read the next request
-		pollFds_[index].events = POLLIN;
 
 		delete request;
 	}
