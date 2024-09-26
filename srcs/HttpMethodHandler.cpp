@@ -54,7 +54,6 @@ std::string HttpMethodHandler::handleGetRequest_(
 		location = server.getThisLocation(uri);
 	else
 	{
-		std::cout << "Test\n" << std::endl;
 		return HttpErrorHandler::getErrorPage(404, keepAlive);
 	}
 
