@@ -2,10 +2,10 @@
 #include "Logger.hpp"
 #include "macros.hpp"
 #include "utils.hpp"
-#include <cstring>
 #include <cerrno>
 #include <cstddef>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include <unistd.h>
 #include <vector>
@@ -20,7 +20,30 @@ Client::Client(int pollFd)
 
 Client::~Client(void)
 {
+	reset_();
+
 	return;
+}
+
+Client::Client(const Client &src)
+{
+	*this = src;
+}
+
+Client &Client::operator=(const Client &rhs)
+{
+	pollFd_ = rhs.pollFd_;
+	requestStr_ = rhs.requestStr_;
+	isChunked_ = rhs.isChunked_;
+	hasCompleteRequest_ = rhs.hasCompleteRequest_;
+	isClosed_ = rhs.isClosed_;
+
+	// Clear the existing content of clientBuffer_ and copy the content from rhs
+	clientBuffer_.str("");
+	clientBuffer_.clear();
+	clientBuffer_ << rhs.clientBuffer_.str();
+
+	return *this;
 }
 
 /**
@@ -52,8 +75,7 @@ bool Client::hasRequestReady(void)
 
 	// Read from file descriptor
 	std::vector<char> buffer(BUFFER_SIZE);
-	ssize_t			  bytesReadFromFd
-		= read(pollFd_, buffer.data(), buffer.size());
+	ssize_t bytesReadFromFd = read(pollFd_, buffer.data(), buffer.size());
 
 	if (bytesReadFromFd < 0)
 	{
@@ -86,6 +108,15 @@ std::string Client::extractRequestStr(void)
 	reset_();
 
 	return tmp;
+}
+bool Client::isClosed(void) const
+{
+	return isClosed_;
+}
+
+int Client::getFd(void) const
+{
+	return pollFd_;
 }
 
 /**
@@ -235,9 +266,11 @@ bool Client::hasSizeIndicator_(void)
  */
 void Client::reset_()
 {
-	this->requestStr_.clear();
-	this->hasCompleteRequest_ = false;
-	this->isChunked_ = false;
+	requestStr_.clear();
+	clientBuffer_.str("");
+	clientBuffer_.clear();
+	hasCompleteRequest_ = false;
+	isChunked_ = false;
 }
 
 std::ostream &operator<<(std::ostream &os, const Client &rhs)

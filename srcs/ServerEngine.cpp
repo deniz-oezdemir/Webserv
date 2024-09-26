@@ -297,7 +297,7 @@ void ServerEngine::sendClientResponse_(size_t &index)
 	try
 	{
 		request = new HttpRequest(RequestParser::parseRequest(
-			clients_[clientIndex_].extractRequeststr()
+			clients_[clientIndex_].extractRequestStr()
 		));
 		Logger::log(Logger::DEBUG) << "Request received:\n"
 								   << *request << std::flush;

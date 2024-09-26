@@ -7,21 +7,29 @@
 class Client
 {
   public:
-	Client(int fd);
+	Client(int pollFd);
 	~Client(void);
+	Client(const Client &src);
+	Client &operator=(const Client &rhs);
 
-	bool hasRequestReady(void);
+	/**
+	 * @brief Checks if there is a complete request from the client.
+	 *
+	 * Reads data from the file descriptor into the client buffer and processes
+	 * it to determine if a complete request has been received.
+	 *
+	 * @return true if a complete request has been received, false otherwise.
+	 */
+	bool		hasRequestReady(void);
 	std::string extractRequestStr(void);
 	// TODO: use reset_()
 
 	// Getters
 	bool isClosed(void) const;
-	int *getFd(void) const;
+	int getFd(void) const;
 
   private:
 	Client(void);
-	Client(const Client &src);
-	Client &operator=(const Client &rhs);
 
 	void readClientBuffer_(void);
 	bool isCompleteRequest_(void);
