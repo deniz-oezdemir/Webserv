@@ -11,12 +11,10 @@ class Client
 	~Client(void);
 
 	bool hasRequestReady(void);
-
 	std::string extractRequestStr(void);
 	// TODO: use reset_()
 
 	// Getters
-	bool hasCompleteRequest(void) const;
 	bool isClosed(void) const;
 	int *getFd(void) const;
 

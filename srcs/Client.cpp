@@ -2,6 +2,8 @@
 #include "Logger.hpp"
 #include "macros.hpp"
 #include "utils.hpp"
+#include <cstring>
+#include <cerrno>
 #include <cstddef>
 #include <cstdlib>
 #include <string>
@@ -19,18 +21,6 @@ Client::Client(int pollFd)
 Client::~Client(void)
 {
 	return;
-}
-
-/**
- * @brief Resets the state of the Client object. Necessary after response has
- * been sent to client.
- */
-void Client::reset_()
-{
-	this->requestStr_.str("");
-	this->requestStr_.clear();
-	this->hasCompleteRequest_ = false;
-	this->isChunked_ = false;
 }
 
 /**
@@ -63,7 +53,7 @@ bool Client::hasRequestReady(void)
 	// Read from file descriptor
 	std::vector<char> buffer(BUFFER_SIZE);
 	ssize_t			  bytesReadFromFd
-		= read(*fd_, buffer.data(), buffer.size()); // TODO: remove magic number
+		= read(pollFd_, buffer.data(), buffer.size());
 
 	if (bytesReadFromFd < 0)
 	{
@@ -88,6 +78,14 @@ bool Client::hasRequestReady(void)
 	clientBuffer_.write(buffer.data(), bytesReadFromFd);
 	readClientBuffer_();
 	return hasCompleteRequest_;
+}
+
+std::string Client::extractRequestStr(void)
+{
+	std::string tmp = requestStr_;
+	reset_();
+
+	return tmp;
 }
 
 /**
@@ -229,4 +227,24 @@ bool Client::hasSizeIndicator_(void)
 {
 	return ft::caseInsensitiveFind(requestStr_, "Content-Length")
 		   || ft::caseInsensitiveFind(requestStr_, "Transfer-Encoding");
+}
+
+/**
+ * @brief Resets the state of the Client object. Necessary after response has
+ * been sent to client.
+ */
+void Client::reset_()
+{
+	this->requestStr_.clear();
+	this->hasCompleteRequest_ = false;
+	this->isChunked_ = false;
+}
+
+std::ostream &operator<<(std::ostream &os, const Client &rhs)
+{
+	os << "Client:" << std::endl;
+	os << "File descriptor: " << rhs.getFd() << std::endl;
+	os << "Is closed: " << rhs.isClosed() << std::endl;
+
+	return os;
 }
