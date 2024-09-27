@@ -10,6 +10,7 @@
 #include <string>
 #include <sys/stat.h>
 
+
 // Array of valid log levels to check if the log level set in the configuration
 // file is valid.
 std::array<std::string, 4> const ServerConfig::validLogLevels = {
