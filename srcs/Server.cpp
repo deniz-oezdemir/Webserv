@@ -28,7 +28,7 @@ Server::Server(
 		  server.at("server_name").getVector()
 	  )),
 	  serverConfig_(const_cast<std::map<std::string, ConfigValue> &>(server)),
-	  serverIndex_(index)
+	  serverIndex_(index), serverFd_(-1)
 {
 }
 
