@@ -3,11 +3,11 @@
 #include <fstream>
 #include <sstream>
 
-// Test for handling DELETE request
-Test(ServerEngine, handleDeleteRequest_)
+// Test for handling POST request
+Test(ServerEngine, handlePostRequest_)
 {
-	// Create a request string for DELETE method
-	std::string requestStr = ft::readFile("deleteRequest.txt");
+	// Create a request string for POST method
+	std::string requestStr = ft::readFile("postRequest.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
@@ -21,7 +21,7 @@ Test(ServerEngine, handleDeleteRequest_)
 		ServerEngine serverEngine(config.getAllServersConfig());
 		// serverEngine.start(); // This line is commented out
 
-		// Call the handleDeleteRequest_ method
+		// Call the handlePostRequest_ method
 		std::string response = serverEngine.createResponse(request);
 
 		std::cout << "\n\nTest Response:\n" << response << std::endl;
@@ -31,8 +31,8 @@ Test(ServerEngine, handleDeleteRequest_)
 			"Expected 200 OK response"
 		);
 		cr_assert(
-			response.find("File Deleted Successfull") != std::string::npos,
-			"Expected File Deleted Successfull"
+			response.find("File Uploaded Successfully") != std::string::npos,
+			"Expected File Uploaded Successfully"
 		);
 	}
 }

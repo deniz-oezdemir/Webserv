@@ -53,15 +53,15 @@ std::string HttpErrorHandler::getErrorPage(
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
 	std::string body
-		= ft::readFile("./www/" + std::to_string(statusCode) + ".html");
+		= ft::readErrorPage("./www/" + std::to_string(statusCode) + ".html");
 	if (body.empty())
 	{
 		if (statusCode >= 400 && statusCode < 500)
-			body = ft::readFile("./www/4xx.html");
+			body = ft::readErrorPage("./www/4xx.html");
 		else if (statusCode >= 500 && statusCode < 600)
-			body = ft::readFile("./www/5xx.html");
+			body = ft::readErrorPage("./www/5xx.html");
 		else if (statusCode >= 300 && statusCode < 400)
-			body = ft::readFile("./www/3xx.html");
+			body = ft::readErrorPage("./www/3xx.html");
 	}
 	if (body.empty())
 		body = "<!DOCTYPE html>\n<html>\n<head><title>"

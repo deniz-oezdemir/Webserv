@@ -85,7 +85,7 @@ std::string HttpMethodHandler::handleGetRequest_(
 	}
 
 	// Check if the file exists and return the response
-	return createFileResponse_(filepath, rootdir, server, keepAlive);
+	return createFileGetResponse_(filepath, rootdir, server, keepAlive);
 }
 
 // TODO: implement check for file/directory, coordinate with Seba
@@ -96,63 +96,85 @@ std::string HttpMethodHandler::handleDeleteRequest_(
 {
 	(void)request;
 	(void)server;
-	std::cout << request << std::endl;
 
-	// Get root path from config of server
-	std::string rootdir = server.getRoot();
-	// Combine root path with uri from request
-	std::string filepath = rootdir + request.getUri();
+	std::string uri = request.getUri();
+	bool		keepAlive = request.getKeepAlive();
 
-	Logger::log(Logger::DEBUG) << "Filepath: " << filepath << std::endl;
-
-	HttpResponse response;
-
-	if (remove(filepath.c_str()) == 0)
-	{
-		std::string body
-			= "<!DOCTYPE html>\n<html>\n<head><title>200 OK</title></head>\n"
-			  "<body><h1>File deleted.</h1></body>\n</html>\n";
-		response.setStatusCode(200);
-		response.setReasonPhrase("OK");
-		response.setHeader("Server", SERVER_NAME);
-		response.setHeader("Date", ft::createTimestamp());
-		response.setHeader("Content-Type", "text/html; charset=UTF-8");
-		response.setHeader("Content-Length", std::to_string(body.size()));
-		response.setHeader("Connection", "keep-alive");
-		response.setBody(body);
-		Logger::log(Logger::INFO)
-			<< "DELETE " << request.getUri() << " -> 200 OK" << std::endl;
-	}
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > location; // clang-format on
+	if (server.isThisLocation(uri))
+		location = server.getThisLocation(uri);
 	else
 	{
-		std::string body = ft::readFile(rootdir + "/404.html");
-		response.setStatusCode(404);
-		response.setReasonPhrase("Not Found");
-		response.setHeader("Server", SERVER_NAME);
-		response.setHeader("Date", ft::createTimestamp());
-		response.setHeader("Content-Type", "text/html; charset=UTF-8");
-		response.setHeader("Content-Length", std::to_string(body.size()));
-		response.setHeader("Connection", "keep-alive");
-		response.setBody(body);
-		Logger::log(Logger::INFO) << "DELETE " << request.getUri()
-								  << " -> 404 Not Found" << std::endl;
+		return HttpErrorHandler::getErrorPage(404, keepAlive);
 	}
 
-	Logger::log(Logger::DEBUG) << "Handling DELETE: responding" << std::endl;
-	return response.toString();
+	// Check for redirections
+	std::string redirection = handleRedirection_(location, keepAlive);
+	if (!redirection.empty())
+		return redirection;
+	// Check for authorized methods
+	if (!validateMethod_(location, "GET"))
+		return HttpErrorHandler::getErrorPage(405, keepAlive);
+	// Check for max body size
+	if (!validateBodySize_(location, request, server))
+		return HttpErrorHandler::getErrorPage(413, keepAlive);
+
+	// TODO: replace filepath with actual filepath when Seba added
+	// getilePath to config
+	std::string rootdir = getRootDir_(location, server);
+	std::string filepath = rootdir; // getFilePath_(uri, location, server);
+
+	if (isCgiRequest_(location, uri))
+		return handleCgiRequest_(
+			filepath, getCgiInterpreter_(location), request, keepAlive
+		);
+
+	return createDeleteResponse_(filepath, rootdir, server, keepAlive);
 }
 
-// TODO: implement
 std::string HttpMethodHandler::handlePostRequest_(
 	const HttpRequest &request,
 	Server const	  &server
 )
 {
-	(void)request;
-	(void)server;
-	Logger::log(Logger::DEBUG) << "Handling POST: responding" << std::endl;
-	return "POST test\n";
-};
+	std::string uri = request.getUri();
+	bool		keepAlive = request.getKeepAlive();
+
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > location; // clang-format on
+	if (server.isThisLocation(uri))
+		location = server.getThisLocation(uri);
+	else
+	{
+		return HttpErrorHandler::getErrorPage(404, keepAlive);
+	}
+
+	// Check for redirections
+	std::string redirection = handleRedirection_(location, keepAlive);
+	if (!redirection.empty())
+		return redirection;
+	// Check for authorized methods
+	if (!validateMethod_(location, "POST"))
+		return HttpErrorHandler::getErrorPage(405, keepAlive);
+	// Check for max body size
+	if (!validateBodySize_(location, request, server))
+		return HttpErrorHandler::getErrorPage(413, keepAlive);
+
+	// TODO: replace uploadpath with actual uploadpath when Seba added
+	// getUploadPath to config
+	std::string rootdir = getRootDir_(location, server);
+	std::string uploadpath = rootdir; // getUploadPath_(uri, location, server);
+
+	if (isCgiRequest_(location, uri))
+		return handleCgiRequest_(
+			uploadpath, getCgiInterpreter_(location), request, keepAlive
+		);
+
+	return createFilePostResponse_(
+		request, uploadpath, rootdir, server, keepAlive
+	);
+}
 
 // clang-format off
 std::string HttpMethodHandler::handleRedirection_(
@@ -520,7 +542,7 @@ std::string HttpMethodHandler::findIndexFile_(
 	return filepath;
 }
 
-std::string HttpMethodHandler::createFileResponse_(
+std::string HttpMethodHandler::createFileGetResponse_(
 	std::string const &filepath,
 	std::string const &rootdir,
 	Server const	  &server,
@@ -563,5 +585,104 @@ std::string HttpMethodHandler::createFileResponse_(
 	}
 
 	Logger::log(Logger::DEBUG) << "Handling GET: responding" << std::endl;
+	return response.toString();
+}
+
+std::string HttpMethodHandler::createFilePostResponse_(
+	HttpRequest const &request,
+	std::string const &uploadpath,
+	std::string const &rootdir,
+	Server const	  &server,
+	bool const		  &keepAlive
+)
+{
+	(void)rootdir;
+	(void)server;
+
+	HttpResponse response;
+
+	// Open the file for writing
+	std::string	  uploadpathtmp = "./" + uploadpath + "/dummyfile";
+	std::ofstream outFile;
+	outFile.open(uploadpathtmp.c_str());
+	if (!outFile)
+	{
+		Logger::log(Logger::ERROR)
+			<< "Handling Post: failed to open file for writing: "
+			<< uploadpathtmp << std::endl;
+		return HttpErrorHandler::getErrorPage(500, keepAlive);
+	}
+
+	// Write the request body to the file
+	const std::vector<char> &requestBody = request.getBody();
+	outFile.write(requestBody.data(), requestBody.size());
+	if (!outFile)
+	{
+		Logger::log(Logger::ERROR)
+			<< "handling Post: failed to write to file: " << uploadpathtmp
+			<< std::endl;
+		return HttpErrorHandler::getErrorPage(500, keepAlive);
+	}
+
+	outFile.close();
+
+	// Generate a success response
+	response.setStatusCode(200);
+	response.setReasonPhrase("OK");
+	response.setHeader("Server", SERVER_NAME);
+	response.setHeader("Date", ft::createTimestamp());
+	response.setHeader("Content-Type", "text/html; charset=UTF-8");
+	std::string responseBody = "<h1>File Uploaded Successfully</h1>\n";
+	response.setHeader("Content-Length", std::to_string(responseBody.size()));
+	if (keepAlive)
+		response.setHeader("Connection", "keep-alive");
+	else
+		response.setHeader("Connection", "close");
+	response.setBody(responseBody);
+
+	Logger::log(Logger::DEBUG) << "Handling POST: responding" << std::endl;
+	return response.toString();
+}
+
+std::string HttpMethodHandler::createDeleteResponse_(
+	const std::string &filepath,
+	const std::string &rootdir,
+	const Server	  &server,
+	bool			   keepAlive
+)
+{
+	(void)rootdir;
+	(void)server;
+
+	std::string	 body;
+	HttpResponse response;
+
+	std::string filepathtmp = "./" + filepath + "/dummyfile";
+
+	if (remove(filepathtmp.c_str()) == 0)
+	{
+		response.setStatusCode(200);
+		response.setReasonPhrase("OK");
+		body = "<h1>File Deleted Successfully</h1>\n";
+	}
+	else
+	{
+		response.setStatusCode(404);
+		response.setReasonPhrase("Not Found");
+		body = "<h1>File Not Found</h1>\n";
+	}
+
+	response.setHeader("Server", SERVER_NAME);
+	response.setHeader("Date", ft::createTimestamp());
+	response.setHeader("Content-Type", "text/html; charset=UTF-8");
+	response.setHeader("Content-Length", std::to_string(body.size()));
+	if (keepAlive)
+		response.setHeader("Connection", "keep-alive");
+	else
+		response.setHeader("Connection", "close");
+	response.setBody(body);
+
+	Logger::log(Logger::DEBUG) << "Handling DELETE: responding" << std::endl;
+
 	return response.toString();
 }
