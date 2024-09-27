@@ -187,38 +187,33 @@ void ServerEngine::pollFdError_(size_t &index)
 	if (pollFds_[index].revents & POLLNVAL)
 		error += "|POLLNVAL|";
 
-	if (error == "|POLLHUP|")
+	// Retrieve and log the error using errno
+	int			err = errno;
+	std::string errMsg = strerror(err);
+	Logger::log(Logger::DEBUG)
+		<< "Client disconnected improperly: " << error << " on pollFds_["
+		<< index << "]" << ", Fd[" << pollFds_[index].fd << "] , errno: " << err
+		<< "," << errMsg << std::endl;
+
+	if (!this->isPollFdServer_(this->pollFds_[index].fd)
+		&& error.find("POLLNVAL") != std::string::npos)
 	{
-		Logger::log(Logger::DEBUG)
-			<< "Client disconnected on pollFds_[" << index
-			<< "]: " << pollFds_[index].fd << std::endl;
+		// POLLNVAL: Fd was closed or never open
+		this->pollFds_.erase(this->pollFds_.begin() + index);
+		clients_.erase(clients_.begin() + clientIndex_);
+		return;
 	}
-	else if (error == "|POLLERR|")
+	else if (!this->isPollFdServer_(this->pollFds_[index].fd))
 	{
-		Logger::log(Logger::DEBUG) << "General error on pollFds_[" << index
-								   << "]: " << pollFds_[index].fd << std::endl;
-	}
-	else
-	{
-		Logger::log(Logger::ERROR, true)
-			<< "Descriptor is not valid on pollFds_[" << index
-			<< "]: " << pollFds_[index].fd << std::endl;
-	}
-	if (!this->isPollFdServer_(this->pollFds_[index].fd))
-	{
+		// POLLHUP: Hang up; client disconnected, nor more read or write on
+		// socket possible POLLERR: Error; Error on fd
 		Logger::log(Logger::DEBUG)
 			<< "Closing and deleting client socket: pollFds_[" << index
 			<< "]: " << pollFds_[index].fd << std::endl;
-		// TODO: summarize below three lines into function
-		// TODO: add close() to client desctructor if erase calls destructor
-		close(pollFds_[index].fd);
-		this->pollFds_.erase(this->pollFds_.begin() + index);
-		clients_.erase(clients_.begin() + clientIndex_);
+		closeConnection_(index);
 	}
 	else
-	{
 		restartServer_(index);
-	}
 }
 
 void ServerEngine::initializePollEvents()
@@ -226,6 +221,12 @@ void ServerEngine::initializePollEvents()
 	int pollCount = poll(pollFds_.data(), pollFds_.size(), POLL_TIMEOUT);
 	if (pollCount == -1)
 	{
+		if (g_shutdown)
+		{
+			Logger::log(Logger::DEBUG)
+				<< "Shutdown signal received, exiting poll." << std::endl;
+			return;
+		}
 		Logger::log(Logger::ERROR, true)
 			<< "poll() failed: (" << ft::toString(errno) << ") "
 			<< strerror(errno) << std::endl;
@@ -248,9 +249,7 @@ void ServerEngine::readClientRequest_(size_t &index)
 				<< "Client disconnected:"
 				<< "Erase clients_[" << clientIndex_ << "], "
 				<< "close and erase pollFds_[" << index << "]" << std::endl;
-			clients_.erase(clients_.begin() + clientIndex_);
-			close(pollFds_[index].fd);
-			pollFds_.erase(pollFds_.begin() + index);
+			closeConnection_(index);
 		}
 		return;
 	}
@@ -297,9 +296,7 @@ void ServerEngine::sendClientResponse_(size_t &index)
 			Logger::log(Logger::DEBUG)
 				<< "Erase clients_[" << clientIndex_ << "], "
 				<< "close and erase pollFds_[" << index << "]" << std::endl;
-			clients_.erase(clients_.begin() + clientIndex_);
-			close(pollFds_[index].fd);
-			pollFds_.erase(pollFds_.begin() + index);
+			closeConnection_(index);
 			delete request;
 			return;
 		}
@@ -311,17 +308,13 @@ void ServerEngine::sendClientResponse_(size_t &index)
 			Logger::log(Logger::DEBUG)
 				<< "Erase clients_[" << clientIndex_ << "], "
 				<< "close and erase pollFds_[" << index << "]" << std::endl;
-			clients_.erase(clients_.begin() + clientIndex_);
-			close(pollFds_[index].fd);
-			pollFds_.erase(pollFds_.begin() + index);
+			closeConnection_(index);
 			delete request;
 			return;
 		}
 		if (clients_[clientIndex_].isClosed())
 		{
-			clients_.erase(clients_.begin() + clientIndex_);
-			close(pollFds_[index].fd);
-			pollFds_.erase(pollFds_.begin() + index);
+			closeConnection_(index);
 		}
 		else
 			pollFds_[index].events = POLLIN;
@@ -333,18 +326,20 @@ void ServerEngine::sendClientResponse_(size_t &index)
 
 void ServerEngine::processPollEvents()
 {
-	for (size_t pollIndex = 0; pollIndex < pollFds_.size(); ++pollIndex)
+	for (size_t pollIndex = 0; pollIndex < pollFds_.size(); pollIndex++)
 	{
 		// Calculate offset only once per iteration
-		if (pollIndex >= totalServerInstances_)
-			clientIndex_ = pollIndex - totalServerInstances_;
+		// if (pollIndex >= totalServerInstances_)
+		clientIndex_ = pollIndex - totalServerInstances_;
 		Logger::log(Logger::DEBUG)
 			<< "clientIndex is set to " << clientIndex_ << std::endl;
 
 		// Check if fd has some errors(pollerr, pollnval) or if the
 		// connection was broken(pollhup)
 		if (pollFds_[pollIndex].revents & (POLLERR | POLLHUP | POLLNVAL))
+		{
 			pollFdError_(pollIndex);
+		}
 		else if (pollFds_[pollIndex].revents & POLLIN)
 		{
 			Logger::log(Logger::DEBUG) << "pollFds_[" << pollIndex
@@ -404,4 +399,11 @@ int ServerEngine::findServer_(
 		}
 	}
 	return -1;
+}
+
+void ServerEngine::closeConnection_(size_t &index)
+{
+	this->clients_.erase(this->clients_.begin() + this->clientIndex_);
+	close(this->pollFds_[index].fd);
+	this->pollFds_.erase(this->pollFds_.begin() + index);
 }
