@@ -26,6 +26,7 @@ class Client
 
 	// Getters
 	bool isClosed(void) const;
+	bool isChunked(void) const;
 	int getFd(void) const;
 
   private:

@@ -112,14 +112,20 @@ std::string Client::extractRequestStr(void)
 
 	return tmp;
 }
+
+int Client::getFd(void) const
+{
+	return pollFd_;
+}
+
 bool Client::isClosed(void) const
 {
 	return isClosed_;
 }
 
-int Client::getFd(void) const
+bool Client::isChunked(void) const
 {
-	return pollFd_;
+	return isChunked_;
 }
 
 /**
@@ -177,8 +183,12 @@ bool Client::isCompleteRequest_(void)
 			// Request has a body, check if the body is fully received
 			if (isBodyFullyReceived_(headerEndPos))
 			{
-				hasCompleteRequest_ = true;
-				return true;
+				if (isChunked_ == false)
+				{
+					hasCompleteRequest_ = true;
+					return true;
+				}
+				// TODO: extract chunked body
 			}
 		}
 	}
@@ -218,11 +228,26 @@ bool Client::isBodyFullyReceived_(size_t headerEndPos)
 	}
 	else if (ft::caseInsensitiveFind(requestStr_, "Transfer-Encoding"))
 	{
+		// TODO: check if header value is chunked
+
+		// Search for transfer encoding and check if value is chunked
 		size_t transferEncodingPos = requestStr_.find("Transfer-Encoding");
 		if (transferEncodingPos == std::string::npos)
 		{
 			transferEncodingPos = requestStr_.find("transfer-encoding");
 		}
+		if (transferEncodingPos != std::string::npos)
+		{
+			if (requestStr_.find("Chunked", transferEncodingPos)
+					!= std::string::npos
+				|| requestStr_.find("chunked", transferEncodingPos)
+					   != std::string::npos) // Has Transfer-Encoding and
+											 // presumed chunked
+			{
+				isChunked_ = true;
+			}
+		}
+
 		// Handle chunked transfer encoding
 		size_t chunkEndPos = requestStr_.find("0\r\n\r\n", bodyStartPos);
 		if (chunkEndPos != std::string::npos)
@@ -283,6 +308,7 @@ std::ostream &operator<<(std::ostream &os, const Client &rhs)
 	os << "Client:" << std::endl;
 	os << "File descriptor: " << rhs.getFd() << std::endl;
 	os << "Is closed: " << rhs.isClosed() << std::endl;
+	os << "Is chunked: " << rhs.isChunked() << std::endl;
 
 	return os;
 }
