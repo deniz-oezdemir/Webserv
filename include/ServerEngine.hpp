@@ -26,7 +26,7 @@ class ServerEngine
 	// clang-format on
 	~ServerEngine();
 
-	void			   start(void);
+	void start(void);
 
 	// TODO: move createResponse() to private as only public for testing
 	std::string createResponse(const HttpRequest &request);
@@ -43,7 +43,7 @@ class ServerEngine
 	// TODO: introduce pollIndex_ such that we do not have to pass it as arg
 
 	std::vector<Client> clients_;
-	size_t				clientIndex_;
+	long long			clientIndex_;
 
 	void initServer_(
 		std::map<std::string, ConfigValue> const &serverConfig,
@@ -59,6 +59,7 @@ class ServerEngine
 	void acceptConnection_(size_t &index);
 	void restartServer_(size_t &index);
 	void pollFdError_(size_t &index);
+	void closeConnection_(size_t &index);
 
 	int findServer_(std::string const &host, unsigned short const &port);
 };

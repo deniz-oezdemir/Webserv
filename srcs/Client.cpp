@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <fcntl.h>
 #include <string>
 #include <unistd.h>
 #include <vector>
@@ -88,11 +89,13 @@ bool Client::hasRequestReady(void)
 		isClosed_ = true;
 		return false;
 	}
-	// If both buffer and file descriptor are empty connection is closed
-	if (bytesReadFromFd == 0 && clientBuffer_.str().empty())
+	else if (bytesReadFromFd == 0)
 	{
-		Logger::log(Logger::DEBUG)
-			<< "Client fd and buffer empty." << std::endl;
+		if (errno != EWOULDBLOCK && errno != EAGAIN)
+		{
+			Logger::log(Logger::INFO, true)
+				<< "Client disconnected: " << *this << std::endl;
+		}
 		isClosed_ = true;
 		return false;
 	}
