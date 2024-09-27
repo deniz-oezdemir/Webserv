@@ -1,0 +1,63 @@
+body {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	margin: 0;
+	font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+	background-color: #f0f8ff;
+}
+
+#joke-container {
+	text-align: center;
+	background-color: #ffeb3b;
+	border: 5px dashed #ff5722;
+	padding: 20px;
+	border-radius: 15px;
+	box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+	animation: bounce 2s infinite;
+}
+
+#joke-target p {
+	font-size: 1.5em;
+	color: #ff5722;
+	margin: 20px 0;
+}
+
+#joke-btn {
+	display: block;
+	margin: 20px auto 0;
+	padding: 15px 30px;
+	font-size: 1.5em;
+	cursor: pointer;
+	background-color: #ff5722;
+	color: #fff;
+	border: none;
+	border-radius: 10px;
+	box-shadow: 0 5px #e64a19;
+	transition: all 0.3s ease;
+}
+
+#joke-btn:hover {
+	background-color: #e64a19;
+	box-shadow: 0 3px #d84315;
+	transform: translateY(-2px);
+}
+
+#joke-btn:active {
+	box-shadow: 0 1px #d84315;
+	transform: translateY(2px);
+}
+
+@keyframes bounce {
+	0%, 20%, 50%, 80%, 100% {
+		transform: translateY(0);
+	}
+	40% {
+		transform: translateY(-30px);
+	}
+	60% {
+		transform: translateY(-15px);
+	}
+}
+
