@@ -85,7 +85,7 @@ std::string HttpMethodHandler::handleGetRequest_(
 	}
 
 	// Check if the file exists and return the response
-	return createFileResponse_(filepath, rootdir, server, keepAlive);
+	return createFileGetResponse_(filepath, rootdir, server, keepAlive);
 }
 
 // TODO: implement check for file/directory, coordinate with Seba
@@ -142,17 +142,48 @@ std::string HttpMethodHandler::handleDeleteRequest_(
 	return response.toString();
 }
 
-// TODO: implement
 std::string HttpMethodHandler::handlePostRequest_(
 	const HttpRequest &request,
 	Server const	  &server
 )
 {
-	(void)request;
-	(void)server;
-	Logger::log(Logger::DEBUG) << "Handling POST: responding" << std::endl;
-	return "POST test\n";
-};
+	std::string uri = request.getUri();
+	bool		keepAlive = request.getKeepAlive();
+
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > location; // clang-format on
+	if (server.isThisLocation(uri))
+		location = server.getThisLocation(uri);
+	else
+	{
+		return HttpErrorHandler::getErrorPage(404, keepAlive);
+	}
+
+	// Check for redirections
+	std::string redirection = handleRedirection_(location, keepAlive);
+	if (!redirection.empty())
+		return redirection;
+	// Check for authorized methods
+	if (!validateMethod_(location, "POST"))
+		return HttpErrorHandler::getErrorPage(405, keepAlive);
+	// Check for max body size
+	if (!validateBodySize_(location, request, server))
+		return HttpErrorHandler::getErrorPage(413, keepAlive);
+
+	// TODO: replace uploadpath with actual uploadpath when Seba added
+	// getUploadPath to config
+	std::string rootdir = getRootDir_(location, server);
+	std::string uploadpath = rootdir; // getUploadPath_(uri, location, server);
+
+	if (isCgiRequest_(location, uri))
+		return handleCgiRequest_(
+			uploadpath, getCgiInterpreter_(location), request, keepAlive
+		);
+
+	return createFilePostResponse_(
+		request, uploadpath, rootdir, server, keepAlive
+	);
+}
 
 // clang-format off
 std::string HttpMethodHandler::handleRedirection_(
@@ -520,7 +551,7 @@ std::string HttpMethodHandler::findIndexFile_(
 	return filepath;
 }
 
-std::string HttpMethodHandler::createFileResponse_(
+std::string HttpMethodHandler::createFileGetResponse_(
 	std::string const &filepath,
 	std::string const &rootdir,
 	Server const	  &server,
@@ -563,5 +594,61 @@ std::string HttpMethodHandler::createFileResponse_(
 	}
 
 	Logger::log(Logger::DEBUG) << "Handling GET: responding" << std::endl;
+	return response.toString();
+}
+
+std::string HttpMethodHandler::createFilePostResponse_(
+	HttpRequest const &request,
+	std::string const &uploadpath,
+	std::string const &rootdir,
+	Server const	  &server,
+	bool const		  &keepAlive
+)
+{
+	(void)rootdir;
+	(void)server;
+
+	HttpResponse response;
+
+	// Open the file for writing
+	std::string	  uploadpathtmp = "./" + uploadpath + "/dummyfile";
+	std::ofstream outFile;
+	outFile.open(uploadpathtmp.c_str());
+	if (!outFile)
+	{
+		Logger::log(Logger::ERROR)
+			<< "Handling Post: failed to open file for writing: "
+			<< uploadpathtmp << std::endl;
+		return HttpErrorHandler::getErrorPage(500, keepAlive);
+	}
+
+	// Write the request body to the file
+	const std::vector<char> &requestBody = request.getBody();
+	outFile.write(requestBody.data(), requestBody.size());
+	if (!outFile)
+	{
+		Logger::log(Logger::ERROR)
+			<< "handling Post: failed to write to file: " << uploadpathtmp
+			<< std::endl;
+		return HttpErrorHandler::getErrorPage(500, keepAlive);
+	}
+
+	outFile.close();
+
+	// Generate a success response
+	response.setStatusCode(200);
+	response.setReasonPhrase("OK");
+	response.setHeader("Server", SERVER_NAME);
+	response.setHeader("Date", ft::createTimestamp());
+	response.setHeader("Content-Type", "text/html; charset=UTF-8");
+	std::string responseBody = "<h1>File Uploaded Successfully</h1>\n";
+	response.setHeader("Content-Length", std::to_string(responseBody.size()));
+	if (keepAlive)
+		response.setHeader("Connection", "keep-alive");
+	else
+		response.setHeader("Connection", "close");
+	response.setBody(responseBody);
+
+	Logger::log(Logger::DEBUG) << "Handling POST: responding" << std::endl;
 	return response.toString();
 }

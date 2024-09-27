@@ -61,8 +61,16 @@ class HttpMethodHandler
 	);
 	// clang-format on
 
-	static std::string createFileResponse_(
+	static std::string createFileGetResponse_(
 		std::string const &filepath,
+		std::string const &rootdir,
+		Server const	  &server,
+		bool const		  &keepAlive
+	);
+
+	static std::string createFilePostResponse_(
+		HttpRequest const &request,
+		std::string const &uploadpath,
 		std::string const &rootdir,
 		Server const	  &server,
 		bool const		  &keepAlive
