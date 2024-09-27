@@ -96,50 +96,41 @@ std::string HttpMethodHandler::handleDeleteRequest_(
 {
 	(void)request;
 	(void)server;
-	std::cout << request << std::endl;
 
-	// Get root path from config of server
-	std::string rootdir = server.getRoot();
-	// Combine root path with uri from request
-	std::string filepath = rootdir + request.getUri();
+	std::string uri = request.getUri();
+	bool		keepAlive = request.getKeepAlive();
 
-	Logger::log(Logger::DEBUG) << "Filepath: " << filepath << std::endl;
-
-	HttpResponse response;
-
-	if (remove(filepath.c_str()) == 0)
-	{
-		std::string body
-			= "<!DOCTYPE html>\n<html>\n<head><title>200 OK</title></head>\n"
-			  "<body><h1>File deleted.</h1></body>\n</html>\n";
-		response.setStatusCode(200);
-		response.setReasonPhrase("OK");
-		response.setHeader("Server", SERVER_NAME);
-		response.setHeader("Date", ft::createTimestamp());
-		response.setHeader("Content-Type", "text/html; charset=UTF-8");
-		response.setHeader("Content-Length", std::to_string(body.size()));
-		response.setHeader("Connection", "keep-alive");
-		response.setBody(body);
-		Logger::log(Logger::INFO)
-			<< "DELETE " << request.getUri() << " -> 200 OK" << std::endl;
-	}
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > location; // clang-format on
+	if (server.isThisLocation(uri))
+		location = server.getThisLocation(uri);
 	else
 	{
-		std::string body = ft::readFile(rootdir + "/404.html");
-		response.setStatusCode(404);
-		response.setReasonPhrase("Not Found");
-		response.setHeader("Server", SERVER_NAME);
-		response.setHeader("Date", ft::createTimestamp());
-		response.setHeader("Content-Type", "text/html; charset=UTF-8");
-		response.setHeader("Content-Length", std::to_string(body.size()));
-		response.setHeader("Connection", "keep-alive");
-		response.setBody(body);
-		Logger::log(Logger::INFO) << "DELETE " << request.getUri()
-								  << " -> 404 Not Found" << std::endl;
+		return HttpErrorHandler::getErrorPage(404, keepAlive);
 	}
 
-	Logger::log(Logger::DEBUG) << "Handling DELETE: responding" << std::endl;
-	return response.toString();
+	// Check for redirections
+	std::string redirection = handleRedirection_(location, keepAlive);
+	if (!redirection.empty())
+		return redirection;
+	// Check for authorized methods
+	if (!validateMethod_(location, "GET"))
+		return HttpErrorHandler::getErrorPage(405, keepAlive);
+	// Check for max body size
+	if (!validateBodySize_(location, request, server))
+		return HttpErrorHandler::getErrorPage(413, keepAlive);
+
+	// TODO: replace filepath with actual filepath when Seba added
+	// getilePath to config
+	std::string rootdir = getRootDir_(location, server);
+	std::string filepath = rootdir; // getFilePath_(uri, location, server);
+
+	if (isCgiRequest_(location, uri))
+		return handleCgiRequest_(
+			filepath, getCgiInterpreter_(location), request, keepAlive
+		);
+
+	return createDeleteResponse_(filepath, rootdir, server, keepAlive);
 }
 
 std::string HttpMethodHandler::handlePostRequest_(
@@ -650,5 +641,48 @@ std::string HttpMethodHandler::createFilePostResponse_(
 	response.setBody(responseBody);
 
 	Logger::log(Logger::DEBUG) << "Handling POST: responding" << std::endl;
+	return response.toString();
+}
+
+std::string HttpMethodHandler::createDeleteResponse_(
+	const std::string &filepath,
+	const std::string &rootdir,
+	const Server	  &server,
+	bool			   keepAlive
+)
+{
+	(void)rootdir;
+	(void)server;
+
+	std::string	 body;
+	HttpResponse response;
+
+	std::string filepathtmp = "./" + filepath + "/dummyfile";
+
+	if (remove(filepathtmp.c_str()) == 0)
+	{
+		response.setStatusCode(200);
+		response.setReasonPhrase("OK");
+		body = "<h1>File Deleted Successfully</h1>\n";
+	}
+	else
+	{
+		response.setStatusCode(404);
+		response.setReasonPhrase("Not Found");
+		body = "<h1>File Not Found</h1>\n";
+	}
+
+	response.setHeader("Server", SERVER_NAME);
+	response.setHeader("Date", ft::createTimestamp());
+	response.setHeader("Content-Type", "text/html; charset=UTF-8");
+	response.setHeader("Content-Length", std::to_string(body.size()));
+	if (keepAlive)
+		response.setHeader("Connection", "keep-alive");
+	else
+		response.setHeader("Connection", "close");
+	response.setBody(body);
+
+	Logger::log(Logger::DEBUG) << "Handling DELETE: responding" << std::endl;
+
 	return response.toString();
 }

@@ -76,6 +76,13 @@ class HttpMethodHandler
 		bool const		  &keepAlive
 	);
 
+	static std::string createDeleteResponse_(
+		const std::string &filepath,
+		const std::string &rootdir,
+		const Server	  &server,
+		bool			   keepAlive
+	);
+
 	// clang-format off
 	static std::string handleRedirection_(
 		std::map<std::string, std::vector<std::string> > const &location,

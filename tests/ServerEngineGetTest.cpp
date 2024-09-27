@@ -5,30 +5,10 @@
 #include <sstream>
 #include <thread>
 
-std::string readFile_(const std::string &filePath)
-{
-	std::ifstream file(filePath);
-	if (!file.is_open())
-	{
-		std::cerr << "Error: Could not open file: " << file.is_open() << " "
-				  << filePath << std::endl;
-		return "";
-	}
-
-	std::stringstream buffer;
-	buffer << file.rdbuf();
-	if (buffer.str().empty())
-	{
-		std::cerr << "Error: File " << filePath
-				  << " is empty or could not be read" << std::endl;
-	}
-	return buffer.str();
-}
-
 Test(ServerEngine, handleGetRequest_FileExists)
 {
 	// Read the request from getRequest.txt
-	std::string requestStr = readFile_("getRequest.txt");
+	std::string requestStr = ft::readFile("getRequest.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
@@ -64,7 +44,7 @@ Test(ServerEngine, handleGetRequest_FileNotFound)
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 
 	// Read the request from nofileGetRequest.txt
-	std::string requestStr = readFile_("nofileGetRequest.txt");
+	std::string requestStr = ft::readFile("nofileGetRequest.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
