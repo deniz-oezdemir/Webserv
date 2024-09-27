@@ -1,15 +1,16 @@
 #include "ServerConfig.hpp"
 #include "ServerException.hpp"
 #include "colors.hpp"
-#include "utils.hpp"
 #include "macros.hpp"
+#include "utils.hpp"
 
+#include <cerrno>
 #include <fcntl.h>
 #include <iostream>
 #include <stack>
 #include <string>
 #include <sys/stat.h>
-
+#include <vector>
 
 // Array of valid log levels to check if the log level set in the configuration
 // file is valid.
@@ -825,27 +826,29 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 				);
 			// clang-format off
 			std::map<std::string, std::vector<std::string> > listenMap;
+			// clang-format on
 			listenMap["host"] = std::vector<std::string>(1, DEFAULT_IP);
 			listenMap["port"] = std::vector<std::string>(1, DEFAULT_PORT_STR);
 			it->find("listen")->second.setMap(listenMap);
 		}
 		else
 		{
-			std::vector<std::string> const &hosts(
-				it->find("listen")->second.getMapValue("host")
-			);
-			std::vector<std::string> const &ports(
-				it->find("listen")->second.getMapValue("ports")
-			);
-			if (!this->checkListenUnique_(hosts, ports))
+			std::vector<std::string> hosts;
+			;
+			std::vector<std::string> ports;
+			if ((it->find("listen")->second.getMapValue("ports", ports))
+				&& (it->find("listen")->second.getMapValue("host", hosts)))
 			{
-				this->errorHandler_(
-					"Duplicate listen directive [" + hosts[0] + ":" + ports[0]
-						+ "]",
-					0,
-					isTest,
-					isTest
-				);
+				if (!this->checkListenUnique_(hosts, ports))
+				{
+					this->errorHandler_(
+						"Duplicate listen directive [" + hosts[0] + ":"
+							+ ports[0] + "]",
+						0,
+						isTest,
+						isTest
+					);
+				}
 			}
 		}
 		if (it->find("root")->second.getVector().empty())
@@ -967,12 +970,12 @@ bool ServerConfig::getServerConfigValue(
 
 bool ServerConfig::checkServerNameUnique_(std::string const &serverName)
 {
-	unsigned int													count(0);
-// clang-format off
+	unsigned int count(0);
+	// clang-format off
 	std::vector<std::map<std::string, ConfigValue> >::const_iterator it(
 		this->serversConfig_.begin()
 	);
-// clang-format on
+	// clang-format on
 	for (; it != this->serversConfig_.end(); ++it)
 	{
 		std::vector<std::string>::const_iterator it2(
@@ -996,25 +999,41 @@ bool ServerConfig::checkListenUnique_(
 {
 	// clang-format off
 	for (std::vector<std::map<std::string, ConfigValue> >::const_iterator it
-	// clang-format on
-		 = this->serversConfig_.begin();
-		 it != this->serversConfig_.end();
-		 ++it)
+		// clang-format on
+		= this->serversConfig_.begin();
+		it != this->serversConfig_.end();
+		++it)
 	{
-		const std::vector<std::string> &serverHosts
-			= it->find("listen")->second.getMapValue("host");
-		const std::vector<std::string> &serverPorts
-			= it->find("listen")->second.getMapValue("port");
+		std::map<std::string, ConfigValue>::const_iterator listenIt
+			= it->find("listen");
+		if (listenIt == it->end())
+		{
+			continue; // Skip if "listen" key is not found
+		}
+
+		std::vector<std::string> serverHosts;
+		if (!it->find("listen")->second.getMapValue("host", serverHosts))
+		{
+			continue;
+		}
+		std::vector<std::string> serverPorts;
+		if (!it->find("listen")->second.getMapValue("port", serverPorts))
+		{
+			continue;
+		}
 
 		for (size_t i = 0; i < serverHosts.size() && i < serverPorts.size();
 			 ++i)
 		{
-			for (size_t j = 0; j < hosts.size() && j < ports.size(); ++j)
+			std::vector<std::string>::const_iterator itHost = hosts.begin();
+			std::vector<std::string>::const_iterator itPort = ports.begin();
+			for (; itHost != hosts.end() && itPort != ports.end(); ++itHost)
 			{
-				if (serverHosts[i] == hosts[j] && serverPorts[i] == ports[j])
+				if (serverHosts[i] == *itHost && serverPorts[i] == *itPort)
 				{
 					return false;
 				}
+				itPort++;
 			}
 		}
 	}
