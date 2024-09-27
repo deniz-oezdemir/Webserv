@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Instagram Clone</title>
+	<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+	<div class="container">
+		<h1>Instagram Clone</h1>
+		<div class="photo-grid" id="photo-grid"></div>
+		<button id="upload-btn">Upload Photo</button>
+	</div>
+
+	<script>
+		// Simulate fetching photo filenames from the uploads directory
+		const photoFilenames = [
+			'photo1.jpg',
+			'photo2.jpg',
+			'photo3.jpg',
+			'photo4.jpg',
+			'photo5.jpg',
+			'photo6.jpg'
+		];
+
+		const photoGrid = document.getElementById('photo-grid');
+
+		photoFilenames.forEach(filename => {
+			const img = document.createElement('img');
+			img.src = `uploads/${filename}`;
+			img.alt = 'Photo';
+			photoGrid.appendChild(img);
+		});
+	</script>
+</body>
+
+</html>
+
