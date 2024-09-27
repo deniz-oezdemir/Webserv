@@ -88,4 +88,8 @@ siege -c 255 -t 10s http://127.00.00:8080/
 
 In this command, the options `-c` and `-t` are used to specify the number of concurrent users and the duration of the test. The URL `http://127.00.00:8080/` should be replaced with the actual URL of your server.
 
-Siege works well when using a constant number of connections, but it does not properly close client connections for time-based testing.
+Siege does not not properly close client connections for time-based testing. But it does os when using a set number of connections:
+
+```bash
+siege -r 10 -c 255 http://127.00.00:8080/
+```
