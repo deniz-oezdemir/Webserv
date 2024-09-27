@@ -814,7 +814,9 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 		// 		}
 		// 	}
 		// }
-		if (it->find("listen")->second.getMap().empty())
+		if (it->find("listen")->second.getMap().empty()
+			&& it->find("listen")->second.getMapValue("ports").empty()
+			&& it->find("listen")->second.getMapValue("host").empty())
 		{
 			if (isTest || isTestPrint)
 				this->errorHandler_(
@@ -833,22 +835,18 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 		}
 		else
 		{
-			std::vector<std::string> hosts;
-			;
-			std::vector<std::string> ports;
-			if ((it->find("listen")->second.getMapValue("ports", ports))
-				&& (it->find("listen")->second.getMapValue("host", hosts)))
+			std::vector<std::string> hosts = it->find("listen")->second.getMapValue("port");
+			std::vector<std::string> ports = it->find("listen")->second.getMapValue("host");
+
+			if (!this->checkListenUnique_(hosts, ports))
 			{
-				if (!this->checkListenUnique_(hosts, ports))
-				{
-					this->errorHandler_(
-						"Duplicate listen directive [" + hosts[0] + ":"
-							+ ports[0] + "]",
-						0,
-						isTest,
-						isTest
-					);
-				}
+				this->errorHandler_(
+					"Duplicate listen directive [" + hosts[0] + ":"
+						+ ports[0] + "]",
+					0,
+					isTest,
+					isTest
+				);
 			}
 		}
 		if (it->find("root")->second.getVector().empty())
