@@ -228,7 +228,7 @@ bool Client::isBodyFullyReceived_(size_t headerEndPos)
 	}
 	else if (ft::caseInsensitiveFind(requestStr_, "Transfer-Encoding"))
 	{
-		// TODO: check if header value is chunked
+		// TODO: check if header value is chunked in a better way
 
 		// Search for transfer encoding and check if value is chunked
 		size_t transferEncodingPos = requestStr_.find("Transfer-Encoding");
@@ -245,10 +245,12 @@ bool Client::isBodyFullyReceived_(size_t headerEndPos)
 											 // presumed chunked
 			{
 				isChunked_ = true;
+				return false;
 			}
 		}
 
 		// Handle chunked transfer encoding
+		// TODO: this is wrong!
 		size_t chunkEndPos = requestStr_.find("0\r\n\r\n", bodyStartPos);
 		if (chunkEndPos != std::string::npos)
 		{
