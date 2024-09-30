@@ -1,7 +1,7 @@
+#include "request_parser/BodyParser.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
-#include "request_parser/BodyParser.hpp"
 #include <cstdlib>
 #include <map>
 
@@ -62,12 +62,16 @@ void BodyParser::checkBody_(
 	const std::vector<char> &body
 )
 {
-	// GET and DELETE methods should not have a body TODO: check this again
-	// GET and DELETE methods should not have a Content-Length header
+	// GET and DELETE methods should not have a body
+	// GET and DELETE methods should not have a Content-Length or
+	// Transfer-Encoding header 
 	// POST should always have Content-Length header
 	if (method == "GET" || method == "DELETE")
 	{
-		if (headers.count("Content-Length") > 0)
+		if (headers.count("Content-Length") > 0
+			|| headers.count("content-length") > 0
+			|| headers.count("Transfer-Encoding") > 0
+			|| headers.count("transfer-encoding") > 0)
 		{
 			Logger::log(Logger::INFO)
 				<< "GET or DELETE method should not have Content-Length header "
@@ -85,30 +89,30 @@ void BodyParser::checkBody_(
 	}
 	else if (method == "POST")
 	{
-		if (headers.count("Content-Length") < 1)
+		if (headers.count("Content-Length") < 1
+			&& headers.count("content-length") < 1
+			&& headers.count("Transfer-Encoding") < 1
+			&& headers.count("transfer-encoding") < 1)
 		{
-			Logger::log(Logger::INFO)
-				<< "POST method requires Content-Length header." << std::endl;
+			Logger::log(Logger::INFO) << "POST method requires Content-Length "
+										 "or Transfer-Encoding header."
+									  << std::endl;
 			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 		}
 	}
 
 	// Check actual body length matches Content-Length header
-	if (headers.count("Content-Length") > 0
-		&& (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())
-			   != body.size())
+	if ((headers.count("Content-Length") > 0
+		 && (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())
+				!= body.size())
+		|| (headers.count("content-length") > 0
+			&& (unsigned long)std::atol(headers.at("content-length")[0].c_str())
+				   != body.size()))
 	{
 		Logger::log(Logger::INFO
 		) << "Content-Length does not match actual body length. Stated length: "
 		  << (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())
 		  << " Actual length: " << body.size() << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
-	}
-
-	if (headers.count("Transfer-Encoding") > 0
-		&& headers.at("Transfer-Encoding")[0].find("chunked")
-			   != std::string::npos)
-	{
-		// TODO: Check that the body is in the chunked transfer coding format
 	}
 }

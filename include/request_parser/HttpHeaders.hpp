@@ -5,7 +5,7 @@
 
 /* WARNING: change length macros if headers are changed */
 
-#define ACCEPTED_HEADERS_N 6
+#define ACCEPTED_HEADERS_N 7
 #define REPEATABLE_HEADERS_N 20
 #define SEMICOLON_SEPARATED_N 5
 

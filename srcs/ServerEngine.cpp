@@ -246,9 +246,9 @@ void ServerEngine::readClientRequest_(size_t &index)
 		if (clients_[clientIndex_].isClosed() == true)
 		{
 			Logger::log(Logger::DEBUG)
-				<< "Client disconnected:"
-				<< "Erase clients_[" << clientIndex_ << "], "
-				<< "close and erase pollFds_[" << index << "]" << std::endl;
+				<< "Client disconnected:" << "Erase clients_[" << clientIndex_
+				<< "], " << "close and erase pollFds_[" << index << "]"
+				<< std::endl;
 			closeConnection_(index);
 		}
 		return;
