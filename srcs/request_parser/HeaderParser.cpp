@@ -257,8 +257,6 @@ bool HeaderParser::isValidHeaderName_(std::string headerName)
  */
 bool HeaderParser::isValidHeaderValue_(std::string headerValue)
 {
-	// TODO: check this rule and understand tokens. Check if needed
-	// std::string specialChars = "()<>@,;:\"/[]?={} \t";
 	std::string specialChars = "";
 
 	for (std::string::const_iterator it = headerValue.begin();

@@ -62,8 +62,9 @@ void BodyParser::checkBody_(
 	const std::vector<char> &body
 )
 {
-	// GET and DELETE methods should not have a body TODO: check this again
-	// GET and DELETE methods should not have a Content-Length header
+	// GET and DELETE methods should not have a body
+	// GET and DELETE methods should not have a Content-Length or
+	// Transfer-Encoding header 
 	// POST should always have Content-Length header
 	if (method == "GET" || method == "DELETE")
 	{

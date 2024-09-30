@@ -183,7 +183,6 @@ bool Client::isCompleteRequest_(void)
 					hasCompleteRequest_ = true;
 					return true;
 				}
-				// TODO: extract chunked body
 			}
 		}
 	}

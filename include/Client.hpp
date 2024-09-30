@@ -22,7 +22,6 @@ class Client
 	 */
 	bool		hasRequestReady(void);
 	std::string extractRequestStr(void);
-	// TODO: use reset_()
 
 	// Getters
 	bool isClosed(void) const;
