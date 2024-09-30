@@ -36,8 +36,11 @@ class Client
 	bool isCompleteRequest_(void);
 	bool hasSizeIndicator_(void);
 	bool isBodyFullyReceived_(size_t headerEndPos);
-	void extractExtraChars_(size_t pos);
+	void moveExtraCharsToBuffer__(size_t pos);
 	void reset_();
+	bool handleContentLength_(size_t bodyStartPos);
+	bool handleChunkedEncoding_(size_t bodyStartPos);
+	bool processChunks_(size_t chunkStart);
 
 	int				  pollFd_;
 	std::stringstream clientBuffer_;
