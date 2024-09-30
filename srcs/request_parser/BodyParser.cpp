@@ -1,7 +1,7 @@
+#include "request_parser/BodyParser.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
-#include "request_parser/BodyParser.hpp"
 #include <cstdlib>
 #include <map>
 
@@ -67,7 +67,8 @@ void BodyParser::checkBody_(
 	// POST should always have Content-Length header
 	if (method == "GET" || method == "DELETE")
 	{
-		if (headers.count("Content-Length") > 0)
+		if (headers.count("Content-Length") > 0
+			|| headers.count("Transfer-Encoding") > 0)
 		{
 			Logger::log(Logger::INFO)
 				<< "GET or DELETE method should not have Content-Length header "
@@ -85,10 +86,12 @@ void BodyParser::checkBody_(
 	}
 	else if (method == "POST")
 	{
-		if (headers.count("Content-Length") < 1)
+		if (headers.count("Content-Length") < 1
+			&& headers.count("Transfer-Encoding") < 1)
 		{
-			Logger::log(Logger::INFO)
-				<< "POST method requires Content-Length header." << std::endl;
+			Logger::log(Logger::INFO) << "POST method requires Content-Length "
+										 "or Transfer-Encoding header."
+									  << std::endl;
 			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 		}
 	}
