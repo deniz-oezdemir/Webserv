@@ -209,7 +209,8 @@ bool Client::isBodyFullyReceived_(size_t headerEndPos)
 	}
 	else if (ft::caseInsensitiveFind(requestStr_, "Transfer-Encoding"))
 	{
-		Logger::log(Logger::INFO) << "Found chunked request." << std::endl;
+		Logger::log(Logger::INFO)
+			<< "Found chunked request: " << requestStr_ << std::endl;
 		return handleChunkedEncoding_(bodyStartPos);
 	}
 	return false;
@@ -296,7 +297,9 @@ bool Client::handleChunkedEncoding_(size_t bodyStartPos)
  *
  * Iterates through the chunks in the request to determine if the entire body
  * has been received. If the end of the chunks is reached, it moves any extra
- * characters to the buffer and marks the request as complete.
+ * characters to the buffer and marks the request as complete. The resulting
+ * request will contain the original headers and the concatenated body without
+ * size indications.
  *
  * @param chunkStart The position in the request string where the first chunk
  * starts.
@@ -304,17 +307,29 @@ bool Client::handleChunkedEncoding_(size_t bodyStartPos)
  */
 bool Client::processChunks_(size_t chunkStart)
 {
+	size_t		totalSize = 0;
+	std::string concatenatedBody;
+
 	while (true)
 	{
+		Logger::log(Logger::DEBUG)
+			<< "Processing chunk starting at position: " << chunkStart
+			<< std::endl;
+
 		size_t chunkSizeEndPos = requestStr_.find("\r\n", chunkStart);
 		if (chunkSizeEndPos == std::string::npos)
 		{
+			Logger::log(Logger::DEBUG)
+				<< "Chunk size end position not found." << std::endl;
 			return false;
 		}
 
 		std::string chunkSizeStr
 			= requestStr_.substr(chunkStart, chunkSizeEndPos - chunkStart);
 		size_t chunkSize = std::strtoul(chunkSizeStr.c_str(), NULL, 16);
+		Logger::log(Logger::DEBUG)
+			<< "Chunk size: " << chunkSize << " (hex: " << chunkSizeStr << ")"
+			<< std::endl;
 
 		if (chunkSize == 0)
 		{
@@ -324,17 +339,49 @@ bool Client::processChunks_(size_t chunkStart)
 				moveExtraCharsToBuffer__(endOfChunksPos + 2);
 				hasCompleteRequest_ = true;
 				isChunked_ = false;
+
+				// Extract headers
+				size_t		headerEndPos = requestStr_.find("\r\n\r\n");
+				std::string headers = requestStr_.substr(0, headerEndPos + 4);
+
+				// Construct the final request string with headers and
+				// concatenated body
+				std::string resultBody = headers + concatenatedBody;
+				requestStr_ = resultBody;
+
+				Logger::log(Logger::INFO)
+					<< "End of chunks reached. Complete request: "
+					<< requestStr_ << std::endl;
 				return true;
 			}
+			Logger::log(Logger::DEBUG)
+				<< "End of chunks not properly terminated." << std::endl;
 			return false;
 		}
 
-		size_t chunkDataEndPos = chunkSizeEndPos + 2 + chunkSize;
+		size_t chunkDataStartPos = chunkSizeEndPos + 2;
+		size_t chunkDataEndPos = chunkDataStartPos + chunkSize;
 		if (requestStr_.size() < chunkDataEndPos + 2)
 		{
+			Logger::log(Logger::DEBUG)
+				<< "Incomplete chunk data. Expected end position: "
+				<< chunkDataEndPos + 2 << std::endl;
 			return false;
 		}
 
+		// Append the chunk data to the concatenated body
+		std::string chunkData
+			= requestStr_.substr(chunkDataStartPos, chunkSize);
+		concatenatedBody += chunkData;
+		totalSize += chunkSize;
+
+		Logger::log(Logger::DEBUG) << "Chunk data: " << chunkData << std::endl;
+		Logger::log(Logger::DEBUG)
+			<< "Total size so far: " << totalSize << std::endl;
+
+		Logger::log(Logger::DEBUG)
+			<< "Chunk data processed. Next chunk starts at: "
+			<< chunkDataEndPos + 2 << std::endl;
 		chunkStart = chunkDataEndPos + 2;
 	}
 }
