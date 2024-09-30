@@ -28,7 +28,9 @@ void ParseReqFirstLine::checkStartLine(
 {
 	if (startLine.empty())
 	{
-		Logger::log(Logger::INFO) << "Request start line is empy." << std::endl;
+		Logger::log(Logger::INFO)
+			<< "Request start line is empty or incorrect. Start line was: "
+			<< startLine << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 	if (startLine[startLine.size() - 1] == '\r')
