@@ -12,7 +12,10 @@
 	<div class="container">
 		<h1>Instagram Clone</h1>
 		<div class="photo-grid" id="photo-grid"></div>
-		<button id="upload-btn">Upload Photo</button>
+		<form id="upload-form" enctype="multipart/form-data" method="post" action="cgi/post.py">
+			<input type="file" name="file" id="file-input" accept="image/*" required>
+			<button type="submit" id="upload-btn">Upload Photo</button>
+		</form>
 	</div>
 
 	<script>
@@ -30,7 +33,7 @@
 
 		photoFilenames.forEach(filename => {
 			const img = document.createElement('img');
-			img.src = `uploads/${filename}`;
+			img.src = `upload/${filename}`;
 			img.alt = 'Photo';
 			photoGrid.appendChild(img);
 		});
@@ -38,4 +41,3 @@
 </body>
 
 </html>
-

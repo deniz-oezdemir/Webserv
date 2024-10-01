@@ -356,7 +356,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back("SERVER_PROTOCOL=HTTP/1.1");
 		envVariables.push_back("REQUEST_METHOD=" + request.getMethod());
 		envVariables.push_back("SCRIPT_FILENAME=" + filepath);
-		envVariables.push_back("PATH_INFO=" + request.getUri());
+		envVariables.push_back("PATH_INFO=" + request.getUri()); //is upload path for post request
 
 		std::vector<char *> envp;
 		for (std::vector<std::string>::iterator it = envVariables.begin();
