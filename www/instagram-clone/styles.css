@@ -20,7 +20,8 @@ h1 {
 
 .photo-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+	grid-template-columns: repeat(3, 1fr);
+	/* Ensure three columns */
 	gap: 10px;
 	padding: 20px;
 }
@@ -56,4 +57,3 @@ h1 {
 	box-shadow: 0 1px #1f4e8a;
 	transform: translateY(2px);
 }
-
