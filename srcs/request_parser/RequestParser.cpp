@@ -9,6 +9,7 @@
 #include <map>
 #include <sstream>
 #include <vector>
+#include "Logger.hpp"
 
 HttpRequest RequestParser::parseRequest(std::string str)
 {
@@ -34,7 +35,10 @@ HttpRequest RequestParser::parseRequest(std::string str)
 		pos += 1;
 	}
 
-	std::istringstream requestStream(str.c_str());
+	std::istringstream requestStream(str);
+
+	// Print request_string to debug
+	Logger::log(Logger::DEBUG) << "Request string: " << str << std::endl;
 
 	// Extract and parse the start line
 	std::string firstLine;

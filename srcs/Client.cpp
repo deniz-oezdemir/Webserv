@@ -1,4 +1,5 @@
 #include "Client.hpp"
+#include "HttpException.hpp"
 #include "Logger.hpp"
 #include "macros.hpp"
 #include "utils.hpp"
@@ -6,7 +7,9 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <exception>
 #include <fcntl.h>
+#include <stdexcept>
 #include <string>
 #include <unistd.h>
 #include <vector>
@@ -16,6 +19,7 @@ Client::Client(int pollFd) : pollFd_(pollFd)
 	hasCompleteRequest_ = false;
 	isChunked_ = false;
 	isClosed_ = false;
+	isError_ = false;
 }
 
 Client::~Client(void)
@@ -35,6 +39,7 @@ Client &Client::operator=(const Client &rhs)
 	isChunked_ = rhs.isChunked_;
 	hasCompleteRequest_ = rhs.hasCompleteRequest_;
 	isClosed_ = rhs.isClosed_;
+	isError_ = rhs.isError_;
 
 	clientBuffer_.str("");
 	clientBuffer_.clear();
@@ -53,11 +58,19 @@ Client &Client::operator=(const Client &rhs)
  */
 bool Client::hasRequestReady(void)
 {
-	if (isClosed_)
+	if (isClosed_ == true)
+	{
+		Logger::log(Logger::ERROR) << "Attempted to read from closed client."
+								   << "Client info: " << *this << std::endl;
+		throw std::invalid_argument("Cannot read from closed client.");
+		return false;
+	}
+	if (isError_ == true)
 	{
 		Logger::log(Logger::ERROR)
-			<< "Attemped to read from closed client! Client info: " << *this
-			<< std::endl;
+			<< "Attempted to read from client with error."
+			<< "Client info: " << *this << std::endl;
+		throw std::invalid_argument("Cannot read from client with error.");
 		return false;
 	}
 
@@ -70,7 +83,7 @@ bool Client::hasRequestReady(void)
 		return true;
 	}
 
-	std::vector<char> buffer(BUFFER_SIZE);
+	std::vector<char> buffer(READ_BUFFER_SIZE);
 	ssize_t bytesReadFromFd = read(pollFd_, buffer.data(), buffer.size());
 
 	if (bytesReadFromFd < 0)
@@ -102,8 +115,22 @@ bool Client::hasRequestReady(void)
 
 std::string Client::extractRequestStr(void)
 {
-	std::string tmp = requestStr_;
-	reset_();
+	std::string tmp;
+	if (isError_ == false)
+	{
+		if (hasCompleteRequest_ == true)
+		{
+			tmp = requestStr_;
+			reset_();
+		}
+	}
+	else
+	{
+		Logger::log(Logger::INFO, true)
+			<< "Attempted to extract request from client with error." << *this
+			<< std::endl;
+		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+	}
 
 	return tmp;
 }
@@ -116,6 +143,11 @@ int Client::getFd(void) const
 bool Client::isClosed(void) const
 {
 	return isClosed_;
+}
+
+bool Client::isError(void) const
+{
+	return isError_;
 }
 
 bool Client::isChunked(void) const
@@ -131,22 +163,51 @@ bool Client::isChunked(void) const
  */
 void Client::readClientBuffer_(void)
 {
-	while (clientBuffer_.str().empty() == false)
+	int emptyLineCount = 0;
+
+	while (clientBuffer_.str().empty() == false && isClosed_ == false)
 	{
 		std::string line;
 		std::getline(clientBuffer_, line, '\n');
 		requestStr_ += line + "\n";
-		if (requestStr_.length() > BUFFER_SIZE)
+
+		if (line.empty())
+		{
+			emptyLineCount++;
+		}
+		else
+		{
+			emptyLineCount = 0;
+		}
+
+		// TODO: check this bullshit  manu
+		if (emptyLineCount >= 3)
+		{
+			Logger::log(Logger::INFO)
+				<< "Client sent three consecutive empty lines."
+				<< "\nrequestStr_.length(): " << requestStr_.length()
+				<< "\nrequestStr_: " << requestStr_ << std::endl;
+			isClosed_ = true;
+			isError_ = true;
+			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+			return;
+		}
+
+		if (requestStr_.length() > MAX_READ_SIZE)
 		{
 			Logger::log(Logger::INFO)
 				<< "Client sent request over default buffer size limit."
 				<< "\nrequestStr_.length(): " << requestStr_.length()
-				<< "\nrequesStr_: " << requestStr_ << std::endl;
+				<< "\nrequestStr_: " << requestStr_ << std::endl;
 			isClosed_ = true;
+			isError_ = true;
+			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 			return;
 		}
+
 		if (isCompleteRequest_() == true)
 		{
+			hasCompleteRequest_ = true;
 			return;
 		}
 	}
@@ -178,11 +239,8 @@ bool Client::isCompleteRequest_(void)
 			// Request has a body, check if the body is fully received
 			if (isBodyFullyReceived_(headerEndPos))
 			{
-				if (isChunked_ == false)
-				{
-					hasCompleteRequest_ = true;
-					return true;
-				}
+				hasCompleteRequest_ = true;
+				return true;
 			}
 		}
 	}
@@ -242,13 +300,6 @@ bool Client::handleContentLength_(size_t bodyStartPos)
 	{
 		moveExtraCharsToBuffer__(bodyStartPos + contentLength);
 		return true;
-	}
-	else
-	{
-		Logger::log(Logger::INFO)
-			<< "Request too big! Fd set as closed." << std::endl;
-		isClosed_ = true;
-		return false;
 	}
 	return false;
 }
@@ -434,6 +485,7 @@ std::ostream &operator<<(std::ostream &os, const Client &rhs)
 	os << "Client:" << std::endl;
 	os << "File descriptor: " << rhs.getFd() << std::endl;
 	os << "Is closed: " << rhs.isClosed() << std::endl;
+	os << "Is error: " << rhs.isError() << std::endl;
 	os << "Is chunked: " << rhs.isChunked() << std::endl;
 
 	return os;

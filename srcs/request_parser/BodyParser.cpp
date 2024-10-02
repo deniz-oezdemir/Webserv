@@ -64,7 +64,7 @@ void BodyParser::checkBody_(
 {
 	// GET and DELETE methods should not have a body
 	// GET and DELETE methods should not have a Content-Length or
-	// Transfer-Encoding header 
+	// Transfer-Encoding header
 	// POST should always have Content-Length header
 	if (method == "GET" || method == "DELETE")
 	{
@@ -101,18 +101,19 @@ void BodyParser::checkBody_(
 		}
 	}
 
-	// Check actual body length matches Content-Length header
-	if ((headers.count("Content-Length") > 0
-		 && (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())
-				!= body.size())
-		|| (headers.count("content-length") > 0
-			&& (unsigned long)std::atol(headers.at("content-length")[0].c_str())
-				   != body.size()))
-	{
-		Logger::log(Logger::INFO
-		) << "Content-Length does not match actual body length. Stated length: "
-		  << (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())
-		  << " Actual length: " << body.size() << std::endl;
-		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
-	}
+	// // TODO: remove magic number 6
+	// // Check actual body length matches Content-Length header
+	// if ((headers.count("Content-Length") > 0
+	// 	 && (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())
+	// 			!= body.size() + 6)
+	// 	|| (headers.count("content-length") > 0
+	// 		&& (unsigned long)std::atol(headers.at("content-length")[0].c_str())
+	// 			   != body.size() + 6))
+	// {
+	// 	Logger::log(Logger::INFO
+	// 	) << "Content-Length does not match actual body length. Stated length: "
+	// 	  << (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())
+	// 	  << " Actual length: " << body.size() << std::endl;
+	// 	throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+	// }
 }

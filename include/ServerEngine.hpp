@@ -54,7 +54,8 @@ class ServerEngine
 	void initializePollEvents(void);
 	void processPollEvents(void);
 	void readClientRequest_(size_t &index);
-	void sendClientResponse_(size_t &index);
+	void processClientRequest_(size_t &index);
+	void sendResponse_(size_t &index, const std::string &response);
 	bool isPollFdServer_(int &fd);
 	void acceptConnection_(size_t &index);
 	void restartServer_(size_t &index);

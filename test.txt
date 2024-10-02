@@ -1,0 +1,614 @@
+[36m[14:36:48] [35m<WebServ> [37m[INFO] Initializing the Server Engine with 7 servers...[0m
+[36m[14:36:48] [35m<WebServ> [37m[INFO] Server 1[0] | Listen: 0.0.0.0:8080[0m
+[36m[14:36:48] [35m<WebServ> [37m[INFO] Server 1[1] | Listen: 0.0.0.0:8181[0m
+[36m[14:36:48] [35m<WebServ> [37m[INFO] Server 2[0] | Listen: 0.0.0.0:8081[0m
+[36m[14:36:48] [35m<WebServ> [37m[INFO] Server 3[0] | Listen: 0.0.0.0:8082[0m
+[36m[14:36:48] [35m<WebServ> [37m[INFO] Server 4[0] | Listen: 0.0.0.0:8083[0m
+[36m[14:36:48] [35m<WebServ> [37m[INFO] Server 5[0] | Listen: 0.0.0.0:8084[0m
+[36m[14:36:48] [35m<WebServ> [37m[INFO] Server 6[0] | Listen: 0.0.0.0:8085[0m
+[36m[14:36:48] [35m<WebServ> [37m[INFO] Server 7[0] | Listen: 0.0.0.0:8086[0m
+[36m[14:36:48] [35m<WebServ> [37m[INFO] Starting the Server Engine[0m
+[36m[14:36:48] [35m<WebServ> [36m[DEBUG] Initializing pollFds_ vector with ServerFds[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] pollFds_[7] is ready for read[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Accepting client connection on the server[7][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Client connection accepted[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Client socket set to non-blocking mode[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Client connection added to pollFds_[7][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Client added to clients_[-1][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] pollFds_[8] is ready for read[0m
+[36m[14:36:53] [35m<WebServ> [37m[INFO] Reading client request at pollFds_[8][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Read complete client request at pollFds_[8] and set it to POLLOUT[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Request string: GET / HTTP/1.1
+Host: localhost:8086
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/png,image/svg+xml,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+Priority: u=0, i
+
+[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Language[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Encoding[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Upgrade-Insecure-Requests[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Dest[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Mode[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Site[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-User[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Priority[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling GET request: /[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling GET: file opened[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling GET: responding[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Sending response[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] pollFds_[8] is ready for read[0m
+[36m[14:36:53] [35m<WebServ> [37m[INFO] Reading client request at pollFds_[8][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Read complete client request at pollFds_[8] and set it to POLLOUT[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Request string: GET /styles.css HTTP/1.1
+Host: localhost:8086
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0
+Accept: text/css,*/*;q=0.1
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+Connection: keep-alive
+Referer: http://localhost:8086/
+Sec-Fetch-Dest: style
+Sec-Fetch-Mode: no-cors
+Sec-Fetch-Site: same-origin
+Priority: u=2
+
+[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Language[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Encoding[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Referer[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Dest[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Mode[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Site[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Priority[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling GET request: /styles.css[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling GET: file opened[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling GET: responding[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Sending response[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] pollFds_[8] is ready for read[0m
+[36m[14:36:53] [35m<WebServ> [37m[INFO] Reading client request at pollFds_[8][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Read complete client request at pollFds_[8] and set it to POLLOUT[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Request string: GET /upload/photo1.jpg HTTP/1.1
+Host: localhost:8086
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0
+Accept: image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+Connection: keep-alive
+Referer: http://localhost:8086/
+Sec-Fetch-Dest: image
+Sec-Fetch-Mode: no-cors
+Sec-Fetch-Site: same-origin
+Priority: u=5
+
+[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Language[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Encoding[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Referer[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Dest[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Mode[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Site[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Priority[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling GET request: /upload/photo1.jpg[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling GET: file opened[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling GET: responding[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Sending response[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] pollFds_[7] is ready for read[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Accepting client connection on the server[7][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Client connection accepted[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Client socket set to non-blocking mode[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Client connection added to pollFds_[7][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Client added to clients_[-1][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 2 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] pollFds_[7] is ready for read[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Accepting client connection on the server[7][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Client connection accepted[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Client socket set to non-blocking mode[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Client connection added to pollFds_[7][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Client added to clients_[-1][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] pollFds_[9] is ready for read[0m
+[36m[14:36:53] [35m<WebServ> [37m[INFO] Reading client request at pollFds_[9][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Read complete client request at pollFds_[9] and set it to POLLOUT[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Request string: GET /upload/photo2.jpg HTTP/1.1
+Host: localhost:8086
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0
+Accept: image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+Connection: keep-alive
+Referer: http://localhost:8086/
+Sec-Fetch-Dest: image
+Sec-Fetch-Mode: no-cors
+Sec-Fetch-Site: same-origin
+Priority: u=5, i
+
+[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Language[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Encoding[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Referer[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Dest[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Mode[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Site[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Priority[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling GET request: /upload/photo2.jpg[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling GET: file not found[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Sending response[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] pollFds_[10] is ready for read[0m
+[36m[14:36:53] [35m<WebServ> [37m[INFO] Reading client request at pollFds_[10][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Read complete client request at pollFds_[10] and set it to POLLOUT[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Request string: GET /upload/photo3.jpg HTTP/1.1
+Host: localhost:8086
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0
+Accept: image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+Connection: keep-alive
+Referer: http://localhost:8086/
+Sec-Fetch-Dest: image
+Sec-Fetch-Mode: no-cors
+Sec-Fetch-Site: same-origin
+Priority: u=5, i
+
+[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Language[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Encoding[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Referer[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Dest[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Mode[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Site[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Priority[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling GET request: /upload/photo3.jpg[0m
+[36m[14:36:53] [35m<WebServ> [37m[INFO] Could not find location: /upload/photo3.jpg[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling default error response: [404] Not Found[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Sending response[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] pollFds_[10] is ready for read[0m
+[36m[14:36:53] [35m<WebServ> [37m[INFO] Reading client request at pollFds_[10][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Read complete client request at pollFds_[10] and set it to POLLOUT[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Request string: GET /upload/photo4.jpg HTTP/1.1
+Host: localhost:8086
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0
+Accept: image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+Connection: keep-alive
+Referer: http://localhost:8086/
+Sec-Fetch-Dest: image
+Sec-Fetch-Mode: no-cors
+Sec-Fetch-Site: same-origin
+Priority: u=5, i
+
+[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Language[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Encoding[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Referer[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Dest[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Mode[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Site[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Priority[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling GET request: /upload/photo4.jpg[0m
+[36m[14:36:53] [35m<WebServ> [37m[INFO] Could not find location: /upload/photo4.jpg[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling default error response: [404] Not Found[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Sending response[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] pollFds_[10] is ready for read[0m
+[36m[14:36:53] [35m<WebServ> [37m[INFO] Reading client request at pollFds_[10][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Read complete client request at pollFds_[10] and set it to POLLOUT[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Request string: GET /upload/photo5.jpg HTTP/1.1
+Host: localhost:8086
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0
+Accept: image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+Connection: keep-alive
+Referer: http://localhost:8086/
+Sec-Fetch-Dest: image
+Sec-Fetch-Mode: no-cors
+Sec-Fetch-Site: same-origin
+Priority: u=5, i
+
+[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Language[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Encoding[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Referer[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Dest[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Mode[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Site[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Priority[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling GET request: /upload/photo5.jpg[0m
+[36m[14:36:53] [35m<WebServ> [37m[INFO] Could not find location: /upload/photo5.jpg[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling default error response: [404] Not Found[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Sending response[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] pollFds_[10] is ready for read[0m
+[36m[14:36:53] [35m<WebServ> [37m[INFO] Reading client request at pollFds_[10][0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Read complete client request at pollFds_[10] and set it to POLLOUT[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 1[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] clientIndex is set to 2[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Request string: GET /upload/photo6.jpg HTTP/1.1
+Host: localhost:8086
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0
+Accept: image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+Connection: keep-alive
+Referer: http://localhost:8086/
+Sec-Fetch-Dest: image
+Sec-Fetch-Mode: no-cors
+Sec-Fetch-Site: same-origin
+Priority: u=5, i
+
+[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Language[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Encoding[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Referer[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Dest[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Mode[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Site[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Header ignored: Priority[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling GET request: /upload/photo6.jpg[0m
+[36m[14:36:53] [35m<WebServ> [37m[INFO] Could not find location: /upload/photo6.jpg[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Handling default error response: [404] Not Found[0m
+[36m[14:36:53] [35m<WebServ> [36m[DEBUG] Sending response[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] pollFds_[8] is ready for read[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Reading client request at pollFds_[8][0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [37m[INFO] Content length: 2994[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Read complete client request at pollFds_[8] and set it to POLLOUT[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to 1[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to 2[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Request string: POST /cgi/post.py HTTP/1.1
+Host: localhost:8086
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/png,image/svg+xml,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+Content-Type: multipart/form-data; boundary=---------------------------8031008371293555129816933845
+Content-Length: 2994
+Origin: http://localhost:8086
+Connection: keep-alive
+Referer: http://localhost:8086/
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: same-origin
+Sec-Fetch-User: ?1
+Priority: u=0, i
+
+-----------------------------8031008371293555129816933845
+Content-Disposition: form-data; name="file"; filename="photo2.jpg"
+Content-Type: image/jpeg
+
+���� JFIF  H H  �� C ������������������������������������������������������������������ C������������������������������������������������������������������  �9" ��               �� $      !1AQqa��������                ��               ��   ? ��/ ��
+`C ���S0�n��cA�>3V�1e�]<��~V�1������x6f2�֚�
+A�q�ߠ��o���|�@֦���h/��V�u�'�]ԷS;fߔ��C�^�b2�� �@
+��a�
+����?i��|0�`��\�K�q?5>�`-�p�Y�%�3�b/�٘"��'C�[Ϛ����ߥ0� �%��(9��Vk2�V_���=��PZ�lg��<v��r���H^L��t�DQ 5�Q��%E��1����U��q�܀�� ��Ƥ��-����x���~�ֺ@ �  �Pt�6�ݛ�^�q�f!m�@���'����
+n�g	2�� �/��}$jt��koL�������e�rA	�D �Pc>�gK�y=�+}_�� � \@4����n%���'ڳ��s,c�� �1�/�s�8B�������U��_��[�PC��4	�tfI>�T]DPA	tdOw=y���4��#2����g ��c<�h7�3�d���@�U3���gz�E�S#9<4t#궦�4��*7�5T$�*�Ȩ�� * �$�?�'�(���:����l� �� �(&(������#@_r[h/����Ow��m���Q���L�	��MDO5U  P�K�`�+��;gIt��&( ����A�#>�    �����H&�������z~kY����ѩ)y�5��*�   L��gj]����R -E RB�Y�����    @Q   F��fMt�@?��8�ǿ�"|�������%�����(@  �U0�M���[~   T    VI|�����5��9.����d�OWLm�������,2��4�P@�  �B߄�P  @    @@�PkS�c(��>|3����65zNg���Tj؀"�
+"��������      �X�   � Њ��K��B����6���Dt��T[�� �����DU
+eP     E\���`���_���/f��"�*
+��dE:MQ���H���ab�s¡�+6"���/H
+�L�@    
+q0@]A�"��*��TA@0Ƅ�d@ꊋ/�	��EVZ�U*J ��j2 ����� ��*��4�n �  �FW�����-ej � �� J�����
+�:Q<�@E@X �b��B������<EP
+(�"|�*  ?��
+
+-----------------------------8031008371293555129816933845--
+[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Language[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Header ignored: Accept-Encoding[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Header ignored: Content-Type[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Header ignored: Origin[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Header ignored: Referer[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Header ignored: Upgrade-Insecure-Requests[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Dest[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Mode[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-Site[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Header ignored: Sec-Fetch-User[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Header ignored: Priority[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Handling POST request: /cgi/post.py[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Handling POST: responding[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] Sending response[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to 1[0m
+[36m[14:36:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to 2[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to 1[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] pollFds_[9] is ready for read[0m
+[36m[14:38:55] [35m<WebServ> [37m[INFO] Reading client request at pollFds_[9][0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] Client disconnected:Erase clients_[1], close and erase pollFds_[9][0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] poll() returned 2 events[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] pollFds_[8] is ready for read[0m
+[36m[14:38:55] [35m<WebServ> [37m[INFO] Reading client request at pollFds_[8][0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] Client disconnected:Erase clients_[0], close and erase pollFds_[8][0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] poll() returned 1 events[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] clientIndex is set to 0[0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] pollFds_[8] is ready for read[0m
+[36m[14:38:55] [35m<WebServ> [37m[INFO] Reading client request at pollFds_[8][0m
+[36m[14:38:55] [35m<WebServ> [36m[DEBUG] Client disconnected:Erase clients_[0], close and erase pollFds_[8][0m
+
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] SIGINT received. Exiting...[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] Shutdown signal received, exiting poll.[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] clientIndex is set to -8[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] clientIndex is set to -7[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] clientIndex is set to -6[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] clientIndex is set to -5[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] clientIndex is set to -4[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] clientIndex is set to -3[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] clientIndex is set to -2[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] clientIndex is set to -1[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] Shutting down the server engine[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] Closing server socket[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] Closing server socket[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] Closing server socket[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] Closing server socket[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] Closing server socket[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] Closing server socket[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] Closing server socket[0m
+[36m[14:39:17] [35m<WebServ> [36m[DEBUG] Closing server socket[0m
