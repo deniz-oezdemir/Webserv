@@ -165,15 +165,18 @@ std::string HttpMethodHandler::handlePostRequest_(
 	// getUploadPath to config
 	std::string rootdir = getRootDir_(location, server);
 	std::string uploadpath = rootdir; // getUploadPath_(uri, location, server);
+	std::string pyscriptpath = rootdir + uri;
 
-	if (isCgiRequest_(location, uri))
-		return handleCgiRequest_(
-			uploadpath, getCgiInterpreter_(location), request, keepAlive
+	Logger::log(Logger::INFO) << "Received POST request for URI: " << uri << std::endl;
+	if (!isCgiRequest_(location, uri)) //TODO: Seba how should this work? i only set it to ! to test the cgi
+	{
+		Logger::log(Logger::INFO) << "Handling CGI request" << std::endl;
+		return handleCgiRequest_(pyscriptpath, "/usr/bin/python3"/*getCgiInterpreter_(location)*/, request, keepAlive);
+	} else {
+		return createFilePostResponse_(
+			request, uploadpath, rootdir, server, keepAlive
 		);
-
-	return createFilePostResponse_(
-		request, uploadpath, rootdir, server, keepAlive
-	);
+	}
 }
 
 // clang-format off
@@ -323,6 +326,9 @@ std::string HttpMethodHandler::handleCgiRequest_(
 	bool const		  &keepAlive
 )
 {
+	Logger::log(Logger::INFO) << "Filepath: " << filepath << std::endl;
+	Logger::log(Logger::INFO) << "Interpreter: " << interpreter << std::endl;
+
 	int pipefd[2];
 	if (pipe(pipefd) == -1)
 	{
@@ -347,6 +353,11 @@ std::string HttpMethodHandler::handleCgiRequest_(
 				<< "Failed to change directory to: " << cgiDir << std::endl;
 			exit(EXIT_FAILURE);
 		}
+		else
+		{
+			Logger::log(Logger::INFO, true)
+			<< "Changed directory to: " << cgiDir << std::endl;
+		}
 
 		dup2(pipefd[1], STDOUT_FILENO);
 		close(pipefd[1]);
@@ -367,12 +378,19 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		}
 		envp.push_back(NULL);
 
+		//TODO: Clarify with Seba why this is not printed anymore
+		Logger::log(Logger::INFO) << "Filepath before argv: " << filepath << std::endl;
+
 		char *argv[]
 			= {const_cast<char *>(interpreter.c_str()),
-			   const_cast<char *>(filepath.c_str()),
+			   const_cast<char *>("/home/denizozd/Webserv/www/instagram-clone/cgi/post.py"), //filepath.c_str()), //reverse
 			   NULL};
 
-		execve(interpreter.c_str(), argv, &envp[0]);
+
+
+		if (execve(interpreter.c_str(), argv, &envp[0]) == -1) {
+			Logger::log(Logger::ERROR, true) << "Failed to execute CGI script: " << filepath << std::endl;
+		}
 
 		exit(EXIT_FAILURE);
 	}
