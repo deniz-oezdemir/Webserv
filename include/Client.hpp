@@ -25,8 +25,9 @@ class Client
 
 	// Getters
 	bool isClosed(void) const;
+	bool isError(void) const;
 	bool isChunked(void) const;
-	int getFd(void) const;
+	int	 getFd(void) const;
 
   private:
 	Client(void);
@@ -47,7 +48,7 @@ class Client
 	bool			  isChunked_;
 	bool			  hasCompleteRequest_;
 	bool			  isClosed_;
-	bool				isError_;
+	bool			  isError_;
 };
 
 std::ostream &operator<<(std::ostream &os, const Client &rhs);
