@@ -261,6 +261,7 @@ void ServerEngine::readClientRequest_(size_t &index)
 		<< "] and set it to POLLOUT" << std::endl;
 }
 
+//TODO: refactor duplicate sending parts into function such that we can correctly try and catch errors from request and response creation
 void ServerEngine::sendClientResponse_(size_t &index)
 {
 	// TODO: check if program  faster without  manual allocation of
@@ -269,18 +270,25 @@ void ServerEngine::sendClientResponse_(size_t &index)
 	std::string	 response;
 	try
 	{
-		request = new HttpRequest(RequestParser::parseRequest(
-			clients_[clientIndex_].extractRequestStr()
-		));
-		Logger::log(Logger::DEBUG) << "Request received:\n"
-								   << *request << std::flush;
+		std::string request_str = clients_[clientIndex_].extractRequestStr();
+		if (request_str.empty())
+		{
+				response = HttpErrorHandler::getErrorPage(400, true);
+				Logger::log(Logger::ERROR, true)
+				<< "Client send bad request" << std::endl;
+		}
+		else
+		{
+			request = new HttpRequest(RequestParser::parseRequest(request_str));
+		}
 	}
 	catch (std::exception &e)
 	{
 		response = HttpErrorHandler::getErrorPage(400, true);
 		Logger::log(Logger::ERROR, true)
-			<< "Failed to parse the reguest: " << e.what() << std::endl;
+			<< "Failed to parse the request: " << e.what() << std::endl;
 	}
+
 	if (request != NULL)
 	{
 		response = createResponse(*request);
@@ -319,8 +327,45 @@ void ServerEngine::sendClientResponse_(size_t &index)
 		else
 			pollFds_[index].events = POLLIN;
 		// After sending the response, prepare to read the next request
-
 		delete request;
+	}
+	else
+	{
+		response = HttpErrorHandler::getErrorPage(400, true);
+		Logger::log(Logger::DEBUG) << "Response 400: " << response << std::endl;
+
+		Logger::log(Logger::DEBUG) << "Sending response" << std::endl;
+		int retCode
+			= send(pollFds_[index].fd, response.c_str(), response.size(), 0);
+
+		if (retCode < 0)
+		{
+			Logger::log(Logger::ERROR, true)
+				<< "Failed to send response to client: (" << ft::toString(errno)
+				<< ") " << strerror(errno) << std::endl;
+			Logger::log(Logger::DEBUG)
+				<< "Erase clients_[" << clientIndex_ << "], "
+				<< "close and erase pollFds_[" << index << "]" << std::endl;
+			closeConnection_(index);
+			delete request;
+			return;
+		}
+		else if (retCode == 0)
+		{
+			Logger::log(Logger::DEBUG)
+				<< "Client disconnected: clients_[" << clientIndex_
+				<< "] disconnected" << std::endl;
+			Logger::log(Logger::DEBUG)
+				<< "Erase clients_[" << clientIndex_ << "], "
+				<< "close and erase pollFds_[" << index << "]" << std::endl;
+			closeConnection_(index);
+			delete request;
+			return;
+		}
+		// if (clients_[clientIndex_].isClosed())
+		// {
+		// 	closeConnection_(index);
+		// }
 	}
 }
 

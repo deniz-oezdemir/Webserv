@@ -47,6 +47,7 @@ class Client
 	bool			  isChunked_;
 	bool			  hasCompleteRequest_;
 	bool			  isClosed_;
+	bool				isError_;
 };
 
 std::ostream &operator<<(std::ostream &os, const Client &rhs);

@@ -10,12 +10,14 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
+#include "HttpException.hpp"
 
 Client::Client(int pollFd) : pollFd_(pollFd)
 {
 	hasCompleteRequest_ = false;
 	isChunked_ = false;
 	isClosed_ = false;
+	isError_ = false;
 }
 
 Client::~Client(void)
@@ -102,7 +104,11 @@ bool Client::hasRequestReady(void)
 
 std::string Client::extractRequestStr(void)
 {
-	std::string tmp = requestStr_;
+	std::string tmp;
+	if (isError_ == false)
+	{
+	 tmp = requestStr_;
+	}
 	reset_();
 
 	return tmp;
@@ -131,7 +137,7 @@ bool Client::isChunked(void) const
  */
 void Client::readClientBuffer_(void)
 {
-	while (clientBuffer_.str().empty() == false)
+	while (clientBuffer_.str().empty() == false && isClosed_ == false)
 	{
 		std::string line;
 		std::getline(clientBuffer_, line, '\n');
@@ -143,6 +149,8 @@ void Client::readClientBuffer_(void)
 				<< "\nrequestStr_.length(): " << requestStr_.length()
 				<< "\nrequesStr_: " << requestStr_ << std::endl;
 			isClosed_ = true;
+			isError_ = true;
+			// throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 			return;
 		}
 		if (isCompleteRequest_() == true)
@@ -242,13 +250,6 @@ bool Client::handleContentLength_(size_t bodyStartPos)
 	{
 		moveExtraCharsToBuffer__(bodyStartPos + contentLength);
 		return true;
-	}
-	else
-	{
-		Logger::log(Logger::INFO)
-			<< "Request too big! Fd set as closed." << std::endl;
-		isClosed_ = true;
-		return false;
 	}
 	return false;
 }
