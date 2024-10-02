@@ -524,7 +524,7 @@ int ServerEngine::findServer_(
  *
  * Removes the client from the clients_ vector and closes the file descriptor.
  *
- * @param index The index of the client in the pollFds_ vector.
+ * @param index The index of the client in the pollFds_ vector. 
  */
 void ServerEngine::closeConnection_(size_t &index)
 {
