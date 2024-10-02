@@ -78,10 +78,15 @@ std::string HttpMethodHandler::handleGetRequest_(
 	// Check if the request is for a directory and handle autoindex
 	if (isDirectory_(filepath))
 	{
-		if (isAutoIndexEnabled_(location))
-			return handleAutoIndex_(rootdir, uri, keepAlive);
 		// Search for index file in the directory
 		filepath = findIndexFile_(filepath, location, server);
+		if (filepath.empty())
+		{
+			if (isAutoIndexEnabled_(location))
+				return handleAutoIndex_(rootdir, uri, keepAlive);
+			else
+				return HttpErrorHandler::getErrorPage(404, keepAlive);
+		}
 	}
 
 	// Check if the file exists and return the response
@@ -539,7 +544,7 @@ std::string HttpMethodHandler::findIndexFile_(
 			return indexFilePath;
 		}
 	}
-	return filepath;
+	return "";
 }
 
 std::string HttpMethodHandler::createFileGetResponse_(
