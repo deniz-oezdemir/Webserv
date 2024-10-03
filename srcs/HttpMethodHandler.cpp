@@ -298,9 +298,9 @@ std::string HttpMethodHandler::getFilePath_(
 ) // clang-format on
 {
 	std::string rootdir = location.find("root") != location.end()
-								  && !location.at("root").empty()
-							  ? location.at("root")[0]
-							  : server.getRoot();
+									&& !location.at("root").empty()
+								? location.at("root")[0]
+								: server.getRoot();
 	return rootdir + uri;
 }
 
@@ -323,9 +323,9 @@ std::string HttpMethodHandler::getRootDir_(
 ) // clang-format on
 {
 	std::string rootdir = location.find("root") != location.end()
-								  && !location.at("root").empty()
-							  ? location.at("root")[0]
-							  : server.getRoot();
+									&& !location.at("root").empty()
+								? location.at("root")[0]
+								: server.getRoot();
 	return rootdir;
 }
 
@@ -337,9 +337,11 @@ bool HttpMethodHandler::isCgiRequest_(
 {
 	std::map<std::string, std::vector<std::string> >::const_iterator it
 		= location.find("cgi"); // clang-format on
+	std::cout <<"Debug check\n" << std::endl;
 
 	if (it != location.end() && !it->second.empty())
 	{
+		Logger::log(Logger::DEBUG) << "CGI Extension: " << it->second[0] << std::endl;
 		std::string cgiExtension = it->second[0]; // ".py"
 		return uri.find(cgiExtension) != std::string::npos;
 	}
@@ -364,6 +366,10 @@ std::string HttpMethodHandler::handleCgiRequest_(
 	std::string const &uploadpath
 )
 {
+	(void)uploadpath;
+	Logger::log(Logger::INFO) << "Filepath: " << filepath << std::endl;
+	Logger::log(Logger::INFO) << "Interpreter: " << interpreter << std::endl;
+
 	int pipefd[2];
 	if (pipe(pipefd) == -1)
 	{
@@ -379,28 +385,36 @@ std::string HttpMethodHandler::handleCgiRequest_(
 	}
 	else if (pid == 0)
 	{
+		//child process
+		dup2(pipefd[0], STDIN_FILENO); // Redirect stdin to the read end of the pipe to receive body from parent process
 		close(pipefd[0]);
-
-		std::string cgiDir = ft::getDirectory(filepath);
-		if (chdir(cgiDir.c_str()) == -1)
-		{
-			Logger::log(Logger::ERROR, true)
-				<< "Failed to change directory to: " << cgiDir << std::endl;
-			exit(EXIT_FAILURE);
-		}
-
-		dup2(pipefd[1], STDOUT_FILENO);
-		close(pipefd[1]);
 
 		std::vector<std::string> envVariables;
 		envVariables.push_back("GATEWAY_INTERFACE=CGI/1.1");
 		envVariables.push_back("SERVER_PROTOCOL=HTTP/1.1");
 		envVariables.push_back("REQUEST_METHOD=" + request.getMethod());
 		envVariables.push_back("SCRIPT_FILENAME=" + filepath);
-		envVariables.push_back(
-			"PATH_INFO=" + request.getUri()
-		); // In which cases do you need to use this?
-		envVariables.push_back("PATH_UPLOAD=" + uploadpath); // to Use in the post request
+		envVariables.push_back("UPLOAD_PATH=" + uploadpath);
+		envVariables.push_back("CONTENT_LENGTH=" + std::to_string(request.getBody().size()));
+
+		std::map<std::string, std::vector<std::string>> headers = request.getHeaders();
+		for (const auto &header : headers) {
+			for (const auto &value : header.second) {
+				Logger::log(Logger::DEBUG) << "Debug Headers: " << header.first << ": " << value << std::endl;
+				envVariables.push_back(header.first + "=" + value);
+			}
+		}
+
+		// There are two values for content-type in the header, combine them for the CONTENT_TYPE=
+		std::map<std::string, std::vector<std::string>> headers2 = request.getHeaders();
+		auto contentTypeIt = headers2.find("Content-Type");
+		if (contentTypeIt != headers2.end() && !contentTypeIt->second.empty()) {
+			std::string combinedContentType = contentTypeIt->second[0];
+			for (size_t i = 1; i < contentTypeIt->second.size(); ++i) {
+				combinedContentType += "; " + contentTypeIt->second[i];
+			}
+			envVariables.push_back("CONTENT_TYPE=" + combinedContentType);
+		}
 
 		std::vector<char *> envp;
 		for (std::vector<std::string>::iterator it = envVariables.begin();
@@ -411,18 +425,40 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		}
 		envp.push_back(NULL);
 
+		Logger::log(Logger::INFO) << "Filepath before argv: " << filepath << std::endl;
+
 		char *argv[]
 			= {const_cast<char *>(interpreter.c_str()),
-			   const_cast<char *>(filepath.c_str()),
-			   NULL};
+				 const_cast<char *>(filepath.c_str()),
+				 NULL};
 
-		execve(interpreter.c_str(), argv, &envp[0]);
+		dup2(pipefd[1], STDOUT_FILENO);
 
+		if (execve(interpreter.c_str(), argv, &envp[0]) == -1) {
+			Logger::log(Logger::ERROR, true) << "Failed to execute CGI script: " << filepath << std::endl;
+			close(pipefd[1]);
+		}
+
+		close(pipefd[1]);
 		exit(EXIT_FAILURE);
 	}
 	else
 	{
-		close(pipefd[1]);
+		// parent process
+
+		// Write the request body to the pipe for the child process
+		const std::vector<char> &requestBody = request.getBody();
+		write(pipefd[1], requestBody.data(), requestBody.size());
+		close(pipefd[1]); // Close the write end of the pipe after writing
+
+		int status;
+		waitpid(pid, &status, 0);
+		if (status != 0)
+		{
+			Logger::log(Logger::ERROR, true)
+				<< "CGI script execution failed" << std::endl;
+			return HttpErrorHandler::getErrorPage(500);
+		}
 
 		char			  buffer[1024];
 		std::stringstream output;
@@ -431,17 +467,9 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer))) > 0)
 			output.write(buffer, bytesRead);
 
-		close(pipefd[0]);
+		close(pipefd[0]); // Close the read end of the pipe after reading
 
-		int status;
-		waitpid(pid, &status, 0);
-
-		if (status != 0)
-		{
-			Logger::log(Logger::ERROR, true)
-				<< "CGI script execution failed" << std::endl;
-			return handleErrorResponse_(server, 500, rootdir, keepAlive);
-		}
+		Logger::log(Logger::DEBUG) << "CGI Output: " << output.str() << std::endl;
 
 		HttpResponse response;
 		response.setStatusCode(200);
@@ -474,7 +502,7 @@ bool HttpMethodHandler::isAutoIndexEnabled_(
 ) // clang-format on
 {
 	return location.find("autoindex") != location.end()
-		   && location.at("autoindex")[0] == "on";
+			 && location.at("autoindex")[0] == "on";
 }
 
 std::string HttpMethodHandler::handleAutoIndex_(
@@ -570,9 +598,9 @@ std::string HttpMethodHandler::findIndexFile_(
 {
 	std::vector<std::string> indexFiles
 		= location.find("index") != location.end()
-				  && !location.at("index").empty()
-			  ? location.at("index")
-			  : server.getIndex();
+					&& !location.at("index").empty()
+				? location.at("index")
+				: server.getIndex();
 
 	struct stat fileStat;
 	for (std::vector<std::string>::const_iterator it = indexFiles.begin();
