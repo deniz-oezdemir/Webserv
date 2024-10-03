@@ -44,7 +44,8 @@ class HttpMethodHandler
 		Server const										  &server
 	);
 	static std::string getUploadPath_(
-		std::map<std::string, std::vector<std::string> > const &location
+		std::map<std::string, std::vector<std::string> > const &location,
+		std::string const &uri
 	);
 	static bool isCgiRequest_(
 		std::map<std::string, std::vector<std::string> > const &location,

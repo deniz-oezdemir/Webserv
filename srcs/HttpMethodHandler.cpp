@@ -116,7 +116,7 @@ std::string HttpMethodHandler::handlePostRequest_(
 		return HttpErrorHandler::getErrorPage(404, keepAlive);
 
 	std::string rootdir = getRootDir_(location, server);
-	std::string uploadpath = getUploadPath_(location);
+	std::string uploadpath = getUploadPath_(location, uri);
 	if (uploadpath.empty())
 		uploadpath = rootdir + uri;
 
@@ -306,7 +306,8 @@ std::string HttpMethodHandler::getFilePath_(
 
 // clang-format off
 std::string HttpMethodHandler::getUploadPath_(
-	std::map<std::string, std::vector<std::string> > const &location
+	std::map<std::string, std::vector<std::string> > const &location,
+	std::string const &uri
 ) // clcng-format on
 {
 	return location.find("upload_store") != location.end()
@@ -640,9 +641,8 @@ std::string HttpMethodHandler::createFilePostResponse_(
 ) // clang-format on
 {
 	HttpResponse response;
-
 	// Open the file for writing
-	std::string	  uploadpathtmp = uploadpath + "/dummyfile";
+	std::string	  uploadpathtmp = uploadpath;
 	std::ofstream outFile;
 	outFile.open(uploadpathtmp.c_str());
 	if (!outFile)
