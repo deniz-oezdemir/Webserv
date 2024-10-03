@@ -42,6 +42,8 @@ HttpRequest &HttpRequest::operator=(const HttpRequest &rhs)
 	keepAlive_ = rhs.getKeepAlive();
 	hasCookie_ = rhs.hasCookie();
 	cookie_ = rhs.getCookie();
+	hasFileName_ = rhs.hasFileName();
+	fileName_ = rhs.getFileName();
 
 	return *this;
 }
@@ -141,6 +143,16 @@ const bool &HttpRequest::hasCookie(void) const
 const std::string &HttpRequest::getCookie(void) const
 {
 	return cookie_;
+}
+
+const bool &HttpRequest::hasFileName(void) const
+{
+	return hasFileName_;
+}
+
+const std::string &HttpRequest::getFileName(void) const
+{
+	return fileName_;
 }
 
 std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
@@ -266,6 +278,33 @@ std::string HttpRequest::extractCookie_(void)
 }
 
 /**
+ * @brief Extracts the file name from the URI.
+ *
+ * This method processes the `uri_` member variable to separate the file name
+ * from the URI. The URI is split at the first occurrence of the question mark ('?').
+ * The part before the question mark remains in `uri_`, and the part after the
+ * question mark is stored in `fileName`. If the question mark is the last character
+ * in the URI, it is removed, and `fileName` will be empty.
+ *
+ * @return The extracted file name.
+ */
+std::string HttpRequest::extractFileName_(void)
+{
+	std::string fileName;
+
+	size_t delimeter = uri_.find('?');
+	if (delimeter != std::string::npos)
+	{
+		fileName = uri_.substr(delimeter + 1);
+		uri_ = uri_.substr(0, delimeter);
+	}
+
+	hasFileName_ = !fileName.empty();
+	return fileName;
+}
+
+
+/**
  * @brief Normalizes the HTTP request by extracting and storing relevant
  * components.
  *
@@ -300,6 +339,7 @@ void HttpRequest::normalizeRequest_(
 	method_ = method;
 	httpVersion_ = httpVersion;
 	uri_ = uri;
+	fileName_ = extractFileName_();
 	host_ = inputHeaders.at("Host")[0];
 	port_ = extractPort_(&host_);
 	target_ = host_ + uri_;
