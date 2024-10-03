@@ -310,14 +310,31 @@ bool Server::getErrorPageValue(std::string &errorCode, std::string &location)
 
 bool Server::isThisLocation(const std::string &location) const
 {
-	std::map<std::string, ConfigValue>::const_iterator it;
-	it = serverConfig_.find(location);
+	std::string										   tmp = location;
+	std::map<std::string, ConfigValue>::const_iterator it
+		= serverConfig_.find(tmp);
+
+	while (it == serverConfig_.end() && !tmp.empty())
+	{
+		size_t lastSlashPos = tmp.find_last_of('/');
+		if (lastSlashPos == std::string::npos)
+			break;
+
+		if (lastSlashPos == 0)
+			tmp = "/";
+		else
+			tmp = tmp.substr(0, lastSlashPos);
+
+		it = serverConfig_.find(tmp);
+	}
+
 	if (it == serverConfig_.end())
 	{
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::DEBUG)
 			<< "Could not find location: " << location << std::endl;
 		return false;
 	}
+
 	return true;
 }
 
@@ -347,8 +364,22 @@ std::map<std::string, std::vector<std::string> > const
 // clang-format on
 Server::getThisLocation(std::string const &location) const
 {
-	std::map<std::string, ConfigValue>::const_iterator it;
-	it = serverConfig_.find(location);
+	std::string tmp = location;
+	std::map<std::string, ConfigValue>::const_iterator it
+		= serverConfig_.find(tmp);
+	while (it == serverConfig_.end() && !tmp.empty())
+	{
+		size_t lastSlashPos = tmp.find_last_of('/');
+
+		if (lastSlashPos == std::string::npos)
+			break;
+		if (lastSlashPos == 0)
+			tmp = "/";
+		else
+			tmp = tmp.substr(0, lastSlashPos);
+
+		it = serverConfig_.find(tmp);
+	}
 	if (it == serverConfig_.end())
 	{
 		// clang-format off

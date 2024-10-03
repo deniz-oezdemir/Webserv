@@ -21,8 +21,12 @@ class HttpMethodHandler
 	~HttpMethodHandler();
 	HttpMethodHandler &operator=(HttpMethodHandler const &src);
 
-	static std::string
-	generateAutoIndexPage_(std::string const &root, std::string const &uri);
+	static std::string generateAutoIndexPage_(
+		std::string const &root,
+		std::string const &uri,
+		Server const	  &server,
+		bool const		  &keepAlive
+	);
 
 	// clang-format off
 	static bool validateMethod_(
@@ -38,6 +42,9 @@ class HttpMethodHandler
 		std::string const									  &uri,
 		std::map<std::string, std::vector<std::string> > const &location,
 		Server const										  &server
+	);
+	static std::string getUploadPath_(
+		std::map<std::string, std::vector<std::string> > const &location
 	);
 	static bool isCgiRequest_(
 		std::map<std::string, std::vector<std::string> > const &location,
@@ -68,20 +75,24 @@ class HttpMethodHandler
 		bool const		  &keepAlive
 	);
 
+	// clang-format off
 	static std::string createFilePostResponse_(
-		HttpRequest const &request,
-		std::string const &uploadpath,
-		std::string const &rootdir,
-		Server const	  &server,
-		bool const		  &keepAlive
-	);
+		HttpRequest const							   &request,
+		const std::string							   &rootdir,
+		std::map<std::string, std::vector<std::string> > location,
+		std::string const							   &uploadpath,
+		Server const								   &server,
+		bool const									   &keepAlive
+	); // clang-format on
 
+	// clang-format off
 	static std::string createDeleteResponse_(
 		const std::string &filepath,
 		const std::string &rootdir,
+		std::map<std::string, std::vector<std::string> > location,
 		const Server	  &server,
 		bool			   keepAlive
-	);
+	); // clang-format on
 
 	// clang-format off
 	static std::string handleRedirection_(
@@ -95,12 +106,23 @@ class HttpMethodHandler
 	static std::string handleAutoIndex_(
 		std::string const &root,
 		std::string const &uri,
+		Server const	  &server,
 		bool const		  &keepAlive
 	);
 	static std::string handleCgiRequest_(
 		std::string const &filepath,
 		std::string const &interpreter,
 		HttpRequest const &request,
+		bool const		  &keepAlive,
+		Server const	  &server,
+		std::string const &rootdir,
+		std::string const &uploadpath = ""
+	);
+
+	static std::string handleErrorResponse_(
+		Server const	  &server,
+		int const		  &errorCode,
+		std::string const &rootdir,
 		bool const		  &keepAlive
 	);
 

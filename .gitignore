@@ -6,3 +6,4 @@ obj/
 .vscode/
 tests/*
 !tests/*.*
+rust-cgi/target

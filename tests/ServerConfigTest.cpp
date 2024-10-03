@@ -177,14 +177,14 @@ Test(ServerConfig, CheckServerDirectives)
 		cr_assert(eq(str, tmp[1], "/usr/bin/python3"));
 		cr_assert(eq(int, tmp.size(), 2));
 
-		if (!config.getServerConfigValue(0, "/upload/", value))
+		if (!config.getServerConfigValue(0, "/uploads", value))
 			throw std::runtime_error("Could not find the key [location] in the "
 				 "server[0] configuration map.");
 		tmp = value.getMapValue("limit_except");
 		cr_assert(eq(str, tmp[0], "POST"));
-		cr_assert(eq(int, tmp.size(), 1));
+		cr_assert(eq(int, tmp.size(), 2));
 		tmp = value.getMapValue("upload_store");
-		cr_assert(eq(str, tmp[0], "/var/www/uploads"));
+		cr_assert(eq(str, tmp[0], "../www/website/uploads"));
 		
 		if (!config.getServerConfigValue(0, "/old-page", value))
 			throw std::runtime_error("Could not find the key [location] in the "

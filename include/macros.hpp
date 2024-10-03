@@ -6,10 +6,14 @@
 #define DEFAULT_HOST	 "localhost"
 #define QUEUE_SIZE		 1
 #define POLL_TIMEOUT	 -1
-#define BUFFER_SIZE		 16384
+#define READ_BUFFER_SIZE 16384
+#define MAX_READ_SIZE	 32800
 #define SERVER_NAME		 "webserv/0.5"
 
-#define HTTP_ACCEPTED_METHODS {"GET", "POST", "DELETE"}
+#define HTTP_ACCEPTED_METHODS                                                  \
+	{                                                                          \
+		"GET", "POST", "DELETE"                                                \
+	}
 
 // HTTP CODES
 #define HTTP_200_CODE	200

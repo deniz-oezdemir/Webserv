@@ -286,7 +286,7 @@ bool ServerConfig::checkCgi_(std::vector<std::string> const &tokens)
 
 bool ServerConfig::checkUploadStore_(std::vector<std::string> const &tokens)
 {
-	if (tokens.size() == 2 && this->isURI_(tokens[1]))
+	if (tokens.size() == 2 && this->isDirectory_(tokens[1]))
 		return true;
 	return false;
 }
@@ -835,14 +835,11 @@ void ServerConfig::checkServersConfig_(bool isTest, bool isTestPrint)
 		}
 		else
 		{
-			std::vector<std::string> hosts = it->find("listen")->second.getMapValue("port");
-			std::vector<std::string> ports = it->find("listen")->second.getMapValue("host");
-
-			if (!this->checkListenUnique_(hosts, ports))
+			if (!this->checkListenUnique_(it))
 			{
 				this->errorHandler_(
-					"Duplicate listen directive [" + hosts[0] + ":"
-						+ ports[0] + "]",
+					"Duplicate listen directive on server block["
+						+ ft::toString(it - this->serversConfig_.begin()) + "]",
 					0,
 					isTest,
 					isTest
@@ -990,48 +987,36 @@ bool ServerConfig::checkServerNameUnique_(std::string const &serverName)
 	return true;
 }
 
+// clang-format off
 bool ServerConfig::checkListenUnique_(
-	std::vector<std::string> const &hosts,
-	std::vector<std::string> const &ports
+	std::vector<std::map<std::string, ConfigValue> >::iterator &itServer
 )
 {
-	// clang-format off
-	for (std::vector<std::map<std::string, ConfigValue> >::const_iterator it
-		// clang-format on
-		= this->serversConfig_.begin();
-		it != this->serversConfig_.end();
-		++it)
+	std::vector<std::map<std::string, ConfigValue> >::const_iterator itServers
+		= serversConfig_.begin(); // clang-format on
+	for (; itServers != serversConfig_.end(); ++itServers)
 	{
-		std::map<std::string, ConfigValue>::const_iterator listenIt
-			= it->find("listen");
-		if (listenIt == it->end())
-		{
-			continue; // Skip if "listen" key is not found
-		}
-
-		std::vector<std::string> serverHosts;
-		if (!it->find("listen")->second.getMapValue("host", serverHosts))
-		{
+		if (itServers == itServer)
 			continue;
-		}
-		std::vector<std::string> serverPorts;
-		if (!it->find("listen")->second.getMapValue("port", serverPorts))
+		std::vector<std::string>::const_iterator itPorts(
+			itServers->find("listen")->second.getMapValue("port").begin()
+		);
+		for (; itPorts
+			   != itServers->find("listen")->second.getMapValue("port").end();
+			 ++itPorts)
 		{
-			continue;
-		}
-
-		for (size_t i = 0; i < serverHosts.size() && i < serverPorts.size();
-			 ++i)
-		{
-			std::vector<std::string>::const_iterator itHost = hosts.begin();
-			std::vector<std::string>::const_iterator itPort = ports.begin();
-			for (; itHost != hosts.end() && itPort != ports.end(); ++itHost)
+			std::vector<std::string>::const_iterator itPorts2(
+				itServer->find("listen")->second.getMapValue("port").begin()
+			);
+			for (;
+				 itPorts2
+				 != itServer->find("listen")->second.getMapValue("port").end();
+				 ++itPorts2)
 			{
-				if (serverHosts[i] == *itHost && serverPorts[i] == *itPort)
+				if (*itPorts == *itPorts2)
 				{
 					return false;
 				}
-				itPort++;
 			}
 		}
 	}

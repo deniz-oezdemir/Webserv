@@ -12,12 +12,13 @@ logging.debug("post.py script started")
 method = os.environ.get("REQUEST_METHOD", "")
 content_length = os.environ.get("CONTENT_LENGTH", "")
 content_type = os.environ.get("CONTENT_TYPE", "")
-upload_path = os.environ.get("PATH_INFO", "../upload/")
+upload_path = os.environ.get("UPLOAD_PATH", "../upload/")
 
 logging.debug(f"REQUEST_METHOD: {method}")
 logging.debug(f"CONTENT_LENGTH: {content_length}")
 logging.debug(f"CONTENT_TYPE: {content_type}")
-logging.debug(f"PATH_INFO: {upload_path}")
+logging.debug(f"UPLOAD_PATH: {upload_path}")
+
 
 # Ensure CONTENT_LENGTH is set
 if not content_length:
@@ -84,7 +85,7 @@ else:
 
 logging.debug("post.py part 3 passed")
 
-print("<p><a href=\"http://localhost:8086/\">Go back</a></p>")
+print("<p><a href=\"http://localhost:8087/\">Go back</a></p>")
 print("</body>")
 print("</html>")
 
