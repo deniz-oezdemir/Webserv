@@ -61,7 +61,6 @@ std::map<std::string, std::string> createHeaderAcceptedChars()
     headerAcceptedChars["Content-Length"] = "";
     headerAcceptedChars["Cookie"] = "=;,";
     return headerAcceptedChars;
-    return headerAcceptedChars;
 }
 
 /* String of tolerated delimiter characters for tokens in each header. If token contains
