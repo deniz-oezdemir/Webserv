@@ -42,6 +42,8 @@ HttpRequest &HttpRequest::operator=(const HttpRequest &rhs)
 	keepAlive_ = rhs.getKeepAlive();
 	hasCookie_ = rhs.hasCookie();
 	cookie_ = rhs.getCookie();
+	hasFileName_ = rhs.hasFileName();
+	fileName_ = rhs.getFileName();
 
 	return *this;
 }
@@ -141,6 +143,16 @@ const bool &HttpRequest::hasCookie(void) const
 const std::string &HttpRequest::getCookie(void) const
 {
 	return cookie_;
+}
+
+const bool &HttpRequest::hasFileName(void) const
+{
+	return hasFileName_;
+}
+
+const std::string &HttpRequest::getFileName(void) const
+{
+	return fileName_;
 }
 
 std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
@@ -265,6 +277,22 @@ std::string HttpRequest::extractCookie_(void)
 	return cookie;
 }
 
+std::string HttpRequest::extractFileName_(void)
+{
+	std::string fileName;
+
+	size_t delimeter = uri_.find('?');
+	if (delimeter != std::string::npos)
+	{
+		fileName = uri_.substr(delimeter, uri_.length() - delimeter);
+		uri_ = uri_.substr(delimeter);
+	}
+
+	hasFileName_ = false;
+	return fileName;
+}
+
+
 /**
  * @brief Normalizes the HTTP request by extracting and storing relevant
  * components.
@@ -300,6 +328,7 @@ void HttpRequest::normalizeRequest_(
 	method_ = method;
 	httpVersion_ = httpVersion;
 	uri_ = uri;
+	fileName_ = extractFileName_();
 	host_ = inputHeaders.at("Host")[0];
 	port_ = extractPort_(&host_);
 	target_ = host_ + uri_;
