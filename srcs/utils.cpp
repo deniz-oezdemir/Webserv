@@ -299,7 +299,7 @@ std::string const &getStatusCodeReason(int const &statusCode)
 	return httpStatusCodes[statusCode];
 }
 
-std::vector<std::string> initLogsLeves(void)
+std::vector<std::string> const initLogLevels(void)
 {
   std::vector<std::string> logs(4);
 	logs[0] = "debug";

@@ -394,27 +394,48 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back("REQUEST_METHOD=" + request.getMethod());
 		envVariables.push_back("SCRIPT_FILENAME=" + filepath);
 		envVariables.push_back("UPLOAD_PATH=" + uploadpath);
-		envVariables.push_back("CONTENT_LENGTH=" + std::to_string(request.getBody().size()));
+		envVariables.push_back("CONTENT_LENGTH=" + ft::toString(request.getBody().size()));
 
-		std::map<std::string, std::vector<std::string>> headers = request.getHeaders();
-		for (const auto &header : headers) {
-			for (const auto &value : header.second) {
-				Logger::log(Logger::DEBUG) << "Debug Headers: " << header.first << ": " << value << std::endl;
-				envVariables.push_back(header.first + "=" + value);
-			}
-		}
+    // NOTE: Original Deniz c++11 version
+		// std::map<std::string, std::vector<std::string> > headers = request.getHeaders();
+		// for (const auto &header : headers) {
+		// 	for (const auto &value : header.second) {
+		// 		Logger::log(Logger::DEBUG) << "Debug Headers: " << header.first << ": " << value << std::endl;
+		// 		envVariables.push_back(header.first + "=" + value);
+		// 	}
+		// }
+
+    std::map<std::string, std::vector<std::string> > headers = request.getHeaders();
+    for (std::map<std::string, std::vector<std::string> >::const_iterator it = headers.begin(); it != headers.end(); ++it) {
+        const std::string &headerKey = it->first;
+        const std::vector<std::string> &headerValues = it->second;
+        for (std::vector<std::string>::const_iterator valIt = headerValues.begin(); valIt != headerValues.end(); ++valIt) {
+            Logger::log(Logger::DEBUG) << "Debug Headers: " << headerKey << ": " << *valIt << std::endl;
+            envVariables.push_back(headerKey + "=" + *valIt);
+        }
+    }
 
 		//TODO: Deniz change without auto keyword, just iterate and append one to the other
 		// There are two values for content-type in the header, combine them for the CONTENT_TYPE=
-		std::map<std::string, std::vector<std::string>> headers2 = request.getHeaders();
-		auto contentTypeIt = headers2.find("Content-Type");
-		if (contentTypeIt != headers2.end() && !contentTypeIt->second.empty()) {
-			std::string combinedContentType = contentTypeIt->second[0];
-			for (size_t i = 1; i < contentTypeIt->second.size(); ++i) {
-				combinedContentType += "; " + contentTypeIt->second[i];
-			}
-			envVariables.push_back("CONTENT_TYPE=" + combinedContentType);
-		}
+		// std::map<std::string, std::vector<std::string> > headers2 = request.getHeaders();
+		// auto contentTypeIt = headers2.find("Content-Type");
+		// if (contentTypeIt != headers2.end() && !contentTypeIt->second.empty()) {
+		// 	std::string combinedContentType = contentTypeIt->second[0];
+		// 	for (size_t i = 1; i < contentTypeIt->second.size(); ++i) {
+		// 		combinedContentType += "; " + contentTypeIt->second[i];
+		// 	}
+		// 	envVariables.push_back("CONTENT_TYPE=" + combinedContentType);
+		// }
+
+    std::map<std::string, std::vector<std::string> > headers2 = request.getHeaders();
+    std::map<std::string, std::vector<std::string> >::iterator contentTypeIt = headers2.find("Content-Type");
+    if (contentTypeIt != headers2.end() && !contentTypeIt->second.empty()) {
+        std::string combinedContentType = contentTypeIt->second[0];
+        for (size_t i = 1; i < contentTypeIt->second.size(); ++i) {
+            combinedContentType += "; " + contentTypeIt->second[i];
+        }
+        envVariables.push_back("CONTENT_TYPE=" + combinedContentType);
+    }
 
 		std::vector<char *> envp;
 		for (std::vector<std::string>::iterator it = envVariables.begin();
@@ -625,7 +646,7 @@ std::string HttpMethodHandler::createFileGetResponse_(
 )
 {
 	HttpResponse  response;
-	std::ifstream file(filepath);
+	std::ifstream file(filepath.c_str());
 
 	if (file.is_open())
 	{
@@ -640,7 +661,7 @@ std::string HttpMethodHandler::createFileGetResponse_(
 		response.setHeader("Server", SERVER_NAME);
 		response.setHeader("Date", ft::createTimestamp());
 		response.setHeader("Content-Type", ft::getMimeType(filepath));
-		response.setHeader("Content-Length", std::to_string(body.size()));
+		response.setHeader("Content-Length", ft::toString(body.size()));
 		if (keepAlive)
 			response.setHeader("Connection", "keep-alive");
 		else
@@ -707,7 +728,7 @@ std::string HttpMethodHandler::createFilePostResponse_(
 	response.setHeader("Date", ft::createTimestamp());
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
 	std::string responseBody = "<h1>File Uploaded Successfully</h1>\n";
-	response.setHeader("Content-Length", std::to_string(responseBody.size()));
+	response.setHeader("Content-Length", ft::toString(responseBody.size()));
 	if (keepAlive)
 		response.setHeader("Connection", "keep-alive");
 	else
@@ -760,7 +781,7 @@ std::string HttpMethodHandler::createDeleteResponse_(
 	response.setHeader("Server", SERVER_NAME);
 	response.setHeader("Date", ft::createTimestamp());
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
-	response.setHeader("Content-Length", std::to_string(body.size()));
+	response.setHeader("Content-Length", ft::toString(body.size()));
 	if (keepAlive)
 		response.setHeader("Connection", "keep-alive");
 	else
