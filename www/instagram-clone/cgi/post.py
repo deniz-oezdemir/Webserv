@@ -1,3 +1,6 @@
+# TODO: Deniz delete logging
+# TODO: Deniz remove hardcoding paths below
+
 import os
 import cgi
 import logging
