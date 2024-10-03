@@ -50,30 +50,36 @@ std::string HttpMethodHandler::handleGetRequest_(
 
 	// clang-format off
 	std::map<std::string, std::vector<std::string> > location; // clang-format on
+
 	if (server.isThisLocation(uri))
 		location = server.getThisLocation(uri);
 	else
-	{
 		return HttpErrorHandler::getErrorPage(404, keepAlive);
-	}
 
 	// Check for redirections
 	std::string redirection = handleRedirection_(location, keepAlive);
 	if (!redirection.empty())
 		return redirection;
-	// Check for authorized methods
-	if (!validateMethod_(location, "GET"))
-		return HttpErrorHandler::getErrorPage(405, keepAlive);
-	// Check for max body size
-	if (!validateBodySize_(location, request, server))
-		return HttpErrorHandler::getErrorPage(413, keepAlive);
 
 	std::string filepath = getFilePath_(uri, location, server);
 	std::string rootdir = getRootDir_(location, server);
 
+	// Check for authorized methods
+	if (!validateMethod_(location, "GET"))
+		return handleErrorResponse_(server, 405, rootdir, keepAlive);
+
+	// Check for max body size
+	if (!validateBodySize_(location, request, server))
+		return handleErrorResponse_(server, 413, rootdir, keepAlive);
+
 	if (isCgiRequest_(location, uri))
 		return handleCgiRequest_(
-			filepath, getCgiInterpreter_(location), request, keepAlive
+			filepath,
+			getCgiInterpreter_(location),
+			request,
+			keepAlive,
+			server,
+			rootdir
 		);
 	// Check if the request is for a directory and handle autoindex
 	if (isDirectory_(filepath))
@@ -83,57 +89,14 @@ std::string HttpMethodHandler::handleGetRequest_(
 		if (filepath.empty())
 		{
 			if (isAutoIndexEnabled_(location))
-				return handleAutoIndex_(rootdir, uri, keepAlive);
+				return handleAutoIndex_(rootdir, uri, server, keepAlive);
 			else
-				return HttpErrorHandler::getErrorPage(404, keepAlive);
+				return handleErrorResponse_(server, 404, rootdir, keepAlive);
 		}
 	}
 
 	// Check if the file exists and return the response
 	return createFileGetResponse_(filepath, rootdir, server, keepAlive);
-}
-
-// TODO: implement check for file/directory, coordinate with Seba
-std::string HttpMethodHandler::handleDeleteRequest_(
-	const HttpRequest &request,
-	Server const	  &server
-)
-{
-	(void)request;
-	(void)server;
-
-	std::string uri = request.getUri();
-	bool		keepAlive = request.getKeepAlive();
-
-	// clang-format off
-	std::map<std::string, std::vector<std::string> > location; // clang-format on
-	if (server.isThisLocation(uri))
-		location = server.getThisLocation(uri);
-	else
-	{
-		return HttpErrorHandler::getErrorPage(404, keepAlive);
-	}
-
-	// Check for redirections
-	std::string redirection = handleRedirection_(location, keepAlive);
-	if (!redirection.empty())
-		return redirection;
-	// Check for authorized methods
-	if (!validateMethod_(location, "DELETE"))
-		return HttpErrorHandler::getErrorPage(405, keepAlive);
-	// Check for max body size
-	if (!validateBodySize_(location, request, server))
-		return HttpErrorHandler::getErrorPage(413, keepAlive);
-
-	std::string filepath = getFilePath_(uri, location, server);
-	std::string rootdir = getRootDir_(location, server);
-
-	if (isCgiRequest_(location, uri))
-		return handleCgiRequest_(
-			filepath, getCgiInterpreter_(location), request, keepAlive
-		);
-
-	return createDeleteResponse_(filepath, rootdir, server, keepAlive);
 }
 
 std::string HttpMethodHandler::handlePostRequest_(
@@ -146,33 +109,97 @@ std::string HttpMethodHandler::handlePostRequest_(
 
 	// clang-format off
 	std::map<std::string, std::vector<std::string> > location; // clang-format on
+
 	if (server.isThisLocation(uri))
 		location = server.getThisLocation(uri);
 	else
-	{
 		return HttpErrorHandler::getErrorPage(404, keepAlive);
-	}
-
-	// Check for authorized methods
-	if (!validateMethod_(location, "POST"))
-		return HttpErrorHandler::getErrorPage(405, keepAlive);
-	// Check for max body size
-	if (!validateBodySize_(location, request, server))
-		return HttpErrorHandler::getErrorPage(413, keepAlive);
 
 	std::string rootdir = getRootDir_(location, server);
 	std::string uploadpath = getUploadPath_(location);
 	if (uploadpath.empty())
 		uploadpath = rootdir + uri;
 
+	// Check for authorized methods
+	if (!validateMethod_(location, "POST"))
+		return handleErrorResponse_(server, 405, rootdir, keepAlive);
+	// Check for max body size
+	if (!validateBodySize_(location, request, server))
+		return handleErrorResponse_(server, 413, rootdir, keepAlive);
+
 	if (isCgiRequest_(location, uri))
 		return handleCgiRequest_(
-			uploadpath, getCgiInterpreter_(location), request, keepAlive
+			rootdir + uri,
+			getCgiInterpreter_(location),
+			request,
+			keepAlive,
+			server,
+			rootdir,
+			uploadpath
 		);
 
 	return createFilePostResponse_(
-		request, location, uploadpath, server, keepAlive
+		request, rootdir, location, uploadpath, server, keepAlive
 	);
+}
+
+std::string HttpMethodHandler::handleDeleteRequest_(
+	const HttpRequest &request,
+	Server const	  &server
+)
+{
+	std::string uri = request.getUri();
+	bool		keepAlive = request.getKeepAlive();
+
+	// clang-format off
+	std::map<std::string, std::vector<std::string> > location; // clang-format on
+
+	if (server.isThisLocation(uri))
+		location = server.getThisLocation(uri);
+	else
+		return HttpErrorHandler::getErrorPage(404, keepAlive);
+
+	std::string rootdir = getRootDir_(location, server);
+
+	// Check for authorized methods
+	if (!validateMethod_(location, "DELETE"))
+		return handleErrorResponse_(server, 405, rootdir, keepAlive);
+	// Check for max body size
+	if (!validateBodySize_(location, request, server))
+		return handleErrorResponse_(server, 413, rootdir, keepAlive);
+
+	std::string filepath = getFilePath_(uri, location, server);
+	if (isDirectory_(filepath))
+		return handleErrorResponse_(server, 403, rootdir, keepAlive);
+
+	if (isCgiRequest_(location, uri))
+		return handleCgiRequest_(
+			filepath,
+			getCgiInterpreter_(location),
+			request,
+			keepAlive,
+			server,
+			rootdir
+		);
+
+	return createDeleteResponse_(
+		filepath, rootdir, location, server, keepAlive
+	);
+}
+
+std::string HttpMethodHandler::handleErrorResponse_(
+	Server const	  &server,
+	int const		  &errorCode,
+	std::string const &rootdir,
+	bool const		  &keepAlive
+)
+{
+	std::string errorResponse
+		= HttpErrorHandler::getErrorPage(server, errorCode, rootdir, keepAlive);
+	if (!errorResponse.empty())
+		return errorResponse;
+	else
+		return HttpErrorHandler::getErrorPage(errorCode, keepAlive);
 }
 
 // clang-format off
@@ -330,21 +357,24 @@ std::string HttpMethodHandler::handleCgiRequest_(
 	std::string const &filepath,
 	std::string const &interpreter,
 	HttpRequest const &request,
-	bool const		  &keepAlive
+	bool const		  &keepAlive,
+	Server const	  &server,
+	std::string const &rootdir,
+	std::string const &uploadpath
 )
 {
 	int pipefd[2];
 	if (pipe(pipefd) == -1)
 	{
 		Logger::log(Logger::ERROR, true) << "Pipe creation failed" << std::endl;
-		return HttpErrorHandler::getErrorPage(500);
+		return handleErrorResponse_(server, 500, rootdir, keepAlive);
 	}
 
 	pid_t pid = fork();
 	if (pid == -1)
 	{
 		Logger::log(Logger::ERROR, true) << "Fork failed" << std::endl;
-		return HttpErrorHandler::getErrorPage(500);
+		return handleErrorResponse_(server, 500, rootdir, keepAlive);
 	}
 	else if (pid == 0)
 	{
@@ -368,7 +398,8 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back("SCRIPT_FILENAME=" + filepath);
 		envVariables.push_back(
 			"PATH_INFO=" + request.getUri()
-		); // is upload path for post request
+		); // In which cases do you need to use this?
+		envVariables.push_back("PATH_UPLOAD=" + uploadpath); // to Use in the post request
 
 		std::vector<char *> envp;
 		for (std::vector<std::string>::iterator it = envVariables.begin();
@@ -408,7 +439,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		{
 			Logger::log(Logger::ERROR, true)
 				<< "CGI script execution failed" << std::endl;
-			return HttpErrorHandler::getErrorPage(500);
+			return handleErrorResponse_(server, 500, rootdir, keepAlive);
 		}
 
 		HttpResponse response;
@@ -448,13 +479,14 @@ bool HttpMethodHandler::isAutoIndexEnabled_(
 std::string HttpMethodHandler::handleAutoIndex_(
 	std::string const &root,
 	std::string const &uri,
+	Server const	  &server,
 	bool const		  &keepAlive
 )
 {
 	Logger::log(Logger::DEBUG)
 		<< "Handling auto index on: " << root << uri << std::endl;
 
-	std::string body = generateAutoIndexPage_(root, uri);
+	std::string body = generateAutoIndexPage_(root, uri, server, keepAlive);
 
 	HttpResponse response;
 	response.setStatusCode(200);
@@ -473,7 +505,9 @@ std::string HttpMethodHandler::handleAutoIndex_(
 
 std::string HttpMethodHandler::generateAutoIndexPage_(
 	std::string const &root,
-	std::string const &uri
+	std::string const &uri,
+	Server const	  &server,
+	bool const		  &keepAlive
 )
 {
 	std::stringstream html;
@@ -490,7 +524,7 @@ std::string HttpMethodHandler::generateAutoIndexPage_(
 	{
 		Logger::log(Logger::ERROR, true)
 			<< "Failed to open directory: " << root + uri << std::endl;
-		return HttpErrorHandler::getErrorPage(404, true);
+		return handleErrorResponse_(server, 405, root, keepAlive);
 	}
 
 	struct dirent *entry;
@@ -588,12 +622,7 @@ std::string HttpMethodHandler::createFileGetResponse_(
 	{
 		Logger::log(Logger::DEBUG)
 			<< "Handling GET: file not found" << std::endl;
-		std::string errorResponse
-			= HttpErrorHandler::getErrorPage(server, 404, rootdir, keepAlive);
-		if (!errorResponse.empty())
-			return errorResponse;
-		else
-			return HttpErrorHandler::getErrorPage(404, keepAlive);
+		return handleErrorResponse_(server, 404, rootdir, keepAlive);
 	}
 
 	Logger::log(Logger::DEBUG) << "Handling GET: responding" << std::endl;
@@ -603,14 +632,13 @@ std::string HttpMethodHandler::createFileGetResponse_(
 // clang-format off
 std::string HttpMethodHandler::createFilePostResponse_(
 	HttpRequest const							   &request,
+	const std::string							   &rootdir,
 	std::map<std::string, std::vector<std::string> > location,
 	std::string const							   &uploadpath,
 	Server const								   &server,
 	bool const									   &keepAlive
 ) // clang-format on
 {
-	(void)server;
-
 	HttpResponse response;
 
 	// Open the file for writing
@@ -622,7 +650,7 @@ std::string HttpMethodHandler::createFilePostResponse_(
 		Logger::log(Logger::ERROR)
 			<< "Handling Post: failed to open file for writing: "
 			<< uploadpathtmp << std::endl;
-		return HttpErrorHandler::getErrorPage(500, keepAlive);
+		return handleErrorResponse_(server, 500, rootdir, keepAlive);
 	}
 
 	// Write the request body to the file
@@ -633,7 +661,7 @@ std::string HttpMethodHandler::createFilePostResponse_(
 		Logger::log(Logger::ERROR)
 			<< "handling Post: failed to write to file: " << uploadpathtmp
 			<< std::endl;
-		return HttpErrorHandler::getErrorPage(500, keepAlive);
+		return handleErrorResponse_(server, 500, rootdir, keepAlive);
 	}
 
 	outFile.close();
@@ -661,18 +689,25 @@ std::string HttpMethodHandler::createFilePostResponse_(
 	return response.toString();
 }
 
+// clang-format off
 std::string HttpMethodHandler::createDeleteResponse_(
-	const std::string &filepath,
-	const std::string &rootdir,
-	const Server	  &server,
-	bool			   keepAlive
-)
+	const std::string							   &filepath,
+	const std::string							   &rootdir,
+	std::map<std::string, std::vector<std::string> > location,
+	const Server								   &server,
+	bool											keepAlive
+) // clang-format on
 {
 	std::string	 body;
 	HttpResponse response;
 
 	if (remove(filepath.c_str()) == 0)
 	{
+		// Check for redirections
+		std::string redirection = handleRedirection_(location, keepAlive);
+		if (!redirection.empty())
+			return redirection;
+
 		response.setStatusCode(200);
 		response.setReasonPhrase("OK");
 		body = "<h1>File Deleted Successfully</h1>\n";
@@ -685,37 +720,13 @@ std::string HttpMethodHandler::createDeleteResponse_(
 
 		// Permission denied
 		if (errno == EACCES)
-		{
-			std::string errorResponse = HttpErrorHandler::getErrorPage(
-				server, 403, rootdir, keepAlive
-			);
-			if (!errorResponse.empty())
-				return errorResponse;
-			else
-				return HttpErrorHandler::getErrorPage(403, keepAlive);
-		}
+			return handleErrorResponse_(server, 403, rootdir, keepAlive);
 		// File not found
 		else if (errno == ENOENT)
-		{
-			std::string errorResponse = HttpErrorHandler::getErrorPage(
-				server, 404, rootdir, keepAlive
-			);
-			if (!errorResponse.empty())
-				return errorResponse;
-			else
-				return HttpErrorHandler::getErrorPage(404, keepAlive);
-		}
+			return handleErrorResponse_(server, 404, rootdir, keepAlive);
 		// Server error (500)
 		else
-		{
-			std::string errorResponse = HttpErrorHandler::getErrorPage(
-				server, 500, rootdir, keepAlive
-			);
-			if (!errorResponse.empty())
-				return errorResponse;
-			else
-				return HttpErrorHandler::getErrorPage(500, keepAlive);
-		}
+			return handleErrorResponse_(server, 500, rootdir, keepAlive);
 	}
 	response.setHeader("Server", SERVER_NAME);
 	response.setHeader("Date", ft::createTimestamp());
