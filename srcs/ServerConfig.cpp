@@ -14,15 +14,10 @@
 
 // Array of valid log levels to check if the log level set in the configuration
 // file is valid.
-std::array<std::string, 4> const ServerConfig::validLogLevels = {
-	"debug",
-	"info",
-	"warn",
-	"error",
-};
+std::vector<std::string> const ServerConfig::validLogLevels = ft::initLogLevels();
 
 ServerConfig::ServerConfig(std::string const &filepath)
-	: filepath_(filepath), file_(filepath), isConfigOK_(true)
+	: filepath_(filepath), file_(filepath.c_str()), isConfigOK_(true)
 {
 	if (!this->file_.is_open())
 		throw ServerException("Could not open the file [%]", errno, filepath);
@@ -30,7 +25,7 @@ ServerConfig::ServerConfig(std::string const &filepath)
 }
 
 ServerConfig::ServerConfig(ServerConfig const &src)
-	: filepath_(src.filepath_), file_(src.filepath_),
+	: filepath_(src.filepath_), file_(src.filepath_.c_str()),
 	  isConfigOK_(src.isConfigOK())
 {
 	if (!this->file_.is_open())
@@ -48,7 +43,7 @@ ServerConfig &ServerConfig::operator=(ServerConfig const &src)
 			this->file_.close();
 
 		this->file_.clear();
-		this->file_.open(this->filepath_);
+		this->file_.open(this->filepath_.c_str());
 
 		if (!this->file_.is_open())
 			throw ServerException(

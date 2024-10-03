@@ -77,5 +77,6 @@ Iterator find(Iterator begin, Iterator end, T const &value)
 }
 
 std::string createTimestamp();
+std::vector<std::string> initLogLevels(void);
 
 } // namespace ft

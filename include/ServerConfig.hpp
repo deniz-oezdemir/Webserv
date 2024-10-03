@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>
 #include <fstream>
 #include <map>
 #include <stack>
@@ -51,7 +50,7 @@ class ServerConfig
 	// Setters
 	void setRootToAllServers(std::string const &root);
 
-	static std::array<std::string, 4> const validLogLevels;
+	static std::vector<std::string> const validLogLevels;
 
   private:
 	ServerConfig();

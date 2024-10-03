@@ -1,5 +1,6 @@
 #include "ConfigValue.hpp"
 #include "ServerException.hpp"
+#include "utils.hpp"
 
 ConfigValue::ConfigValue(void) : type_(VECTOR) {}
 
@@ -55,7 +56,7 @@ bool ConfigValue::getVectorValue(unsigned int index, std::string &value) const
 	if (this->type_ != VECTOR)
 		throw ServerException(
 			"ConfigValue::getVectorValue: not a vector, index:"
-			+ std::to_string(index)
+			+ ft::toString(index)
 		);
 	if (index >= this->vectorValue_.size())
 		return false;
@@ -68,12 +69,12 @@ std::string	const &ConfigValue::getVectorValue(unsigned int index) const
 	if (this->type_ != VECTOR)
 		throw ServerException(
 			"ConfigValue::getVectorValue: not a vector, index:"
-			+ std::to_string(index)
+			+ ft::toString(index)
 		);
 	if (index >= this->vectorValue_.size())
 		throw ServerException(
 			"ConfigValue::getVectorValue: index out of bounds, index:"
-			+ std::to_string(index)
+			+ ft::toString(index)
 		);
 	return this->vectorValue_[index];
 }
