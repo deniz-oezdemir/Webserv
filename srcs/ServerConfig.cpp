@@ -286,7 +286,7 @@ bool ServerConfig::checkCgi_(std::vector<std::string> const &tokens)
 
 bool ServerConfig::checkUploadStore_(std::vector<std::string> const &tokens)
 {
-	if (tokens.size() == 2 && this->isURI_(tokens[1]))
+	if (tokens.size() == 2 && this->isDirectory_(tokens[1]))
 		return true;
 	return false;
 }

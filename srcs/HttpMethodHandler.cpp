@@ -119,16 +119,14 @@ std::string HttpMethodHandler::handleDeleteRequest_(
 	if (!redirection.empty())
 		return redirection;
 	// Check for authorized methods
-	if (!validateMethod_(location, "GET"))
+	if (!validateMethod_(location, "DELETE"))
 		return HttpErrorHandler::getErrorPage(405, keepAlive);
 	// Check for max body size
 	if (!validateBodySize_(location, request, server))
 		return HttpErrorHandler::getErrorPage(413, keepAlive);
 
-	// TODO: replace filepath with actual filepath when Seba added
-	// getilePath to config
+	std::string filepath = getFilePath_(uri, location, server);
 	std::string rootdir = getRootDir_(location, server);
-	std::string filepath = rootdir; // getFilePath_(uri, location, server);
 
 	if (isCgiRequest_(location, uri))
 		return handleCgiRequest_(
@@ -166,19 +164,17 @@ std::string HttpMethodHandler::handlePostRequest_(
 	if (!validateBodySize_(location, request, server))
 		return HttpErrorHandler::getErrorPage(413, keepAlive);
 
-	// TODO: replace uploadpath with actual uploadpath when Seba added
-	// getUploadPath to config
 	std::string rootdir = getRootDir_(location, server);
-	std::string uploadpath = rootdir; // getUploadPath_(uri, location, server);
+	std::string uploadpath = getUploadPath_(location);
+	if (uploadpath.empty())
+		uploadpath = rootdir + uri;
 
 	if (isCgiRequest_(location, uri))
 		return handleCgiRequest_(
 			uploadpath, getCgiInterpreter_(location), request, keepAlive
 		);
 
-	return createFilePostResponse_(
-		request, uploadpath, rootdir, server, keepAlive
-	);
+	return createFilePostResponse_(request, uploadpath, server, keepAlive);
 }
 
 // clang-format off
@@ -284,6 +280,17 @@ std::string HttpMethodHandler::getFilePath_(
 }
 
 // clang-format off
+std::string HttpMethodHandler::getUploadPath_(
+	std::map<std::string, std::vector<std::string> > const &location
+) // clcng-format on
+{
+	return location.find("upload_store") != location.end()
+				   && !location.at("upload_store").empty()
+			   ? location.at("upload_store")[0]
+			   : "";
+}
+
+// clang-format off
 std::string HttpMethodHandler::getRootDir_(
 	std::map<std::string, std::vector<std::string> > const &location,
 	Server const										  &server
@@ -361,7 +368,9 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back("SERVER_PROTOCOL=HTTP/1.1");
 		envVariables.push_back("REQUEST_METHOD=" + request.getMethod());
 		envVariables.push_back("SCRIPT_FILENAME=" + filepath);
-		envVariables.push_back("PATH_INFO=" + request.getUri()); //is upload path for post request
+		envVariables.push_back(
+			"PATH_INFO=" + request.getUri()
+		); // is upload path for post request
 
 		std::vector<char *> envp;
 		for (std::vector<std::string>::iterator it = envVariables.begin();
@@ -596,18 +605,16 @@ std::string HttpMethodHandler::createFileGetResponse_(
 std::string HttpMethodHandler::createFilePostResponse_(
 	HttpRequest const &request,
 	std::string const &uploadpath,
-	std::string const &rootdir,
 	Server const	  &server,
 	bool const		  &keepAlive
 )
 {
-	(void)rootdir;
 	(void)server;
 
 	HttpResponse response;
 
 	// Open the file for writing
-	std::string	  uploadpathtmp = "./" + uploadpath + "/dummyfile";
+	std::string	  uploadpathtmp = uploadpath + "/dummyfile";
 	std::ofstream outFile;
 	outFile.open(uploadpathtmp.c_str());
 	if (!outFile)
@@ -656,15 +663,10 @@ std::string HttpMethodHandler::createDeleteResponse_(
 	bool			   keepAlive
 )
 {
-	(void)rootdir;
-	(void)server;
-
 	std::string	 body;
 	HttpResponse response;
 
-	std::string filepathtmp = "./" + filepath + "/dummyfile";
-
-	if (remove(filepathtmp.c_str()) == 0)
+	if (remove(filepath.c_str()) == 0)
 	{
 		response.setStatusCode(200);
 		response.setReasonPhrase("OK");
@@ -672,11 +674,44 @@ std::string HttpMethodHandler::createDeleteResponse_(
 	}
 	else
 	{
-		response.setStatusCode(404);
-		response.setReasonPhrase("Not Found");
-		body = "<h1>File Not Found</h1>\n";
-	}
+		Logger::log(Logger::DEBUG)
+			<< "Handling DELETE: file could not be deleted or not found"
+			<< std::endl;
 
+		// Permission denied
+		if (errno == EACCES)
+		{
+			std::string errorResponse = HttpErrorHandler::getErrorPage(
+				server, 403, rootdir, keepAlive
+			);
+			if (!errorResponse.empty())
+				return errorResponse;
+			else
+				return HttpErrorHandler::getErrorPage(403, keepAlive);
+		}
+		// File not found
+		else if (errno == ENOENT)
+		{
+			std::string errorResponse = HttpErrorHandler::getErrorPage(
+				server, 404, rootdir, keepAlive
+			);
+			if (!errorResponse.empty())
+				return errorResponse;
+			else
+				return HttpErrorHandler::getErrorPage(404, keepAlive);
+		}
+		// Server error (500)
+		else
+		{
+			std::string errorResponse = HttpErrorHandler::getErrorPage(
+				server, 500, rootdir, keepAlive
+			);
+			if (!errorResponse.empty())
+				return errorResponse;
+			else
+				return HttpErrorHandler::getErrorPage(500, keepAlive);
+		}
+	}
 	response.setHeader("Server", SERVER_NAME);
 	response.setHeader("Date", ft::createTimestamp());
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
@@ -688,6 +723,5 @@ std::string HttpMethodHandler::createDeleteResponse_(
 	response.setBody(body);
 
 	Logger::log(Logger::DEBUG) << "Handling DELETE: responding" << std::endl;
-
 	return response.toString();
 }

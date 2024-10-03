@@ -39,6 +39,9 @@ class HttpMethodHandler
 		std::map<std::string, std::vector<std::string> > const &location,
 		Server const										  &server
 	);
+	static std::string getUploadPath_(
+		std::map<std::string, std::vector<std::string> > const &location
+	);
 	static bool isCgiRequest_(
 		std::map<std::string, std::vector<std::string> > const &location,
 		std::string const									  &uri
@@ -71,7 +74,6 @@ class HttpMethodHandler
 	static std::string createFilePostResponse_(
 		HttpRequest const &request,
 		std::string const &uploadpath,
-		std::string const &rootdir,
 		Server const	  &server,
 		bool const		  &keepAlive
 	);

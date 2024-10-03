@@ -314,13 +314,17 @@ bool Server::isThisLocation(const std::string &location) const
 	std::map<std::string, ConfigValue>::const_iterator it
 		= serverConfig_.find(tmp);
 
-	while (it == serverConfig_.end() && !tmp.empty() && tmp != "/")
+	while (it == serverConfig_.end() && !tmp.empty())
 	{
 		size_t lastSlashPos = tmp.find_last_of('/');
 		if (lastSlashPos == std::string::npos)
 			break;
 
-		tmp = tmp.substr(0, lastSlashPos);
+		if (lastSlashPos == 0)
+			tmp = "/";
+		else
+			tmp = tmp.substr(0, lastSlashPos);
+
 		it = serverConfig_.find(tmp);
 	}
 
@@ -363,12 +367,17 @@ Server::getThisLocation(std::string const &location) const
 	std::string tmp = location;
 	std::map<std::string, ConfigValue>::const_iterator it
 		= serverConfig_.find(tmp);
-	while (it == serverConfig_.end() && !tmp.empty() && tmp != "/")
+	while (it == serverConfig_.end() && !tmp.empty())
 	{
 		size_t lastSlashPos = tmp.find_last_of('/');
+
 		if (lastSlashPos == std::string::npos)
 			break;
-		tmp = tmp.substr(0, lastSlashPos);
+		if (lastSlashPos == 0)
+			tmp = "/";
+		else
+			tmp = tmp.substr(0, lastSlashPos);
+
 		it = serverConfig_.find(tmp);
 	}
 	if (it == serverConfig_.end())
