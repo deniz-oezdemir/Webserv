@@ -1,41 +1,91 @@
 import os
 import cgi
-import cgitb
 import logging
-
-# Enable CGI traceback
-cgitb.enable()
+from io import BytesIO
 
 # Configure logging
 logging.basicConfig(filename='/tmp/post_debug.log', level=logging.DEBUG)
 
 logging.debug("post.py script started")
 
-form = cgi.FieldStorage()  # FieldStorage() reads form data from std in but in our case needs data from request?
+# Check environment variables
 method = os.environ.get("REQUEST_METHOD", "")
+content_length = os.environ.get("CONTENT_LENGTH", "")
+content_type = os.environ.get("CONTENT_TYPE", "")
 upload_path = os.environ.get("PATH_INFO", "../upload/")
 
-print("Content-Type: text/html")
-print()
+logging.debug(f"REQUEST_METHOD: {method}")
+logging.debug(f"CONTENT_LENGTH: {content_length}")
+logging.debug(f"CONTENT_TYPE: {content_type}")
+logging.debug(f"PATH_INFO: {upload_path}")
+
+# Ensure CONTENT_LENGTH is set
+if not content_length:
+    logging.error("CONTENT_LENGTH is not set")
+    print("Content-Type: text/html")
+    print()
+    print("<html>")
+    print("<head>")
+    print("<title>Error</title>")
+    print("<style>")
+    print("body { text-align: center; }")
+    print("</style>")
+    print("</head>")
+    print("<body>")
+    print("<p>Error: CONTENT_LENGTH is not set.</p>")
+    print("</body>")
+    print("</html>")
+    exit(1)
+
+# Read form data
+try:
+    # Log the raw input data
+    input_data = os.read(0, int(content_length))
+    logging.debug(f"Raw input data: {input_data}")
+
+    # Use BytesIO to simulate a file-like object for FieldStorage
+    input_stream = BytesIO(input_data)
+    form = cgi.FieldStorage(fp=input_stream, environ=os.environ, keep_blank_values=True)
+    logging.debug(f"Form keys: {form.keys()}")
+except Exception as e:
+    logging.error(f"Error reading form data: {e}")
+
+logging.debug("post.py part 1 passed")
 
 print("<html>")
 print("<head>")
 print("<title>File Upload</title>")
+print("<style>")
+print("body { text-align: center; }")
+print("</style>")
 print("</head>")
 print("<body>")
 
-if method == "POST" and "file" in form:
-	file_item = form["file"]
-	if file_item.file:
-		filename = "photo2.jpg" #for now save as photo2.jpg for testing #os.path.basename(file_item.filename)
-		with open(os.path.join(upload_path, filename), "wb") as f:
-			f.write(file_item.file.read())
-		print(f"<p>post.py: File'<b>{filename}</b>' uploaded successfully.</p>")
-	else:
-		print("<p>post.py: Failed to upload file.</p>")
-else:
-	print("<p>post.py: No file was uploaded.</p>")
+logging.debug("post.py part 2 passed")
 
-print("<p><a href=\"/instagram-clone/index.html\">Go back</a></p>")
+if method == "POST" and "file" in form:
+    file_item = form["file"]
+    if file_item.file:
+        filename = "photo2.jpg"  # for now save as photo2.jpg for testing
+        current_directory = os.getcwd()
+        logging.debug(f"Current directory: {current_directory}")
+        # current directory is /home/denizozd/Webserv/www/instagram-clone/cgi adjust below
+        os.makedirs("/home/denizozd/Webserv/www/instagram-clone/upload/", exist_ok=True)  # Ensure the upload directory exists
+        with open(os.path.join("/home/denizozd/Webserv/www/instagram-clone/upload/", filename), 'wb') as f:
+            f.write(file_item.file.read())
+        logging.debug(f"File {filename} uploaded successfully")
+        print("<p>File uploaded successfully.</p>")
+    else:
+        logging.debug("No file was uploaded.")
+        print("<p>No file was uploaded.</p>")
+else:
+    logging.debug("No file was uploaded.")
+    print("<p>No file was uploaded.</p>")
+
+logging.debug("post.py part 3 passed")
+
+print("<p><a href=\"http://localhost:8086/\">Go back</a></p>")
 print("</body>")
 print("</html>")
+
+logging.debug("post.py finished")
