@@ -13,6 +13,7 @@ const std::string acceptedHeaders[ACCEPTED_HEADERS_N] = {
 	"Content-Length",
 	"Cookie",
 	"Transfer-Encoding",
+	"Content-Type"
 };
 
 
