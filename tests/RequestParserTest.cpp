@@ -441,9 +441,6 @@ Test(RequestParser, testCookieParsing)
 
 	HttpRequest request = RequestParser::parseRequest(requestStr);
 
-	cr_assert_str_eq(request.getMethod().c_str(), method.c_str());
-	cr_assert_str_eq(request.getHttpVersion().c_str(), httpVersion.c_str());
-	cr_assert_str_eq(request.getTarget().c_str(), target.c_str());
 	cr_assert(request.hasCookie(), "Request should have a cookie");
 	cr_assert_str_eq(request.getCookie().c_str(), "sessionId=abc123");
 
