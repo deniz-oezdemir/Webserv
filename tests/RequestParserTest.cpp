@@ -449,3 +449,60 @@ Test(RequestParser, testCookieParsing)
 
 	delete[] argv;
 }
+
+Test(RequestParser, testFileName)
+{
+	char **argv = new char *[2];
+	argv[0] = (char *)"./server";
+	argv[1] = (char *)"test.config";
+	std::string										method("GET");
+	std::string										httpVersion("HTTP/1.1");
+	std::string										uri("/localhost:8080?test.md");
+	std::string										host("www.example.com");
+	std::string										target(host + uri);
+	std::map<std::string, std::vector<std::string>> headers;
+	headers["Host"].push_back(host);
+	headers["User-Agent"].push_back("telnet/12.21");
+	headers["Accept"].push_back("*/*");
+	headers["Cookie"].push_back("sessionId=abc123");
+	std::vector<char> body;
+
+	std::string requestStr
+		= createRequestString(method, uri, httpVersion, headers, body);
+
+	HttpRequest request = RequestParser::parseRequest(requestStr);
+
+	cr_assert_str_eq(request.getUri().c_str(), "/localhost:8080");
+	cr_assert(request.hasFileName(), "Request should have file name");
+	cr_assert_str_eq(request.getFileName().c_str(), "test.md");
+
+	delete[] argv;
+}
+
+Test(RequestParser, testURIWithEndQuestionMark)
+{
+	char **argv = new char *[2];
+	argv[0] = (char *)"./server";
+	argv[1] = (char *)"test.config";
+	std::string										method("GET");
+	std::string										httpVersion("HTTP/1.1");
+	std::string										uri("/localhost:8080?");
+	std::string										host("www.example.com");
+	std::string										target(host + uri);
+	std::map<std::string, std::vector<std::string>> headers;
+	headers["Host"].push_back(host);
+	headers["User-Agent"].push_back("telnet/12.21");
+	headers["Accept"].push_back("*/*");
+	headers["Cookie"].push_back("sessionId=abc123");
+	std::vector<char> body;
+
+	std::string requestStr
+		= createRequestString(method, uri, httpVersion, headers, body);
+
+	HttpRequest request = RequestParser::parseRequest(requestStr);
+
+	cr_assert_str_eq(request.getUri().c_str(), "/localhost:8080");
+	cr_assert_not(request.hasFileName(), "Request should not have file name");
+
+	delete[] argv;
+}
