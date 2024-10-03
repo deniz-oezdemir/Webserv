@@ -277,6 +277,17 @@ std::string HttpRequest::extractCookie_(void)
 	return cookie;
 }
 
+/**
+ * @brief Extracts the file name from the URI.
+ *
+ * This method processes the `uri_` member variable to separate the file name
+ * from the URI. The URI is split at the first occurrence of the question mark ('?').
+ * The part before the question mark remains in `uri_`, and the part after the
+ * question mark is stored in `fileName`. If the question mark is the last character
+ * in the URI, it is removed, and `fileName` will be empty.
+ *
+ * @return The extracted file name.
+ */
 std::string HttpRequest::extractFileName_(void)
 {
 	std::string fileName;
@@ -284,11 +295,11 @@ std::string HttpRequest::extractFileName_(void)
 	size_t delimeter = uri_.find('?');
 	if (delimeter != std::string::npos)
 	{
-		fileName = uri_.substr(delimeter, uri_.length() - delimeter);
-		uri_ = uri_.substr(delimeter);
+		fileName = uri_.substr(delimeter + 1);
+		uri_ = uri_.substr(0, delimeter);
 	}
 
-	hasFileName_ = false;
+	hasFileName_ = !fileName.empty();
 	return fileName;
 }
 
