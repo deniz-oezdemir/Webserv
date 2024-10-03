@@ -472,8 +472,8 @@ Test(RequestParser, testFileName)
 
 	HttpRequest request = RequestParser::parseRequest(requestStr);
 
-	cr_assert_str_eq(request.getUri().c_str(), "/localhost:8080";
-	cr_assert(request.hasFileName(), true);
+	cr_assert_str_eq(request.getUri().c_str(), "/localhost:8080");
+	cr_assert(request.hasFileName(), "Request should have file name");
 	cr_assert_str_eq(request.getFileName().c_str(), "test.md");
 
 	delete[] argv;
@@ -501,8 +501,8 @@ Test(RequestParser, testURIWithEndQuestionMark)
 
 	HttpRequest request = RequestParser::parseRequest(requestStr);
 
-	cr_assert_str_eq(request.getUri().c_str(), "/localhost:8080";
-	cr_assert(request.hasFileName(), false);
+	cr_assert_str_eq(request.getUri().c_str(), "/localhost:8080");
+	cr_assert_not(request.hasFileName(), "Request should not have file name");
 
 	delete[] argv;
 }
