@@ -9,12 +9,23 @@
 </head>
 
 <body>
+	<h1>Instagram Clone</h1>
+
 	<div class="container">
-		<h1>Instagram Clone</h1>
 		<div class="photo-grid" id="photo-grid"></div>
+	</div>
+
+	<div class="container">
 		<form id="upload-form" enctype="multipart/form-data" method="post" action="cgi/post.py">
 			<input type="file" name="file" id="file-input" accept="image/*" required>
-			<button type="submit" id="upload-btn">Upload Photo</button>
+			<button type="submit" id="upload-btn">Post Photo</button>
+		</form>
+	</div>
+
+	<div class="container">
+		<!-- TODO: Manu delete ? from request without file -->
+		<form id="get-time-form" method="get" action="cgi/get.py">
+			<button type="submit" id="get-time-btn">Get Time</button>
 		</form>
 	</div>
 
