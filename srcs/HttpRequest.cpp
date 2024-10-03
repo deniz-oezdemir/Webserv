@@ -40,6 +40,8 @@ HttpRequest &HttpRequest::operator=(const HttpRequest &rhs)
 	headers_ = rhs.getHeaders();
 	body_ = rhs.getBody();
 	keepAlive_ = rhs.getKeepAlive();
+	hasCookie_ = rhs.hasCookie();
+	cookie_ = rhs.getCookie();
 
 	return *this;
 }
@@ -131,6 +133,16 @@ const bool &HttpRequest::getKeepAlive(void) const
 	return keepAlive_;
 }
 
+const bool &HttpRequest::hasCookie(void) const
+{
+	return hasCookie_;
+}
+
+const std::string &HttpRequest::getCookie(void) const
+{
+	return cookie_;
+}
+
 std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
 {
 	os << "Method: " << rhs.getMethod() << std::endl;
@@ -179,7 +191,7 @@ std::ostream &operator<<(std::ostream &os, const HttpRequest &rhs)
  *       In the future, it can be extended to also extract the port from
  *       the URI if needed.
  */
-unsigned long HttpRequest::extractPort(std::string *str)
+unsigned long HttpRequest::extractPort_(std::string *str)
 {
 	unsigned long port = DEFAULT_PORT; // default port
 	size_t		  colonPos = str->find_last_of(':');
@@ -204,15 +216,53 @@ unsigned long HttpRequest::extractPort(std::string *str)
 	return port;
 }
 
-bool HttpRequest::extractKeepAlive(void)
+/**
+ * @brief Determines if the connection should be kept alive.
+ *
+ * @return True if the "Connection" header is set to "keep-alive",
+ *         otherwise false.
+ *
+ * @note This function checks the "Connection" header to determine if
+ *       the client has requested to keep the connection alive.
+ */
+bool HttpRequest::extractKeepAlive_(void)
 {
-	if (headers_.count("Connection") > 0)
+	if (headers_.count("Connection") > 0
+		&& headers_.at("Connection")[0].compare("keep-alive") == 0)
 	{
-		if (headers_.at("Connection")[0].compare("keep-alive") == 0)
-			return true;
+		return true;
 	}
 
 	return false;
+}
+
+/**
+ * @brief Extracts the cookie from the request headers.
+ *
+ * @return The extracted cookie as a string. If no cookie is found,
+ *         an empty string is returned.
+ *
+ * @note This function checks both "Cookie" and "cookie" headers to
+ *       account for case variations. It also sets the hasCookie_
+ *       member variable to indicate whether a cookie was found.
+ */
+std::string HttpRequest::extractCookie_(void)
+{
+	std::string cookie;
+
+	if (headers_.count("Cookie") > 0)
+	{
+		hasCookie_ = true;
+		return headers_.at("Cookie")[0];
+	}
+	if (headers_.count("cookie") > 0)
+	{
+		hasCookie_ = true;
+		return headers_.at("cookie")[0];
+	}
+	hasCookie_ = false;
+
+	return cookie;
 }
 
 /**
@@ -222,7 +272,8 @@ bool HttpRequest::extractKeepAlive(void)
  * This function takes the method, HTTP version, URI, headers, and body of an
  * HTTP request and normalizes them by extracting and storing the relevant
  * components into the HttpRequest object. It also extracts the port number from
- * the Host header using the `extractPort` function.
+ * the Host header using the `extractPort` function and extracts cookies from
+ * the request headers using the `extractCookie` function.
  *
  * @param method The HTTP method (e.g., GET, POST).
  * @param httpVersion The HTTP version (e.g., HTTP/1.1).
@@ -232,6 +283,9 @@ bool HttpRequest::extractKeepAlive(void)
  *
  * @note The port extraction is currently done from the Host header. In the
  * future, this can be extended to also extract the port from the URI if needed.
+ *
+ * @note The cookie extraction checks both "Cookie" and "cookie" headers to
+ * account for case variations.
  */
 void HttpRequest::normalizeRequest_(
 	std::string &method,
@@ -247,9 +301,10 @@ void HttpRequest::normalizeRequest_(
 	httpVersion_ = httpVersion;
 	uri_ = uri;
 	host_ = inputHeaders.at("Host")[0];
-	port_ = extractPort(&host_);
+	port_ = extractPort_(&host_);
 	target_ = host_ + uri_;
 	headers_ = inputHeaders;
 	body_ = body;
-	keepAlive_ = extractKeepAlive();
+	keepAlive_ = extractKeepAlive_();
+	cookie_ = extractCookie_();
 }

@@ -404,6 +404,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		// 	}
 		// }
 
+		//TODO: Deniz change without auto keyword, just iterate and append one to the other
 		// There are two values for content-type in the header, combine them for the CONTENT_TYPE=
 		// std::map<std::string, std::vector<std::string>> headers2 = request.getHeaders();
 		// auto contentTypeIt = headers2.find("Content-Type");

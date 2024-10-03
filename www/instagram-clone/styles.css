@@ -1,59 +1,65 @@
 body {
+	font-family: Arial, sans-serif;
+	background-color: #f0f0f0;
+	margin: 0;
+	padding: 0;
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	flex-direction: column;
 	height: 100vh;
-	margin: 0;
-	font-family: Arial, sans-serif;
-	background-color: #fafafa;
 }
 
 .container {
+	background-color: #fff;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	margin-bottom: 20px;
 	text-align: center;
+	width: 80%;
+	max-width: 600px;
 }
 
 h1 {
-	font-size: 2em;
-	color: #333;
 	margin-bottom: 20px;
 }
 
 .photo-grid {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	/* Ensure three columns */
-	gap: 10px;
-	padding: 20px;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
 }
 
 .photo-grid img {
-	width: 100%;
-	height: auto;
-	border-radius: 10px;
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	max-width: 100px;
+	margin: 5px;
+	border-radius: 4px;
 }
 
-#upload-btn {
-	display: block;
-	margin: 20px auto 0;
-	padding: 10px 20px;
-	font-size: 1em;
-	cursor: pointer;
-	background-color: #3897f0;
+form {
+	margin-bottom: 20px;
+}
+
+input[type="file"] {
+	margin-bottom: 10px;
+}
+
+button {
+	background-color: #007bff;
 	color: #fff;
 	border: none;
-	border-radius: 5px;
-	box-shadow: 0 4px #2a6eb5;
-	transition: all 0.3s ease;
+	padding: 10px 20px;
+	border-radius: 4px;
+	cursor: pointer;
 }
 
-#upload-btn:hover {
-	background-color: #2a6eb5;
-	box-shadow: 0 3px #1f4e8a;
-	transform: translateY(-2px);
+button:hover {
+	background-color: #0056b3;
 }
 
-#upload-btn:active {
-	box-shadow: 0 1px #1f4e8a;
-	transform: translateY(2px);
+#time-display {
+	margin-top: 20px;
+	font-size: 1.2em;
+	color: #333;
 }

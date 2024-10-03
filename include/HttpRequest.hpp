@@ -54,6 +54,8 @@ class HttpRequest
 	const std::vector<char> &getBody(void) const;
 	const std::string		&getHost(void) const;
 	const bool				&getKeepAlive(void) const;
+	const bool				&hasCookie(void) const;
+	const std::string		&getCookie(void) const;
 
 	// Overloaded Operators
 	HttpRequest &operator=(const HttpRequest &rhs);
@@ -76,8 +78,9 @@ class HttpRequest
 	);
 	void		  cleanURI_(std::string uri);
 	void		  cleanHost_(void);
-	unsigned long extractPort(std::string *str);
-	bool		  extractKeepAlive(void);
+	unsigned long extractPort_(std::string *str);
+	bool		  extractKeepAlive_(void);
+	std::string	  extractCookie_(void);
 
 	// Private attributes.
 	// WARNING: if new attr, add getter and modify assignment operator
@@ -86,6 +89,8 @@ class HttpRequest
 	std::string	  target_;
 	std::string	  uri_;
 	std::string	  host_;
+	bool		  hasCookie_;
+	std::string	  cookie_;
 	unsigned long port_;
 	// clang-format off
 	std::map<std::string, std::vector<std::string> > headers_;
