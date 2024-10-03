@@ -1,5 +1,4 @@
 # TODO: Deniz delete logging
-# TODO: Deniz remove hardcoding paths below
 
 import os
 import cgi
@@ -25,34 +24,34 @@ logging.debug(f"UPLOAD_PATH: {upload_path}")
 
 # Ensure CONTENT_LENGTH is set
 if not content_length:
-    logging.error("CONTENT_LENGTH is not set")
-    print("Content-Type: text/html")
-    print()
-    print("<html>")
-    print("<head>")
-    print("<title>Error</title>")
-    print("<style>")
-    print("body { text-align: center; }")
-    print("</style>")
-    print("</head>")
-    print("<body>")
-    print("<p>Error: CONTENT_LENGTH is not set.</p>")
-    print("</body>")
-    print("</html>")
-    exit(1)
+	logging.error("CONTENT_LENGTH is not set")
+	print("Content-Type: text/html")
+	print()
+	print("<html>")
+	print("<head>")
+	print("<title>Error</title>")
+	print("<style>")
+	print("body { text-align: center; }")
+	print("</style>")
+	print("</head>")
+	print("<body>")
+	print("<p>Error: CONTENT_LENGTH is not set.</p>")
+	print("</body>")
+	print("</html>")
+	exit(1)
 
 # Read form data
 try:
-    # Log the raw input data
-    input_data = os.read(0, int(content_length))
-    logging.debug(f"Raw input data: {input_data}")
+	# Log the raw input data
+	input_data = os.read(0, int(content_length))
+	logging.debug(f"Raw input data: {input_data}")
 
-    # Use BytesIO to simulate a file-like object for FieldStorage
-    input_stream = BytesIO(input_data)
-    form = cgi.FieldStorage(fp=input_stream, environ=os.environ, keep_blank_values=True)
-    logging.debug(f"Form keys: {form.keys()}")
+	# Use BytesIO to simulate a file-like object for FieldStorage
+	input_stream = BytesIO(input_data)
+	form = cgi.FieldStorage(fp=input_stream, environ=os.environ, keep_blank_values=True)
+	logging.debug(f"Form keys: {form.keys()}")
 except Exception as e:
-    logging.error(f"Error reading form data: {e}")
+	logging.error(f"Error reading form data: {e}")
 
 logging.debug("post.py part 1 passed")
 
@@ -68,23 +67,22 @@ print("<body>")
 logging.debug("post.py part 2 passed")
 
 if method == "POST" and "file" in form:
-    file_item = form["file"]
-    if file_item.file:
-        filename = "photo2.jpg"  # for now save as photo2.jpg for testing
-        current_directory = os.getcwd()
-        logging.debug(f"Current directory: {current_directory}")
-        # current directory is /home/denizozd/Webserv/www/instagram-clone/cgi adjust below
-        os.makedirs("/home/denizozd/Webserv/www/instagram-clone/upload/", exist_ok=True)  # Ensure the upload directory exists
-        with open(os.path.join("/home/denizozd/Webserv/www/instagram-clone/upload/", filename), 'wb') as f:
-            f.write(file_item.file.read())
-        logging.debug(f"File {filename} uploaded successfully")
-        print("<p>File uploaded successfully.</p>")
-    else:
-        logging.debug("No file was uploaded.")
-        print("<p>No file was uploaded.</p>")
+	file_item = form["file"]
+	if file_item.file:
+		filename = "photo2.jpg"  # for now save as photo2.jpg for testing
+		current_directory = os.getcwd()
+		logging.debug(f"Current directory: {current_directory}")
+		os.makedirs(upload_path, exist_ok=True)  # Ensure the upload directory exists
+		with open(os.path.join(upload_path, filename), 'wb') as f:
+			f.write(file_item.file.read())
+		logging.debug(f"File {filename} uploaded successfully")
+		print("<p>File uploaded successfully.</p>")
+	else:
+		logging.debug("No file was uploaded.")
+		print("<p>No file was uploaded.</p>")
 else:
-    logging.debug("No file was uploaded.")
-    print("<p>No file was uploaded.</p>")
+	logging.debug("No file was uploaded.")
+	print("<p>No file was uploaded.</p>")
 
 logging.debug("post.py part 3 passed")
 
