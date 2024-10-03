@@ -71,12 +71,14 @@ class HttpMethodHandler
 		bool const		  &keepAlive
 	);
 
+	// clang-format off
 	static std::string createFilePostResponse_(
 		HttpRequest const &request,
+		std::map<std::string, std::vector<std::string> > location,
 		std::string const &uploadpath,
 		Server const	  &server,
 		bool const		  &keepAlive
-	);
+	); // clang-format on
 
 	static std::string createDeleteResponse_(
 		const std::string &filepath,

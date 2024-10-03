@@ -153,10 +153,6 @@ std::string HttpMethodHandler::handlePostRequest_(
 		return HttpErrorHandler::getErrorPage(404, keepAlive);
 	}
 
-	// Check for redirections
-	std::string redirection = handleRedirection_(location, keepAlive);
-	if (!redirection.empty())
-		return redirection;
 	// Check for authorized methods
 	if (!validateMethod_(location, "POST"))
 		return HttpErrorHandler::getErrorPage(405, keepAlive);
@@ -174,7 +170,9 @@ std::string HttpMethodHandler::handlePostRequest_(
 			uploadpath, getCgiInterpreter_(location), request, keepAlive
 		);
 
-	return createFilePostResponse_(request, uploadpath, server, keepAlive);
+	return createFilePostResponse_(
+		request, location, uploadpath, server, keepAlive
+	);
 }
 
 // clang-format off
@@ -602,12 +600,14 @@ std::string HttpMethodHandler::createFileGetResponse_(
 	return response.toString();
 }
 
+// clang-format off
 std::string HttpMethodHandler::createFilePostResponse_(
-	HttpRequest const &request,
-	std::string const &uploadpath,
-	Server const	  &server,
-	bool const		  &keepAlive
-)
+	HttpRequest const							   &request,
+	std::map<std::string, std::vector<std::string> > location,
+	std::string const							   &uploadpath,
+	Server const								   &server,
+	bool const									   &keepAlive
+) // clang-format on
 {
 	(void)server;
 
@@ -637,6 +637,11 @@ std::string HttpMethodHandler::createFilePostResponse_(
 	}
 
 	outFile.close();
+
+	// Check for redirections
+	std::string redirection = handleRedirection_(location, keepAlive);
+	if (!redirection.empty())
+		return redirection;
 
 	// Generate a success response
 	response.setStatusCode(200);
