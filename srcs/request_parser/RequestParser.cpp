@@ -1,4 +1,5 @@
 #include "request_parser/RequestParser.hpp"
+#include "Logger.hpp"
 #include "request_parser/BodyParser.hpp"
 #include "request_parser/FirstLineParser.hpp"
 #include "request_parser/HeaderParser.hpp"
@@ -9,7 +10,6 @@
 #include <map>
 #include <sstream>
 #include <vector>
-#include "Logger.hpp"
 
 HttpRequest RequestParser::parseRequest(std::string str)
 {

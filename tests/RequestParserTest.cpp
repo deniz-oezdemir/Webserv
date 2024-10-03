@@ -418,3 +418,34 @@ Test(RequestParser, testPortGetter)
 
 	cr_assert_eq(request.getPort(), 8080);
 }
+
+Test(RequestParser, testCookieParsing)
+{
+	char **argv = new char *[2];
+	argv[0] = (char *)"./server";
+	argv[1] = (char *)"test.config";
+	std::string										method("GET");
+	std::string										httpVersion("HTTP/1.1");
+	std::string										uri("/localhost:8080");
+	std::string										host("www.example.com");
+	std::string										target(host + uri);
+	std::map<std::string, std::vector<std::string>> headers;
+	headers["Host"].push_back(host);
+	headers["User-Agent"].push_back("telnet/12.21");
+	headers["Accept"].push_back("*/*");
+	headers["Cookie"].push_back("sessionId=abc123");
+	std::vector<char> body;
+
+	std::string requestStr
+		= createRequestString(method, uri, httpVersion, headers, body);
+
+	HttpRequest request = RequestParser::parseRequest(requestStr);
+
+	cr_assert_str_eq(request.getMethod().c_str(), method.c_str());
+	cr_assert_str_eq(request.getHttpVersion().c_str(), httpVersion.c_str());
+	cr_assert_str_eq(request.getTarget().c_str(), target.c_str());
+	cr_assert(request.hasCookie(), "Request should have a cookie");
+	cr_assert_str_eq(request.getCookie().c_str(), "sessionId=abc123");
+
+	delete[] argv;
+}
