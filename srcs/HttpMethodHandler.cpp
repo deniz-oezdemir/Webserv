@@ -116,7 +116,7 @@ std::string HttpMethodHandler::handlePostRequest_(
 		return HttpErrorHandler::getErrorPage(404, keepAlive);
 
 	std::string rootdir = getRootDir_(location, server);
-	std::string uploadpath = getUploadPath_(location, uri);
+	std::string uploadpath = getUploadPath_(location);
 	if (uploadpath.empty())
 		uploadpath = rootdir + uri;
 
@@ -306,13 +306,12 @@ std::string HttpMethodHandler::getFilePath_(
 
 // clang-format off
 std::string HttpMethodHandler::getUploadPath_(
-	std::map<std::string, std::vector<std::string> > const &location,
-	std::string const &uri
+	std::map<std::string, std::vector<std::string> > const &location
 ) // clcng-format on
 {
 	return location.find("upload_store") != location.end()
 				   && !location.at("upload_store").empty()
-			   ? location.at("upload_store")[0]
+						? location.at("upload_store")[0]
 			   : "";
 }
 
@@ -397,24 +396,24 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back("UPLOAD_PATH=" + uploadpath);
 		envVariables.push_back("CONTENT_LENGTH=" + std::to_string(request.getBody().size()));
 
-		std::map<std::string, std::vector<std::string>> headers = request.getHeaders();
-		for (const auto &header : headers) {
-			for (const auto &value : header.second) {
-				Logger::log(Logger::DEBUG) << "Debug Headers: " << header.first << ": " << value << std::endl;
-				envVariables.push_back(header.first + "=" + value);
-			}
-		}
+		// std::map<std::string, std::vector<std::string> > headers = request.getHeaders();
+		// for (const auto &header : headers) {
+		// 	for (const auto &value : header.second) {
+		// 		Logger::log(Logger::DEBUG) << "Debug Headers: " << header.first << ": " << value << std::endl;
+		// 		envVariables.push_back(header.first + "=" + value);
+		// 	}
+		// }
 
 		// There are two values for content-type in the header, combine them for the CONTENT_TYPE=
-		std::map<std::string, std::vector<std::string>> headers2 = request.getHeaders();
-		auto contentTypeIt = headers2.find("Content-Type");
-		if (contentTypeIt != headers2.end() && !contentTypeIt->second.empty()) {
-			std::string combinedContentType = contentTypeIt->second[0];
-			for (size_t i = 1; i < contentTypeIt->second.size(); ++i) {
-				combinedContentType += "; " + contentTypeIt->second[i];
-			}
-			envVariables.push_back("CONTENT_TYPE=" + combinedContentType);
-		}
+		// std::map<std::string, std::vector<std::string>> headers2 = request.getHeaders();
+		// auto contentTypeIt = headers2.find("Content-Type");
+		// if (contentTypeIt != headers2.end() && !contentTypeIt->second.empty()) {
+		// 	std::string combinedContentType = contentTypeIt->second[0];
+		// 	for (size_t i = 1; i < contentTypeIt->second.size(); ++i) {
+		// 		combinedContentType += "; " + contentTypeIt->second[i];
+		// 	}
+		// 	envVariables.push_back("CONTENT_TYPE=" + combinedContentType);
+		// }
 
 		std::vector<char *> envp;
 		for (std::vector<std::string>::iterator it = envVariables.begin();

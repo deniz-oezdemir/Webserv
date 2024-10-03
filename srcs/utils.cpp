@@ -221,6 +221,16 @@ std::string getDirectory(const std::string &filepath)
 	return ".";
 }
 
+std::string getFileName(const std::string &filepath)
+{
+	std::string::size_type pos = filepath.find_last_of("/\\");
+	if (pos != std::string::npos)
+	{
+		return filepath.substr(pos + 1);
+	}
+	return filepath;
+}
+
 std::string readFile(const std::string &filePath)
 {
 	std::fstream file(filePath);

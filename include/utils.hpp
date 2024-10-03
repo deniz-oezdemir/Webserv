@@ -45,6 +45,7 @@ bool isURI(std::string const &str);
 bool isURL(std::string const &str);
 
 std::string		   getDirectory(std::string const &path);
+std::string			 getFileName(std::string const &path);
 std::string		   readFile(const std::string &filePath);
 std::string		   readErrorPage(const std::string &filePath);
 std::string		   createTimestamp();
