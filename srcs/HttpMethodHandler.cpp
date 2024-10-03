@@ -366,7 +366,6 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back("SERVER_PROTOCOL=HTTP/1.1");
 		envVariables.push_back("REQUEST_METHOD=" + request.getMethod());
 		envVariables.push_back("SCRIPT_FILENAME=" + filepath);
-		envVariables.push_back("CONTENT=" + std::string(request.getBody().begin(), request.getBody().end()));
 		envVariables.push_back("CONTENT_LENGTH=" + std::to_string(request.getBody().size()));
 
 		std::map<std::string, std::vector<std::string>> headers = request.getHeaders();
