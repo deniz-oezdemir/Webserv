@@ -92,7 +92,7 @@ CXXFLAGS					:=
 else ifdef DEBUG
 	CXXFLAGS				:= -g3 -fsanitize=address
 else
-	CXXFLAGS				:= -Wall -Wextra -Werror -std=c++98
+	CXXFLAGS				:= -Wall -Wextra -Werror # -std=c++98
 endif
 ifeq ($(shell uname), Linux)
 	CXXFLAGS				+= -D LINUX
