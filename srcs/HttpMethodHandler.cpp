@@ -340,6 +340,8 @@ bool HttpMethodHandler::isCgiRequest_(
 
 	if (it != location.end() && !it->second.empty())
 	{
+		if (it->second.size() != 2)
+			return true;
 		Logger::log(Logger::DEBUG) << "CGI Extension: " << it->second[0] << std::endl;
 		std::string cgiExtension = it->second[0]; // ".py"
 		return uri.find(cgiExtension) != std::string::npos;
@@ -352,6 +354,8 @@ std::string HttpMethodHandler::getCgiInterpreter_(
 	std::map<std::string, std::vector<std::string> > const &location
 ) // clang-format on
 {
+	if (location.find("cgi")->second.size() == 1)
+		return location.find("cgi")->second[0]; // binary path
 	return location.find("cgi")->second[1]; // "/usr/bin/python3"
 }
 
@@ -365,7 +369,6 @@ std::string HttpMethodHandler::handleCgiRequest_(
 	std::string const &uploadpath
 )
 {
-	(void)uploadpath;
 	Logger::log(Logger::INFO) << "Filepath: " << filepath << std::endl;
 	Logger::log(Logger::INFO) << "Interpreter: " << interpreter << std::endl;
 
@@ -395,14 +398,6 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back("SCRIPT_FILENAME=" + filepath);
 		envVariables.push_back("UPLOAD_PATH=" + uploadpath);
 		envVariables.push_back("CONTENT_LENGTH=" + std::to_string(request.getBody().size()));
-
-		// std::map<std::string, std::vector<std::string> > headers = request.getHeaders();
-		// for (const auto &header : headers) {
-		// 	for (const auto &value : header.second) {
-		// 		Logger::log(Logger::DEBUG) << "Debug Headers: " << header.first << ": " << value << std::endl;
-		// 		envVariables.push_back(header.first + "=" + value);
-		// 	}
-		// }
 
 		//TODO: Deniz change without auto keyword, just iterate and append one to the other
 		// There are two values for content-type in the header, combine them for the CONTENT_TYPE=

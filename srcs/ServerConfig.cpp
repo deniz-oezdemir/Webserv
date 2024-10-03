@@ -278,8 +278,9 @@ bool ServerConfig::checkReturn_(std::vector<std::string> const &tokens)
 
 bool ServerConfig::checkCgi_(std::vector<std::string> const &tokens)
 {
-	if (tokens.size() == 3 && tokens[1].find('.') != std::string::npos
-		&& this->isExecutable_(tokens[2]))
+	if ((tokens.size() == 3 && tokens[1].find('.') != std::string::npos
+		 && this->isExecutable_(tokens[2]))
+		|| (tokens.size() == 2 && this->isExecutable_(tokens[1])))
 		return true;
 	return false;
 }
@@ -410,7 +411,10 @@ void ServerConfig::parseLocationBlock_(
 	{
 		ft::trim(line);
 		if (line.empty() || line[0] == '#')
+		{
+			++lineIndex;
 			continue;
+		}
 		ft::split(tokens, line);
 		if (tokens[0] == "}")
 		{
