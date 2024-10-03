@@ -9,13 +9,22 @@
 </head>
 
 <body>
+	<h1>Instagram Clone</h1>
+
 	<div class="container">
-		<h1>Instagram Clone</h1>
 		<div class="photo-grid" id="photo-grid"></div>
+	</div>
+
+	<div class="container">
 		<form id="upload-form" enctype="multipart/form-data" method="post" action="cgi/post.py">
 			<input type="file" name="file" id="file-input" accept="image/*" required>
 			<button type="submit" id="upload-btn">Upload Photo</button>
 		</form>
+	</div>
+
+	<div class="container">
+		<button id="get-time-btn">Get Time</button>
+		<div id="time-display"></div>
 	</div>
 
 	<script>
@@ -32,6 +41,16 @@
 			img.src = `upload/${filename}`;
 			img.alt = 'Photo';
 			photoGrid.appendChild(img);
+		});
+
+		// Fetch and display the current time
+		document.getElementById('get-time-btn').addEventListener('click', () => {
+			fetch('cgi/get.py')
+				.then(response => response.text())
+				.then(data => {
+					document.getElementById('time-display').innerHTML = data;
+				})
+				.catch(error => console.error('Error fetching time:', error));
 		});
 	</script>
 </body>

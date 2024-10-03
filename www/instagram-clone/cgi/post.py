@@ -1,3 +1,5 @@
+# TODO: delete logging
+
 import os
 import cgi
 import logging
