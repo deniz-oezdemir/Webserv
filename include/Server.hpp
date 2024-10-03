@@ -3,6 +3,7 @@
 #include <map>
 #include <netinet/in.h>
 #include <string>
+#include <vector>
 
 #include "ConfigValue.hpp"
 
@@ -43,9 +44,6 @@ class Server
 	getThisLocation(const std::string &location) const;
 	// clang-format on
 
-	// Setters
-	void setRoot(const std::string &root);
-
 	unsigned int	   getServerIndex(void) const;
 	int const		  &getServerFd(void) const;
 	sockaddr_in const &getServerAddr(void) const;
@@ -53,6 +51,9 @@ class Server
 	// Get the location for an specific Error code
 	bool getErrorPageValue(int errorCode, std::string &location) const;
 	bool getErrorPageValue(std::string &errorCode, std::string &location) const;
+
+	// Setters
+	void setRoot(const std::string &root);
 
 	void setPort(std::string const &port);
 	void setIPV4(std::string const &ipV4);

@@ -32,12 +32,14 @@ class ServerConfig
 	// Get the value of a key in the general configuration map.
 	std::string getGeneralConfigValue(std::string const &key) const;
 	// Get all servers stored in a vector of maps.
+	// clang-format off
 	bool getAllServersConfig(
 		std::vector<std::map<std::string, ConfigValue> > &serversConfig
-	) const;
+	) const; // clang-format on
 
+	// clang-format off
 	std::vector<std::map<std::string, ConfigValue> > const &
-	getAllServersConfig(void) const;
+	getAllServersConfig(void) const; // clang-format on
 
 	// Get the value of a key in a server[serverIndex] configuration map.
 	bool getServerConfigValue(
@@ -56,9 +58,10 @@ class ServerConfig
 
 	void initGeneralConfig_(void);
 	void initServersConfig_(void);
+	// clang-format off
 	void initLocationConfig_(
 		std::map<std::string, std::vector<std::string> > &location
-	);
+	); // clang-format on
 
 	void errorHandler_(
 		std::string const &message,
@@ -98,10 +101,10 @@ class ServerConfig
 	);
 
 	bool checkServerNameUnique_(std::string const &tokens);
+	// clang-format off
 	bool checkListenUnique_(
-		std::vector<std::string> const &host,
-		std::vector<std::string> const &port
-	);
+		std::vector<std::map<std::string, ConfigValue> >::iterator &itServer
+	); // clang-format on
 
 	void parseLocationBlock_(
 		std::vector<std::string> &tokens,
@@ -117,7 +120,9 @@ class ServerConfig
 	std::string										filepath_;
 	std::ifstream									file_;
 	std::map<std::string, std::string>				generalConfig_;
+	// clang-format off
 	std::vector<std::map<std::string, ConfigValue> > serversConfig_;
+	// clang-format on
 	bool											isConfigOK_;
 	void											setListenDirective_(
 												   std::vector<std::string> const &tokens,
