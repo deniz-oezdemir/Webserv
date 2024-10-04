@@ -6,5 +6,5 @@ obj/
 .vscode/
 tests/*
 !tests/*.*
-rust-cgi/target
+rust-cgis/target
 www/instagram-clone/upload
