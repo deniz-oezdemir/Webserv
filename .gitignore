@@ -7,4 +7,5 @@ obj/
 tests/*
 !tests/*.*
 rust-cgi/target
+rust-cookies/target
 www/instagram-clone/upload

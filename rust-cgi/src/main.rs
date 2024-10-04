@@ -13,7 +13,7 @@ fn main() -> io::Result<()> {
         }
     };
 
-    // Get the DELETE_FILE environment variable
+    // Get the TARGET_FILE environment variable
     let mut path = match std::env::var("TARGET_FILE") {
         Ok(val) => val,
         Err(_) => {
