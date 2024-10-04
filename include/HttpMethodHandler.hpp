@@ -75,24 +75,22 @@ class HttpMethodHandler
 		bool const		  &keepAlive
 	);
 
-	// clang-format off
 	static std::string createFilePostResponse_(
-		HttpRequest const							   &request,
-		const std::string							   &rootdir,
-		std::map<std::string, std::vector<std::string> > location,
-		std::string const							   &uploadpath,
-		Server const								   &server,
-		bool const									   &keepAlive
-	); // clang-format on
+		HttpRequest const &request,
+		const std::string &rootdir,
+		std::string const &redirect,
+		std::string const &uploadpath,
+		Server const	  &server,
+		bool const		  &keepAlive
+	);
 
-	// clang-format off
 	static std::string createDeleteResponse_(
 		const std::string &filepath,
 		const std::string &rootdir,
-		std::map<std::string, std::vector<std::string> > location,
+		std::string const &redirect,
 		const Server	  &server,
 		bool			   keepAlive
-	); // clang-format on
+	);
 
 	// clang-format off
 	static std::string handleRedirection_(
@@ -116,6 +114,7 @@ class HttpMethodHandler
 		bool const		  &keepAlive,
 		Server const	  &server,
 		std::string const &rootdir,
+		std::string const &redirect = "",
 		std::string const &uploadpath = ""
 	);
 

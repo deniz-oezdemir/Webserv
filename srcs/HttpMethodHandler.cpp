@@ -115,6 +115,9 @@ std::string HttpMethodHandler::handlePostRequest_(
 	else
 		return HttpErrorHandler::getErrorPage(404, keepAlive);
 
+	// Check for redirections
+	std::string redirect = handleRedirection_(location, keepAlive);
+
 	std::string rootdir = getRootDir_(location, server);
 	std::string uploadpath = getUploadPath_(location);
 	if (uploadpath.empty())
@@ -135,11 +138,12 @@ std::string HttpMethodHandler::handlePostRequest_(
 			keepAlive,
 			server,
 			rootdir,
+			redirect,
 			uploadpath
 		);
 
 	return createFilePostResponse_(
-		request, rootdir, location, uploadpath, server, keepAlive
+		request, rootdir, redirect, uploadpath, server, keepAlive
 	);
 }
 
@@ -158,6 +162,8 @@ std::string HttpMethodHandler::handleDeleteRequest_(
 		location = server.getThisLocation(uri);
 	else
 		return HttpErrorHandler::getErrorPage(404, keepAlive);
+
+	std::string redirect = handleRedirection_(location, keepAlive);
 
 	std::string rootdir = getRootDir_(location, server);
 
@@ -179,11 +185,12 @@ std::string HttpMethodHandler::handleDeleteRequest_(
 			request,
 			keepAlive,
 			server,
-			rootdir
+			rootdir,
+			redirect
 		);
 
 	return createDeleteResponse_(
-		filepath, rootdir, location, server, keepAlive
+		filepath, rootdir, redirect, server, keepAlive
 	);
 }
 
@@ -298,9 +305,9 @@ std::string HttpMethodHandler::getFilePath_(
 ) // clang-format on
 {
 	std::string rootdir = location.find("root") != location.end()
-									&& !location.at("root").empty()
-								? location.at("root")[0]
-								: server.getRoot();
+								  && !location.at("root").empty()
+							  ? location.at("root")[0]
+							  : server.getRoot();
 	return rootdir + uri;
 }
 
@@ -322,9 +329,9 @@ std::string HttpMethodHandler::getRootDir_(
 ) // clang-format on
 {
 	std::string rootdir = location.find("root") != location.end()
-									&& !location.at("root").empty()
-								? location.at("root")[0]
-								: server.getRoot();
+								  && !location.at("root").empty()
+							  ? location.at("root")[0]
+							  : server.getRoot();
 	return rootdir;
 }
 
@@ -336,13 +343,13 @@ bool HttpMethodHandler::isCgiRequest_(
 {
 	std::map<std::string, std::vector<std::string> >::const_iterator it
 		= location.find("cgi"); // clang-format on
-	std::cout <<"Debug check\n" << std::endl;
 
 	if (it != location.end() && !it->second.empty())
 	{
 		if (it->second.size() != 2)
 			return true;
-		Logger::log(Logger::DEBUG) << "CGI Extension: " << it->second[0] << std::endl;
+		Logger::log(Logger::DEBUG)
+			<< "CGI Extension: " << it->second[0] << std::endl;
 		std::string cgiExtension = it->second[0]; // ".py"
 		return uri.find(cgiExtension) != std::string::npos;
 	}
@@ -356,7 +363,7 @@ std::string HttpMethodHandler::getCgiInterpreter_(
 {
 	if (location.find("cgi")->second.size() == 1)
 		return location.find("cgi")->second[0]; // binary path
-	return location.find("cgi")->second[1]; // "/usr/bin/python3"
+	return location.find("cgi")->second[1];		// "/usr/bin/python3"
 }
 
 std::string HttpMethodHandler::handleCgiRequest_(
@@ -366,6 +373,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 	bool const		  &keepAlive,
 	Server const	  &server,
 	std::string const &rootdir,
+	std::string const &redirect,
 	std::string const &uploadpath
 )
 {
@@ -387,8 +395,11 @@ std::string HttpMethodHandler::handleCgiRequest_(
 	}
 	else if (pid == 0)
 	{
-		//child process
-		dup2(pipefd[0], STDIN_FILENO); // Redirect stdin to the read end of the pipe to receive body from parent process
+		// child process
+		dup2(
+			pipefd[0], STDIN_FILENO
+		); // Redirect stdin to the read end of the pipe to receive body from
+		   // parent process
 		close(pipefd[0]);
 
 		std::vector<std::string> envVariables;
@@ -397,48 +408,69 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back("REQUEST_METHOD=" + request.getMethod());
 		envVariables.push_back("SCRIPT_FILENAME=" + filepath);
 		envVariables.push_back("UPLOAD_PATH=" + uploadpath);
-		envVariables.push_back("CONTENT_LENGTH=" + ft::toString(request.getBody().size()));
+		envVariables.push_back(
+			"CONTENT_LENGTH=" + ft::toString(request.getBody().size())
+		);
 
-    // NOTE: Original Deniz c++11 version
-		// std::map<std::string, std::vector<std::string> > headers = request.getHeaders();
-		// for (const auto &header : headers) {
-		// 	for (const auto &value : header.second) {
-		// 		Logger::log(Logger::DEBUG) << "Debug Headers: " << header.first << ": " << value << std::endl;
-		// 		envVariables.push_back(header.first + "=" + value);
+		// NOTE: Original Deniz c++11 version
+		// std::map<std::string, std::vector<std::string> > headers =
+		// request.getHeaders(); for (const auto &header : headers) { 	for
+		// (const auto &value : header.second) {
+		// Logger::log(Logger::DEBUG) << "Debug Headers: " << header.first << ":
+		// " << value << std::endl; 		envVariables.push_back(header.first
+		// + "=" + value);
 		// 	}
 		// }
 
-    std::map<std::string, std::vector<std::string> > headers = request.getHeaders();
-    for (std::map<std::string, std::vector<std::string> >::const_iterator it = headers.begin(); it != headers.end(); ++it) {
-        const std::string &headerKey = it->first;
-        const std::vector<std::string> &headerValues = it->second;
-        for (std::vector<std::string>::const_iterator valIt = headerValues.begin(); valIt != headerValues.end(); ++valIt) {
-            Logger::log(Logger::DEBUG) << "Debug Headers: " << headerKey << ": " << *valIt << std::endl;
-            envVariables.push_back(headerKey + "=" + *valIt);
-        }
-    }
+		// TODO: Deniz change without auto keyword, just iterate and append one
+		// to the other
+		//  There are two values for content-type in the header, combine them
+		//  for the CONTENT_TYPE= std::map<std::string, std::vector<std::string>
+		//  > headers2 = request.getHeaders(); auto contentTypeIt =
+		//  headers2.find("Content-Type"); if (contentTypeIt != headers2.end()
+		//  && !contentTypeIt->second.empty()) { 	std::string
+		//  combinedContentType = contentTypeIt->second[0]; 	for (size_t i =
+		//  1; i < contentTypeIt->second.size(); ++i) {
+		//  combinedContentType += "; " + contentTypeIt->second[i];
+		//  	}
+		//  	envVariables.push_back("CONTENT_TYPE=" + combinedContentType);
+		//  }
 
-		//TODO: Deniz change without auto keyword, just iterate and append one to the other
-		// There are two values for content-type in the header, combine them for the CONTENT_TYPE=
-		// std::map<std::string, std::vector<std::string> > headers2 = request.getHeaders();
-		// auto contentTypeIt = headers2.find("Content-Type");
-		// if (contentTypeIt != headers2.end() && !contentTypeIt->second.empty()) {
-		// 	std::string combinedContentType = contentTypeIt->second[0];
-		// 	for (size_t i = 1; i < contentTypeIt->second.size(); ++i) {
-		// 		combinedContentType += "; " + contentTypeIt->second[i];
-		// 	}
-		// 	envVariables.push_back("CONTENT_TYPE=" + combinedContentType);
-		// }
+		// clang-format off
+		std::map<std::string, std::vector<std::string> > headers
+			= request.getHeaders();
+		for (std::map<std::string, std::vector<std::string> >::const_iterator it
+			 = headers.begin();
+			 it != headers.end();
+				++it) // clang-format on
+		{
+			const std::string			   &headerKey = it->first;
+			const std::vector<std::string> &headerValues = it->second;
+			for (std::vector<std::string>::const_iterator valIt
+				 = headerValues.begin();
+				 valIt != headerValues.end();
+				 ++valIt)
+			{
+				Logger::log(Logger::DEBUG) << "Debug Headers: " << headerKey
+										   << ": " << *valIt << std::endl;
+				envVariables.push_back(headerKey + "=" + *valIt);
+			}
+		}
 
-    std::map<std::string, std::vector<std::string> > headers2 = request.getHeaders();
-    std::map<std::string, std::vector<std::string> >::iterator contentTypeIt = headers2.find("Content-Type");
-    if (contentTypeIt != headers2.end() && !contentTypeIt->second.empty()) {
-        std::string combinedContentType = contentTypeIt->second[0];
-        for (size_t i = 1; i < contentTypeIt->second.size(); ++i) {
-            combinedContentType += "; " + contentTypeIt->second[i];
-        }
-        envVariables.push_back("CONTENT_TYPE=" + combinedContentType);
-    }
+		// clang-format off
+		std::map<std::string, std::vector<std::string> > headers2
+			= request.getHeaders();
+		std::map<std::string, std::vector<std::string> >::iterator contentTypeIt
+			= headers2.find("Content-Type"); // clang-format on
+		if (contentTypeIt != headers2.end() && !contentTypeIt->second.empty())
+		{
+			std::string combinedContentType = contentTypeIt->second[0];
+			for (size_t i = 1; i < contentTypeIt->second.size(); ++i)
+			{
+				combinedContentType += "; " + contentTypeIt->second[i];
+			}
+			envVariables.push_back("CONTENT_TYPE=" + combinedContentType);
+		}
 
 		std::vector<char *> envp;
 		for (std::vector<std::string>::iterator it = envVariables.begin();
@@ -449,17 +481,20 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		}
 		envp.push_back(NULL);
 
-		Logger::log(Logger::INFO) << "Filepath before argv: " << filepath << std::endl;
+		Logger::log(Logger::INFO)
+			<< "Filepath before argv: " << filepath << std::endl;
 
 		char *argv[]
 			= {const_cast<char *>(interpreter.c_str()),
-				 const_cast<char *>(filepath.c_str()),
-				 NULL};
+			   const_cast<char *>(filepath.c_str()),
+			   NULL};
 
 		dup2(pipefd[1], STDOUT_FILENO);
 
-		if (execve(interpreter.c_str(), argv, &envp[0]) == -1) {
-			Logger::log(Logger::ERROR, true) << "Failed to execute CGI script: " << filepath << std::endl;
+		if (execve(interpreter.c_str(), argv, &envp[0]) == -1)
+		{
+			Logger::log(Logger::ERROR, true)
+				<< "Failed to execute CGI script: " << filepath << std::endl;
 			close(pipefd[1]);
 		}
 
@@ -484,6 +519,9 @@ std::string HttpMethodHandler::handleCgiRequest_(
 			return HttpErrorHandler::getErrorPage(500);
 		}
 
+		if (!redirect.empty())
+			return redirect;
+
 		char			  buffer[1024];
 		std::stringstream output;
 		ssize_t			  bytesRead;
@@ -493,7 +531,8 @@ std::string HttpMethodHandler::handleCgiRequest_(
 
 		close(pipefd[0]); // Close the read end of the pipe after reading
 
-		Logger::log(Logger::DEBUG) << "CGI Output: " << output.str() << std::endl;
+		Logger::log(Logger::DEBUG)
+			<< "CGI Output: " << output.str() << std::endl;
 
 		HttpResponse response;
 		response.setStatusCode(200);
@@ -526,7 +565,7 @@ bool HttpMethodHandler::isAutoIndexEnabled_(
 ) // clang-format on
 {
 	return location.find("autoindex") != location.end()
-			 && location.at("autoindex")[0] == "on";
+		   && location.at("autoindex")[0] == "on";
 }
 
 std::string HttpMethodHandler::handleAutoIndex_(
@@ -622,9 +661,9 @@ std::string HttpMethodHandler::findIndexFile_(
 {
 	std::vector<std::string> indexFiles
 		= location.find("index") != location.end()
-					&& !location.at("index").empty()
-				? location.at("index")
-				: server.getIndex();
+				  && !location.at("index").empty()
+			  ? location.at("index")
+			  : server.getIndex();
 
 	struct stat fileStat;
 	for (std::vector<std::string>::const_iterator it = indexFiles.begin();
@@ -682,19 +721,19 @@ std::string HttpMethodHandler::createFileGetResponse_(
 	return response.toString();
 }
 
-// clang-format off
 std::string HttpMethodHandler::createFilePostResponse_(
-	HttpRequest const							   &request,
-	const std::string							   &rootdir,
-	std::map<std::string, std::vector<std::string> > location,
-	std::string const							   &uploadpath,
-	Server const								   &server,
-	bool const									   &keepAlive
-) // clang-format on
+	HttpRequest const &request,
+	const std::string &rootdir,
+	std::string const &redirect,
+	std::string const &uploadpath,
+	Server const	  &server,
+	bool const		  &keepAlive
+)
 {
 	HttpResponse response;
 	// Open the file for writing
-	std::string	  uploadpathtmp = uploadpath;
+	std::string fileName = request.getFileName();
+	std::string	  uploadpathtmp = uploadpath + "/" + fileName;
 	std::ofstream outFile;
 	outFile.open(uploadpathtmp.c_str());
 	if (!outFile)
@@ -704,6 +743,9 @@ std::string HttpMethodHandler::createFilePostResponse_(
 			<< uploadpathtmp << std::endl;
 		return handleErrorResponse_(server, 500, rootdir, keepAlive);
 	}
+
+	if (!redirect.empty())
+		return redirect;
 
 	// Write the request body to the file
 	const std::vector<char> &requestBody = request.getBody();
@@ -717,11 +759,6 @@ std::string HttpMethodHandler::createFilePostResponse_(
 	}
 
 	outFile.close();
-
-	// Check for redirections
-	std::string redirection = handleRedirection_(location, keepAlive);
-	if (!redirection.empty())
-		return redirection;
 
 	// Generate a success response
 	response.setStatusCode(200);
@@ -741,24 +778,23 @@ std::string HttpMethodHandler::createFilePostResponse_(
 	return response.toString();
 }
 
-// clang-format off
 std::string HttpMethodHandler::createDeleteResponse_(
-	const std::string							   &filepath,
-	const std::string							   &rootdir,
-	std::map<std::string, std::vector<std::string> > location,
-	const Server								   &server,
-	bool											keepAlive
-) // clang-format on
+	const std::string &filepath,
+	const std::string &rootdir,
+	std::string const &redirect,
+	const Server	  &server,
+	bool			   keepAlive
+)
 {
 	std::string	 body;
 	HttpResponse response;
 
+	std::cout << filepath << std::endl;
 	if (remove(filepath.c_str()) == 0)
 	{
 		// Check for redirections
-		std::string redirection = handleRedirection_(location, keepAlive);
-		if (!redirection.empty())
-			return redirection;
+		if (!redirect.empty())
+			return redirect;
 
 		response.setStatusCode(200);
 		response.setReasonPhrase("OK");
