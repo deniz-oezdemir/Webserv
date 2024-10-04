@@ -410,6 +410,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back("ROOT_DIR=" + rootdir);
 		envVariables.push_back("TARGET_FILE=" + request.getFileName());
 		envVariables.push_back("UPLOAD_PATH=" + uploadpath);
+		envVariables.push_back("COOKIE=" + request.getCookie());
 		envVariables.push_back(
 			"CONTENT_LENGTH=" + ft::toString(request.getBody().size())
 		);

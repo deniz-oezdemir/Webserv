@@ -26,7 +26,7 @@ fn main() -> io::Result<()> {
     };
 
     // Read cookies file and turn it to map
-    let cookies_file: String = fs::read_to_string("../cookies.txt")?;
+    let cookies_file: String = fs::read_to_string("../../cookies/cookies.txt")?;
 
     let mut cookies_map = HashMap::new();
     for line in cookies_file.lines() {
