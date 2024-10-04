@@ -237,9 +237,7 @@ void ServerEngine::pollFdError_(size_t &pollIndex_)
 	if (!this->isPollFdServer_(this->pollFds_[pollIndex_].fd)
 		&& error.find("POLLNVAL") != std::string::npos)
 	{
-		// TODO: Deniz check whether closing fd here fixes last attempt to read
-		this->pollFds_.erase(this->pollFds_.begin() + pollIndex_);
-		clients_.erase(clients_.begin() + clientIndex_);
+		closeConnection_(pollIndex_);
 		return;
 	}
 	else if (!this->isPollFdServer_(this->pollFds_[pollIndex_].fd))

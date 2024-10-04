@@ -433,7 +433,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 				envVariables.push_back(headerKey + "=" + *valIt);
 			}
 		}
-    
+
 		// clang-format off
 		std::map<std::string, std::vector<std::string> > headers2
 			= request.getHeaders();
@@ -512,8 +512,16 @@ std::string HttpMethodHandler::handleCgiRequest_(
 			<< "CGI Output: " << output.str() << std::endl;
 
 		HttpResponse response;
-		response.setStatusCode(200);
-		response.setReasonPhrase("OK");
+		if (output.str().find("400") != std::string::npos) {
+				response.setStatusCode(400);
+				response.setReasonPhrase("Bad Request");
+		} else if (output.str().find("415") != std::string::npos) {
+				response.setStatusCode(415);
+				response.setReasonPhrase("Unsupported Media Type");
+		} else {
+				response.setStatusCode(200);
+				response.setReasonPhrase("OK");
+		}
 		response.setHeader("Server", SERVER_NAME);
 		response.setHeader("Date", ft::createTimestamp());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
