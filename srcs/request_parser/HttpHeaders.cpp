@@ -61,6 +61,7 @@ std::map<std::string, std::string> createHeaderAcceptedChars()
     headerAcceptedChars["Connection"] = "";
     headerAcceptedChars["Content-Length"] = "";
     headerAcceptedChars["Cookie"] = "=;,";
+		headerAcceptedChars["Content-Type"] = "=/;";
     return headerAcceptedChars;
 }
 
