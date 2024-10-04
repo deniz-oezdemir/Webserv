@@ -386,7 +386,7 @@ size_t Client::getBodySize_(void)
  * @brief Resets the state of the Client object. Necessary after response has
  * been sent to client.
  */
-void Client::reset_()
+void Client::reset_(void)
 {
 	requestStr_.clear();
 	clientBuffer_.str("");

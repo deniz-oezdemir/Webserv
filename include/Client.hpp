@@ -37,7 +37,7 @@ class Client
 	bool   isCompleteRequest_(void);
 	bool   hasSizeIndicator_(void);
 	void   moveExtraCharsToBuffer__(size_t pos);
-	void   reset_();
+	void   reset_(void);
 	bool   handleChunkedEncoding_(size_t bodyStartPos);
 	bool   processChunks_(size_t chunkStart);
 	bool   areHeadersComplete_(void);
