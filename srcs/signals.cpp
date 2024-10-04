@@ -15,9 +15,7 @@ static void handleInterrupt(int signal)
 		std::cout << '\n';
 		Logger::log(Logger::DEBUG)
 			<< "SIGINT received. Exiting..." << std::endl;
-		// instead of exit to shut down server and clean resources (TODO)
 		g_shutdown = true;
-		// std::exit(signal);
 	}
 }
 
