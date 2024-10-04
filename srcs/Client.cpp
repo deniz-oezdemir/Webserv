@@ -189,7 +189,8 @@ bool Client::areHeadersRead(void) const
  * @brief Reads data from the client buffer and processes it.
  *
  * Reads lines from the client buffer into the request string and checks if
- * a complete request has been received.
+ * a complete request has been received. Handles both regular and chunked
+ * transfer encoding.
  */
 void Client::readClientBuffer_(void)
 {
@@ -209,9 +210,9 @@ void Client::readClientBuffer_(void)
 		}
 		else
 		{
-			Logger::log(Logger::INFO
-			) << "readClientBuffer_: Client headers complete and contains body."
-			  << std::endl;
+			Logger::log(Logger::INFO)
+			<< "readClientBuffer_: Client headers complete and contains body."
+			<< std::endl;
 
 			if (isChunked_)
 			{
@@ -385,6 +386,9 @@ size_t Client::getBodySize_(void)
 /**
  * @brief Resets the state of the Client object. Necessary after response has
  * been sent to client.
+ *
+ * Clears the request string and client buffer, and resets state variables
+ * to their initial values.
  */
 void Client::reset_(void)
 {
