@@ -115,6 +115,9 @@ std::string HttpMethodHandler::handlePostRequest_(
 	else
 		return HttpErrorHandler::getErrorPage(404, keepAlive);
 
+	// Check for redirections
+	std::string redirect = handleRedirection_(location, keepAlive);
+
 	std::string rootdir = getRootDir_(location, server);
 	std::string uploadpath = getUploadPath_(location);
 	if (uploadpath.empty())
@@ -135,11 +138,12 @@ std::string HttpMethodHandler::handlePostRequest_(
 			keepAlive,
 			server,
 			rootdir,
+			redirect,
 			uploadpath
 		);
 
 	return createFilePostResponse_(
-		request, rootdir, location, uploadpath, server, keepAlive
+		request, rootdir, redirect, uploadpath, server, keepAlive
 	);
 }
 
@@ -158,6 +162,8 @@ std::string HttpMethodHandler::handleDeleteRequest_(
 		location = server.getThisLocation(uri);
 	else
 		return HttpErrorHandler::getErrorPage(404, keepAlive);
+
+	std::string redirect = handleRedirection_(location, keepAlive);
 
 	std::string rootdir = getRootDir_(location, server);
 
@@ -179,11 +185,12 @@ std::string HttpMethodHandler::handleDeleteRequest_(
 			request,
 			keepAlive,
 			server,
-			rootdir
+			rootdir,
+			redirect
 		);
 
 	return createDeleteResponse_(
-		filepath, rootdir, location, server, keepAlive
+		request, filepath, rootdir, redirect, server, keepAlive
 	);
 }
 
@@ -336,13 +343,13 @@ bool HttpMethodHandler::isCgiRequest_(
 {
 	std::map<std::string, std::vector<std::string> >::const_iterator it
 		= location.find("cgi"); // clang-format on
-	std::cout << "Debug check\n" << std::endl;
 
 	if (it != location.end() && !it->second.empty())
 	{
 		if (it->second.size() != 2)
 			return true;
-		Logger::log(Logger::DEBUG) << "CGI Extension: " << it->second[0] << std::endl;
+		Logger::log(Logger::DEBUG)
+			<< "CGI Extension: " << it->second[0] << std::endl;
 		std::string cgiExtension = it->second[0]; // ".py"
 		return uri.find(cgiExtension) != std::string::npos;
 	}
@@ -356,7 +363,7 @@ std::string HttpMethodHandler::getCgiInterpreter_(
 {
 	if (location.find("cgi")->second.size() == 1)
 		return location.find("cgi")->second[0]; // binary path
-	return location.find("cgi")->second[1]; // "/usr/bin/python3"
+	return location.find("cgi")->second[1];		// "/usr/bin/python3"
 }
 
 std::string HttpMethodHandler::handleCgiRequest_(
@@ -366,6 +373,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 	bool const		  &keepAlive,
 	Server const	  &server,
 	std::string const &rootdir,
+	std::string const &redirect,
 	std::string const &uploadpath
 )
 {
@@ -405,7 +413,6 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back(
 			"CONTENT_LENGTH=" + ft::toString(request.getBody().size())
 		);
-
 		// clang-format off
 		std::map<std::string, std::vector<std::string> > headers
 			= request.getHeaders();
@@ -426,6 +433,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 				envVariables.push_back(headerKey + "=" + *valIt);
 			}
 		}
+    
 		// clang-format off
 		std::map<std::string, std::vector<std::string> > headers2
 			= request.getHeaders();
@@ -487,6 +495,9 @@ std::string HttpMethodHandler::handleCgiRequest_(
 				<< "CGI script execution failed" << std::endl;
 			return HttpErrorHandler::getErrorPage(500);
 		}
+
+		if (!redirect.empty())
+			return redirect;
 
 		char			  buffer[1024];
 		std::stringstream output;
@@ -687,19 +698,23 @@ std::string HttpMethodHandler::createFileGetResponse_(
 	return response.toString();
 }
 
-// clang-format off
 std::string HttpMethodHandler::createFilePostResponse_(
-	HttpRequest const							   &request,
-	const std::string							   &rootdir,
-	std::map<std::string, std::vector<std::string> > location,
-	std::string const							   &uploadpath,
-	Server const								   &server,
-	bool const									   &keepAlive
-) // clang-format on
+	HttpRequest const &request,
+	const std::string &rootdir,
+	std::string const &redirect,
+	std::string const &uploadpath,
+	Server const	  &server,
+	bool const		  &keepAlive
+)
 {
 	HttpResponse response;
 	// Open the file for writing
-	std::string	  uploadpathtmp = uploadpath;
+	std::string	uploadpathtmp;
+	std::string fileName = request.getFileName();
+	if (fileName.empty())
+		uploadpathtmp = uploadpath;
+	else
+		uploadpathtmp = uploadpath + "/" + fileName;
 	std::ofstream outFile;
 	outFile.open(uploadpathtmp.c_str());
 	if (!outFile)
@@ -709,6 +724,9 @@ std::string HttpMethodHandler::createFilePostResponse_(
 			<< uploadpathtmp << std::endl;
 		return handleErrorResponse_(server, 500, rootdir, keepAlive);
 	}
+
+	if (!redirect.empty())
+		return redirect;
 
 	// Write the request body to the file
 	const std::vector<char> &requestBody = request.getBody();
@@ -722,11 +740,6 @@ std::string HttpMethodHandler::createFilePostResponse_(
 	}
 
 	outFile.close();
-
-	// Check for redirections
-	std::string redirection = handleRedirection_(location, keepAlive);
-	if (!redirection.empty())
-		return redirection;
 
 	// Generate a success response
 	response.setStatusCode(200);
@@ -746,24 +759,32 @@ std::string HttpMethodHandler::createFilePostResponse_(
 	return response.toString();
 }
 
-// clang-format off
+// TODO: Sebas use only the filename as parameter not the request
 std::string HttpMethodHandler::createDeleteResponse_(
-	const std::string							   &filepath,
-	const std::string							   &rootdir,
-	std::map<std::string, std::vector<std::string> > location,
-	const Server								   &server,
-	bool											keepAlive
-) // clang-format on
+	HttpRequest const &request,
+	const std::string &filepath,
+	const std::string &rootdir,
+	std::string const &redirect,
+	const Server	  &server,
+	bool			   keepAlive
+)
 {
 	std::string	 body;
 	HttpResponse response;
 
-	if (remove(filepath.c_str()) == 0)
+	std::string	deletePath;;
+	std::string fileName = request.getFileName();
+
+	if (fileName.empty())
+		deletePath = filepath;
+	else
+		deletePath = filepath + "/" + fileName;
+
+	if (remove(deletePath.c_str()) == 0)
 	{
 		// Check for redirections
-		std::string redirection = handleRedirection_(location, keepAlive);
-		if (!redirection.empty())
-			return redirection;
+		if (!redirect.empty())
+			return redirect;
 
 		response.setStatusCode(200);
 		response.setReasonPhrase("OK");
