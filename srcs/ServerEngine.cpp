@@ -1,14 +1,11 @@
 #include "ServerEngine.hpp"
 #include "HttpErrorHandler.hpp"
 #include "HttpMethodHandler.hpp"
-#include "HttpRequest.hpp"
 #include "Logger.hpp"
-#include "macros.hpp"
 #include "request_parser/RequestParser.hpp"
 #include "utils.hpp"
 
 #include <csignal>
-#include <cstddef>
 #include <dirent.h>
 #include <errno.h>
 #include <exception>
@@ -48,6 +45,7 @@ ServerEngine::ServerEngine(
 	}
 	this->totalServerInstances_ = globalServerIndex;
 
+	pollIndex_ = 0;
 	clients_.clear();
 	clientIndex_ = 0;
 }
@@ -419,37 +417,37 @@ void ServerEngine::sendResponse_(size_t &index, const std::string &response)
  */
 void ServerEngine::processPollEvents()
 {
-	for (size_t pollIndex = 0; pollIndex < pollFds_.size(); pollIndex++)
+	for (pollIndex_ = 0; pollIndex_ < pollFds_.size(); pollIndex_++)
 	{
 		std::cout << "pollFds_ size is:" << pollFds_.size() << std::endl;
-		clientIndex_ = pollIndex - totalServerInstances_;
+		clientIndex_ = pollIndex_ - totalServerInstances_;
 		Logger::log(Logger::DEBUG)
 			<< "clientIndex is set to " << clientIndex_ << std::endl;
 
-		if (pollFds_[pollIndex].revents & (POLLERR | POLLHUP | POLLNVAL))
+		if (pollFds_[pollIndex_].revents & (POLLERR | POLLHUP | POLLNVAL))
 		{
-			pollFdError_(pollIndex);
+			pollFdError_(pollIndex_);
 		}
-		else if (pollFds_[pollIndex].revents & POLLIN)
+		else if (pollFds_[pollIndex_].revents & POLLIN)
 		{
-			Logger::log(Logger::DEBUG) << "pollFds_[" << pollIndex
+			Logger::log(Logger::DEBUG) << "pollFds_[" << pollIndex_
 									   << "] is ready for read" << std::endl;
-			if (this->isPollFdServer_(pollFds_[pollIndex].fd))
-				acceptConnection_(pollIndex);
+			if (this->isPollFdServer_(pollFds_[pollIndex_].fd))
+				acceptConnection_(pollIndex_);
 			else
 			{
-				readClientRequest_(pollIndex);
+				readClientRequest_(pollIndex_);
 			}
 		}
-		else if (pollFds_[pollIndex].revents & POLLOUT)
-			processClientRequest_(pollIndex);
+		else if (pollFds_[pollIndex_].revents & POLLOUT)
+			processClientRequest_(pollIndex_);
 
 		// TODO: rename indexes variables for consistency
 		if (clientIndex_ > 0)
 		{
 			if (clients_[clientIndex_].isClosed() == true)
 			{
-				closeConnection_(pollIndex);
+				closeConnection_(pollIndex_);
 			}
 		}
 	}
@@ -524,7 +522,7 @@ int ServerEngine::findServer_(
  *
  * Removes the client from the clients_ vector and closes the file descriptor.
  *
- * @param index The index of the client in the pollFds_ vector. 
+ * @param index The index of the client in the pollFds_ vector.
  */
 void ServerEngine::closeConnection_(size_t &index)
 {
