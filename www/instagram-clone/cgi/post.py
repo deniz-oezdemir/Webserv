@@ -4,6 +4,7 @@ import os
 import cgi
 import logging
 from io import BytesIO
+import uuid  # Add this import at the top of your script
 
 # Configure logging
 logging.basicConfig(filename='/tmp/post_debug.log', level=logging.DEBUG)
@@ -69,7 +70,7 @@ logging.debug("post.py part 2 passed")
 if method == "POST" and "file" in form:
 	file_item = form["file"]
 	if file_item.file:
-		filename = "photo2.jpg"  # for now save as photo2.jpg for testing
+		filename = f"{uuid.uuid4().hex}.jpg" # for now save as photo2.jpg for testing
 		current_directory = os.getcwd()
 		logging.debug(f"Current directory: {current_directory}")
 		os.makedirs(upload_path, exist_ok=True)  # Ensure the upload directory exists

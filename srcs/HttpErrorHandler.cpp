@@ -24,7 +24,7 @@ std::string HttpErrorHandler::getErrorPage(
 
 		std::string body = ft::readFile(rootdir + errorURI);
 
-		response.setHeader("Content-Length", std::to_string(body.size()));
+		response.setHeader("Content-Length", ft::toString(body.size()));
 		if (keepAlive)
 			response.setHeader("Connection", "keep-alive");
 		else
@@ -53,7 +53,7 @@ std::string HttpErrorHandler::getErrorPage(
 	response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
 	std::string body
-		= ft::readErrorPage("./www/" + std::to_string(statusCode) + ".html");
+		= ft::readErrorPage("./www/" + ft::toString(statusCode) + ".html");
 	if (body.empty())
 	{
 		if (statusCode >= 400 && statusCode < 500)
@@ -65,13 +65,13 @@ std::string HttpErrorHandler::getErrorPage(
 	}
 	if (body.empty())
 		body = "<!DOCTYPE html>\n<html>\n<head><title>"
-			   + std::to_string(statusCode) + " "
+			   + ft::toString(statusCode) + " "
 			   + ft::getStatusCodeReason(statusCode)
-			   + "</title></head>\n<body><h1>" + std::to_string(statusCode)
+			   + "</title></head>\n<body><h1>" + ft::toString(statusCode)
 			   + " " + ft::getStatusCodeReason(statusCode)
 			   + "</h1></body>\n</html>\n";
 
-	response.setHeader("Content-Length", std::to_string(body.size()));
+	response.setHeader("Content-Length", ft::toString(body.size()));
 	if (keepAlive)
 		response.setHeader("Connection", "keep-alive");
 	else
