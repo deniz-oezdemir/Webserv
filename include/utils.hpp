@@ -1,6 +1,5 @@
 #pragma once
 
-#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -45,6 +44,7 @@ bool isURI(std::string const &str);
 bool isURL(std::string const &str);
 
 std::string		   getDirectory(std::string const &path);
+std::string			 getFileName(std::string const &path);
 std::string		   readFile(const std::string &filePath);
 std::string		   readErrorPage(const std::string &filePath);
 std::string		   createTimestamp();
@@ -77,5 +77,6 @@ Iterator find(Iterator begin, Iterator end, T const &value)
 }
 
 std::string createTimestamp();
+std::vector<std::string> const initLogLevels(void);
 
 } // namespace ft

@@ -2,49 +2,79 @@
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Instagram Clone</title>
-	<link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Clone Index</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-	<h1>Instagram Clone</h1>
+    <h1>Instagram Clone Index.html</h1>
 
-	<div class="container">
-		<div class="photo-grid" id="photo-grid"></div>
-	</div>
+    <div class="container">
+        <div class="photo-grid" id="photo-grid"></div>
+    </div>
 
-	<div class="container">
-		<form id="upload-form" enctype="multipart/form-data" method="post" action="cgi/post.py">
-			<input type="file" name="file" id="file-input" accept="image/*" required>
-			<button type="submit" id="upload-btn">Post Photo</button>
-		</form>
-	</div>
+    <div class="container">
+        <form id="upload-form" enctype="multipart/form-data" method="post" action="cgi/post.py">
+            <input type="file" name="file" id="file-input" accept="image/*" required>
+            <button type="submit" id="upload-btn">Post Photo</button>
+        </form>
+    </div>
 
-	<div class="container">
-		<!-- TODO: Manu delete ? from request without file -->
-		<form id="get-time-form" method="get" action="cgi/get.py">
-			<button type="submit" id="get-time-btn">Get Time</button>
-		</form>
-	</div>
+    <div class="container">
+        <form id="get-time-form" method="get" action="cgi/get.py">
+            <button type="submit" id="get-time-btn">Get Time</button>
+        </form>
+    </div>
 
-	<script>
-		// Simulate fetching photo filenames from the uploads directory
-		const photoFilenames = [
-			'photo1.jpg',
-			'photo2.jpg',
-		];
+    <script>
+        const photoGrid = document.getElementById('photo-grid');
 
-		const photoGrid = document.getElementById('photo-grid');
+        // Fetch the list of photo filenames from the server
+        fetch('cgi/list_files.py')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(photoFilenames => {
+                if (photoFilenames.error) {
+                    console.error('Error from server:', photoFilenames.error);
+                    return;
+                }
+                photoFilenames.forEach(filename => {
+                    const photoContainer = document.createElement('div');
+                    photoContainer.classList.add('photo-container');
 
-		photoFilenames.forEach(filename => {
-			const img = document.createElement('img');
-			img.src = `upload/${filename}`;
-			img.alt = 'Photo';
-			photoGrid.appendChild(img);
-		});
-	</script>
+                    const img = document.createElement('img');
+                    img.src = `upload/${filename}`;
+                    img.alt = 'Photo';
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.onclick = () => {
+                        fetch(`upload/${filename}`, { method: 'DELETE' })
+                            .then(response => {
+                                if (response.ok) {
+                                    photoContainer.remove();
+                                } else {
+                                    console.error('Failed to delete the file');
+                                }
+                            });
+                    };
+
+                    photoContainer.appendChild(img);
+                    photoContainer.appendChild(deleteBtn);
+                    photoGrid.appendChild(photoContainer);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching photo filenames:', error);
+            });
+    </script>
 </body>
 
 </html>
+

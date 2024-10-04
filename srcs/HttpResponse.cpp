@@ -1,4 +1,5 @@
 #include "../include/HttpResponse.hpp"
+#include "utils.hpp"
 
 // Might have to change default values
 HttpResponse::HttpResponse() : statusCode_(200), reasonPhrase_("OK") {}
@@ -33,7 +34,7 @@ std::string HttpResponse::toString() const
 	std::string response;
 
 	// Start line
-	response += "HTTP/1.1 " + std::to_string(statusCode_) + " " + reasonPhrase_
+	response += "HTTP/1.1 " + ft::toString(statusCode_) + " " + reasonPhrase_
 				+ "\r\n";
 
 	// Headers

@@ -14,15 +14,11 @@
 
 // Array of valid log levels to check if the log level set in the configuration
 // file is valid.
-std::array<std::string, 4> const ServerConfig::validLogLevels = {
-	"debug",
-	"info",
-	"warn",
-	"error",
-};
+std::vector<std::string> const ServerConfig::validLogLevels
+	= ft::initLogLevels();
 
 ServerConfig::ServerConfig(std::string const &filepath)
-	: filepath_(filepath), file_(filepath), isConfigOK_(true)
+	: filepath_(filepath), file_(filepath.c_str()), isConfigOK_(true)
 {
 	if (!this->file_.is_open())
 		throw ServerException("Could not open the file [%]", errno, filepath);
@@ -30,7 +26,7 @@ ServerConfig::ServerConfig(std::string const &filepath)
 }
 
 ServerConfig::ServerConfig(ServerConfig const &src)
-	: filepath_(src.filepath_), file_(src.filepath_),
+	: filepath_(src.filepath_), file_(src.filepath_.c_str()),
 	  isConfigOK_(src.isConfigOK())
 {
 	if (!this->file_.is_open())
@@ -48,7 +44,7 @@ ServerConfig &ServerConfig::operator=(ServerConfig const &src)
 			this->file_.close();
 
 		this->file_.clear();
-		this->file_.open(this->filepath_);
+		this->file_.open(this->filepath_.c_str());
 
 		if (!this->file_.is_open())
 			throw ServerException(
@@ -230,81 +226,287 @@ bool ServerConfig::isDirectory_(std::string const &path)
 	return false;
 }
 
-bool ServerConfig::checkDirective_(std::vector<std::string> const &tokens)
+bool ServerConfig::checkDirective_(
+	std::vector<std::string> const &tokens,
+	unsigned int const			   &lineIndex,
+	bool const					   &isTest,
+	bool const					   &isTestPrint
+)
 {
 	if (tokens[0] == "limit_except")
-		return this->checkLimitExcept_(tokens);
+		return this->checkLimitExcept_(tokens, lineIndex, isTest, isTestPrint);
 	else if (tokens[0] == "autoindex")
-		return this->checkAutoIndex_(tokens);
+		return this->checkAutoIndex_(tokens, lineIndex, isTest, isTestPrint);
 	else if (tokens[0] == "return")
-		return this->checkReturn_(tokens);
+		return this->checkReturn_(tokens, lineIndex, isTest, isTestPrint);
 	else if (tokens[0] == "cgi")
-		return this->checkCgi_(tokens);
+		return this->checkCgi_(tokens, lineIndex, isTest, isTestPrint);
 	else if (tokens[0] == "upload_store")
-		return this->checkUploadStore_(tokens);
+		return this->checkUploadStore_(tokens, lineIndex, isTest, isTestPrint);
 	else if (tokens[0] == "client_max_body_size")
-		return ft::isStrOfDigits(tokens[1]) && tokens.size() == 2;
+		return checkClientMaxBodySize_(tokens, lineIndex, isTest, isTestPrint);
 	else if (tokens[0] == "root")
-		return this->checkRoot_(tokens);
+		return this->checkRoot_(tokens, lineIndex, isTest, isTestPrint);
 	return false;
 }
 
-bool ServerConfig::checkLimitExcept_(std::vector<std::string> const &tokens)
+bool ServerConfig::checkLimitExcept_(
+	std::vector<std::string> const &tokens,
+	unsigned int const			   &lineIndex,
+	bool const					   &isTest,
+	bool const					   &isTestPrint
+)
 {
 	std::vector<std::string>::const_iterator it(tokens.begin() + 1);
 	for (; it < tokens.end(); ++it)
 	{
 		if (*it != "GET" && *it != "POST" && *it != "DELETE" && *it != "PUT")
+		{
+			errorHandler_(
+				"Invalid value [" + *it + "] for limit_except directive",
+				lineIndex,
+				isTest,
+				isTestPrint
+			);
 			return false;
+		}
 	}
 	return true;
 }
 
-bool ServerConfig::checkAutoIndex_(std::vector<std::string> const &tokens)
+bool ServerConfig::checkAutoIndex_(
+	std::vector<std::string> const &tokens,
+	unsigned int const			   &lineIndex,
+	bool const					   &isTest,
+	bool const					   &isTestPrint
+)
 {
 	if (tokens.size() == 2 && (tokens[1] == "on" || tokens[1] == "off"))
+	{
 		return true;
+	}
+	errorHandler_(
+		"Invalid value [" + tokens[1] + "] for autoindex directive",
+		lineIndex,
+		isTest,
+		isTestPrint
+	);
 	return false;
 }
 
-bool ServerConfig::checkReturn_(std::vector<std::string> const &tokens)
+bool ServerConfig::checkReturn_(
+	std::vector<std::string> const &tokens,
+	unsigned int const			   &lineIndex,
+	bool const					   &isTest,
+	bool const					   &isTestPrint
+)
 {
-	if ((tokens.size() == 2 && this->isValidErrorCode_(tokens[1]))
-		|| (tokens.size() == 3 && this->isValidErrorCode_(tokens[1])
-			&& (this->isURI_(tokens[2]) || this->isURL_(tokens[2]))))
+	if (tokens.size() == 3)
+	{
+		if (!this->isValidErrorCode_(tokens[1]))
+		{
+			errorHandler_(
+				"Invalid error code [" + tokens[1] + "] for return directive",
+				lineIndex,
+				isTest,
+				isTestPrint
+			);
+			return false;
+		}
+		if (!isURI_(tokens[2]))
+		{
+			errorHandler_(
+				"Invalid URI [" + tokens[2] + "] for return directive",
+				lineIndex,
+				isTest,
+				isTestPrint
+			);
+			return false;
+		}
 		return true;
-	return false;
+	}
+	else if (tokens.size() == 2)
+	{
+		if (!isURI_(tokens[1]))
+		{
+			errorHandler_(
+				"Invalid URI [" + tokens[1] + "] for return directive",
+				lineIndex,
+				isTest,
+				isTestPrint
+			);
+			return false;
+		}
+		return true;
+	}
+	else
+	{
+		errorHandler_(
+			"Invalid number of arguments for return directive",
+			lineIndex,
+			isTest,
+			isTestPrint
+		);
+		return false;
+	}
 }
 
-bool ServerConfig::checkCgi_(std::vector<std::string> const &tokens)
+bool ServerConfig::checkCgi_(
+	std::vector<std::string> const &tokens,
+	unsigned int const			   &lineIndex,
+	bool const					   &isTest,
+	bool const					   &isTestPrint
+)
 {
-	if (tokens.size() == 3 && tokens[1].find('.') != std::string::npos
-		&& this->isExecutable_(tokens[2]))
+	if (tokens.size() == 3)
+	{
+		if (tokens[1].find('.') == std::string::npos)
+		{
+			errorHandler_(
+				"Invalid file extension [" + tokens[1] + "] for CGI directive",
+				lineIndex,
+				isTest,
+				isTestPrint
+			);
+			return false;
+		}
+		if (!this->isExecutable_(tokens[2]))
+		{
+			errorHandler_(
+				"Invalid executable [" + tokens[2] + "] for CGI directive",
+				lineIndex,
+				isTest,
+				isTestPrint
+			);
+			return false;
+		}
 		return true;
-	return false;
+	}
+	else if (tokens.size() == 2)
+	{
+		if (!this->isExecutable_(tokens[1]))
+		{
+			errorHandler_(
+				"Invalid executable [" + tokens[1] + "] for CGI directive",
+				lineIndex,
+				isTest,
+				isTestPrint
+			);
+			return false;
+		}
+		return true;
+	}
+	else
+	{
+		errorHandler_(
+			"Invalid number of arguments for CGI directive",
+			lineIndex,
+			isTest,
+			isTestPrint
+		);
+		return false;
+	}
 }
 
-bool ServerConfig::checkUploadStore_(std::vector<std::string> const &tokens)
+bool ServerConfig::checkUploadStore_(
+	std::vector<std::string> const &tokens,
+	unsigned int const			   &lineIndex,
+	bool const					   &isTest,
+	bool const					   &isTestPrint
+)
 {
-	if (tokens.size() == 2 && this->isDirectory_(tokens[1]))
+	if (tokens.size() == 2)
+	{
+		if (!this->isDirectory_(tokens[1]))
+		{
+			errorHandler_(
+				"Invalid directory [" + tokens[1]
+					+ "] for upload_store directive",
+				lineIndex,
+				isTest,
+				isTestPrint
+			);
+			return false;
+		}
 		return true;
-	return false;
+	}
+	else
+	{
+		errorHandler_(
+			"Invalid number of arguments for upload_store directive",
+			lineIndex,
+			isTest,
+			isTestPrint
+		);
+		return false;
+	}
 }
 
 bool ServerConfig::checkClientMaxBodySize_(
-	std::vector<std::string> const &tokens
+	std::vector<std::string> const &tokens,
+	unsigned int const			   &lineIndex,
+	bool const					   &isTest,
+	bool const					   &isTestPrint
 )
 {
-	if (tokens.size() == 2 && ft::isStrOfDigits(tokens[1]))
+	if (tokens.size() == 2)
+	{
+		if (!ft::isStrOfDigits(tokens[1]))
+		{
+			errorHandler_(
+				"Invalid size [" + tokens[1]
+					+ "] for client_max_body_size directive",
+				lineIndex,
+				isTest,
+				isTestPrint
+			);
+			return false;
+		}
 		return true;
-	return false;
+	}
+	else
+	{
+		errorHandler_(
+			"Invalid number of arguments for client_max_body_size directive",
+			lineIndex,
+			isTest,
+			isTestPrint
+		);
+		return false;
+	}
 }
 
-bool ServerConfig::checkRoot_(std::vector<std::string> const &tokens)
+bool ServerConfig::checkRoot_(
+	std::vector<std::string> const &tokens,
+	unsigned int const			   &lineIndex,
+	bool const					   &isTest,
+	bool const					   &isTestPrint
+)
 {
-	if (tokens.size() == 2 && this->isDirectory_(tokens[1]))
+	if (tokens.size() == 2)
+	{
+		if (!this->isDirectory_(tokens[1]))
+		{
+			errorHandler_(
+				"Invalid directory [" + tokens[1] + "] for root directive",
+				lineIndex,
+				isTest,
+				isTestPrint
+			);
+			return false;
+		}
 		return true;
-	return false;
+	}
+	else
+	{
+		errorHandler_(
+			"Invalid number of arguments for root directive",
+			lineIndex,
+			isTest,
+			isTestPrint
+		);
+		return false;
+	}
 }
 
 // Set the host and port in the listen directive. If the argument is a port
@@ -410,7 +612,10 @@ void ServerConfig::parseLocationBlock_(
 	{
 		ft::trim(line);
 		if (line.empty() || line[0] == '#')
+		{
+			++lineIndex;
 			continue;
+		}
 		ft::split(tokens, line);
 		if (tokens[0] == "}")
 		{
@@ -424,20 +629,12 @@ void ServerConfig::parseLocationBlock_(
 				tokens[tokens.size() - 1].erase(
 					tokens[tokens.size() - 1].size() - 1
 				);
-				if (this->checkDirective_(tokens))
+				if (this->checkDirective_(
+						tokens, lineIndex, isTest, isTestPrint
+					))
 				{
 					location[tokens[0]] = std::vector<std::string>(
 						tokens.begin() + 1, tokens.end()
-					);
-				}
-				else
-				{
-					this->errorHandler_(
-						"Invalid value [" + tokens[1] + "] for " + tokens[0]
-							+ " directive",
-						lineIndex,
-						isTest,
-						isTestPrint
 					);
 				}
 			}
@@ -620,40 +817,32 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 			if (this->checkValues_(tokens, 2, lineIndex, isTest, isTestPrint))
 			{
 				tokens[1].erase(tokens[1].size() - 1);
-				if ((tokens[0] == "client_max_body_size" || tokens[0] == "root")
-					&& !this->checkDirective_(tokens))
+				if (!this->serversConfig_.empty())
+				{
+					if ((tokens[0] == "client_max_body_size"
+						 || tokens[0] == "root")
+						&& this->checkDirective_(
+							tokens, lineIndex, isTest, isTestPrint
+						))
+					{
+						this->serversConfig_.back()[tokens[0]]
+							= ConfigValue(std::vector<std::string>(
+								tokens.begin() + 1, tokens.end()
+							));
+					}
+					else if (tokens[0] == "listen")
+						this->setListenDirective_(
+							tokens, lineIndex, isTest, isTestPrint
+						);
+				}
+				else
 					this->errorHandler_(
-						"Invalid value [" + tokens[1] + "] for " + tokens[0]
-							+ " directive",
+						"Invalid directive [" + tokens[0]
+							+ "] outside a server block",
 						lineIndex,
 						isTest,
 						isTestPrint
 					);
-				else
-				{
-					if (!this->serversConfig_.empty())
-					{
-						// If the directive is listen, set the host and port in
-						// the listen as a map of host and port.
-						if (tokens[0] == "listen")
-							this->setListenDirective_(
-								tokens, lineIndex, isTest, isTestPrint
-							);
-						else
-							this->serversConfig_.back()[tokens[0]]
-								= ConfigValue(std::vector<std::string>(
-									tokens.begin() + 1, tokens.end()
-								));
-					}
-					else
-						this->errorHandler_(
-							"Invalid directive [" + tokens[0]
-								+ "] outside a server block",
-							lineIndex,
-							isTest,
-							isTestPrint
-						);
-				}
 			}
 		}
 		else if (tokens[0] == "error_page")

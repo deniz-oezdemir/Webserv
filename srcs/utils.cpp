@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <map>
+#include <vector>
 #include <sstream>
 
 namespace ft
@@ -221,9 +222,19 @@ std::string getDirectory(const std::string &filepath)
 	return ".";
 }
 
+std::string getFileName(const std::string &filepath)
+{
+	std::string::size_type pos = filepath.find_last_of("/\\");
+	if (pos != std::string::npos)
+	{
+		return filepath.substr(pos + 1);
+	}
+	return filepath;
+}
+
 std::string readFile(const std::string &filePath)
 {
-	std::fstream file(filePath);
+	std::fstream file(filePath.c_str());
 	if (!file.is_open())
 	{
 		Logger::log(Logger::ERROR, true)
@@ -243,7 +254,7 @@ std::string readFile(const std::string &filePath)
 
 std::string readErrorPage(const std::string &filePath)
 {
-	std::fstream file(filePath);
+	std::fstream file(filePath.c_str());
 	if (!file.is_open())
 		return "";
 
@@ -256,7 +267,7 @@ std::string createTimestamp()
 {
 	time_t	   now = time(0);
 	struct tm *tstruct = localtime(&now);
-	if (tstruct == nullptr)
+	if (tstruct == NULL)
 	{
 		throw std::runtime_error("Failed to get local time");
 	}
@@ -297,4 +308,16 @@ std::string const &getStatusCodeReason(int const &statusCode)
 		return httpStatusCodes[500];
 	return httpStatusCodes[statusCode];
 }
+
+std::vector<std::string> const initLogLevels(void)
+{
+  std::vector<std::string> logs(4);
+	logs[0] = "debug";
+	logs[1] = "info";
+	logs[2] = "warn";
+	logs[3] = "error";
+
+  return logs;
+}
+
 } // namespace ft
