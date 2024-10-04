@@ -70,14 +70,19 @@ logging.debug("post.py part 2 passed")
 if method == "POST" and "file" in form:
 	file_item = form["file"]
 	if file_item.file:
-		filename = f"{uuid.uuid4().hex}.jpg" # for now save as photo2.jpg for testing
-		current_directory = os.getcwd()
-		logging.debug(f"Current directory: {current_directory}")
-		os.makedirs(upload_path, exist_ok=True)  # Ensure the upload directory exists
-		with open(os.path.join(upload_path, filename), 'wb') as f:
-			f.write(file_item.file.read())
-		logging.debug(f"File {filename} uploaded successfully")
-		print("<p>File uploaded successfully.</p>")
+		# Check if the file has a .jpg extension
+		if not file_item.filename.lower().endswith('.jpg'):
+			logging.debug("Incorrect file format. Only .jpg files are accepted.")
+			print("<p>Error: Only .jpg files are accepted.</p>")
+		else:
+			filename = f"{uuid.uuid4().hex}.jpg" # for now save as photo2.jpg for testing
+			current_directory = os.getcwd()
+			logging.debug(f"Current directory: {current_directory}")
+			os.makedirs(upload_path, exist_ok=True)  # Ensure the upload directory exists
+			with open(os.path.join(upload_path, filename), 'wb') as f:
+				f.write(file_item.file.read())
+			logging.debug(f"File {filename} uploaded successfully")
+			print("<p>File uploaded successfully.</p>")
 	else:
 		logging.debug("No file was uploaded.")
 		print("<p>No file was uploaded.</p>")
