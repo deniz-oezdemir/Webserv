@@ -85,6 +85,7 @@ class HttpMethodHandler
 	);
 
 	static std::string createDeleteResponse_(
+		HttpRequest const &request,
 		const std::string &filepath,
 		const std::string &rootdir,
 		std::string const &redirect,

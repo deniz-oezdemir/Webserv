@@ -190,7 +190,7 @@ std::string HttpMethodHandler::handleDeleteRequest_(
 		);
 
 	return createDeleteResponse_(
-		filepath, rootdir, redirect, server, keepAlive
+		request, filepath, rootdir, redirect, server, keepAlive
 	);
 }
 
@@ -732,8 +732,12 @@ std::string HttpMethodHandler::createFilePostResponse_(
 {
 	HttpResponse response;
 	// Open the file for writing
+	std::string	uploadpathtmp;
 	std::string fileName = request.getFileName();
-	std::string	  uploadpathtmp = uploadpath + "/" + fileName;
+	if (fileName.empty())
+		uploadpathtmp = uploadpath;
+	else
+		uploadpathtmp = uploadpath + "/" + fileName;
 	std::ofstream outFile;
 	outFile.open(uploadpathtmp.c_str());
 	if (!outFile)
@@ -778,7 +782,9 @@ std::string HttpMethodHandler::createFilePostResponse_(
 	return response.toString();
 }
 
+// TODO: Sebas use only the filename as parameter not the request
 std::string HttpMethodHandler::createDeleteResponse_(
+	HttpRequest const &request,
 	const std::string &filepath,
 	const std::string &rootdir,
 	std::string const &redirect,
@@ -789,8 +795,15 @@ std::string HttpMethodHandler::createDeleteResponse_(
 	std::string	 body;
 	HttpResponse response;
 
-	std::cout << filepath << std::endl;
-	if (remove(filepath.c_str()) == 0)
+	std::string	deletePath;;
+	std::string fileName = request.getFileName();
+
+	if (fileName.empty())
+		deletePath = filepath;
+	else
+		deletePath = filepath + "/" + fileName;
+
+	if (remove(deletePath.c_str()) == 0)
 	{
 		// Check for redirections
 		if (!redirect.empty())
