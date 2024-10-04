@@ -73,6 +73,7 @@ std::string HttpMethodHandler::handleGetRequest_(
 		return handleErrorResponse_(server, 413, rootdir, keepAlive);
 
 	if (isCgiRequest_(location, uri))
+	{
 		return handleCgiRequest_(
 			filepath,
 			getCgiInterpreter_(location),
@@ -81,6 +82,7 @@ std::string HttpMethodHandler::handleGetRequest_(
 			server,
 			rootdir
 		);
+	}
 	// Check if the request is for a directory and handle autoindex
 	if (isDirectory_(filepath))
 	{
@@ -346,7 +348,7 @@ bool HttpMethodHandler::isCgiRequest_(
 
 	if (it != location.end() && !it->second.empty())
 	{
-		if (it->second.size() != 2)
+		if (it->second.size() == 1 || it->second.size() == 2)
 			return true;
 		Logger::log(Logger::DEBUG)
 			<< "CGI Extension: " << it->second[0] << std::endl;
@@ -410,7 +412,10 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back("ROOT_DIR=" + rootdir);
 		envVariables.push_back("TARGET_FILE=" + request.getFileName());
 		envVariables.push_back("UPLOAD_PATH=" + uploadpath);
-		envVariables.push_back("COOKIE=" + request.getCookie());
+		if (request.hasCookie())
+		{
+			envVariables.push_back("COOKIE=" + request.getCookie());
+		}
 		envVariables.push_back(
 			"CONTENT_LENGTH=" + ft::toString(request.getBody().size())
 		);
@@ -434,7 +439,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 				envVariables.push_back(headerKey + "=" + *valIt);
 			}
 		}
-    
+
 		// clang-format off
 		std::map<std::string, std::vector<std::string> > headers2
 			= request.getHeaders();
@@ -710,7 +715,7 @@ std::string HttpMethodHandler::createFilePostResponse_(
 {
 	HttpResponse response;
 	// Open the file for writing
-	std::string	uploadpathtmp;
+	std::string uploadpathtmp;
 	std::string fileName = request.getFileName();
 	if (fileName.empty())
 		uploadpathtmp = uploadpath;
@@ -773,7 +778,8 @@ std::string HttpMethodHandler::createDeleteResponse_(
 	std::string	 body;
 	HttpResponse response;
 
-	std::string	deletePath;;
+	std::string deletePath;
+	;
 	std::string fileName = request.getFileName();
 
 	if (fileName.empty())
