@@ -36,10 +36,8 @@ class Client
 	void   readClientBuffer_(void);
 	bool   isCompleteRequest_(void);
 	bool   hasSizeIndicator_(void);
-	bool   isBodyFullyReceived_(size_t headerEndPos);
 	void   moveExtraCharsToBuffer__(size_t pos);
 	void   reset_();
-	bool   handleContentLength_(size_t bodyStartPos);
 	bool   handleChunkedEncoding_(size_t bodyStartPos);
 	bool   processChunks_(size_t chunkStart);
 	bool   areHeadersComplete_(void);
