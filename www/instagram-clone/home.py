@@ -14,7 +14,6 @@ def list_files():
         file_list = [f for f in files if os.path.isfile(os.path.join(upload_dir, f))]
 
         # Generate HTML content
-        print("Content-Type: text/html")
         print()
         print("<!DOCTYPE html>")
         print("<html lang='en'>")
@@ -55,7 +54,7 @@ def list_files():
         print("            button.addEventListener('click', function() {")
         print("                const form = this.closest('.delete-form');")
         print("                const filename = form.getAttribute('data-filename');")
-        print("                fetch(`upload/${filename}`, { method: 'DELETE' })")
+        print("                fetch(`cgi/rust-cgi?/upload/${filename}`, { method: 'DELETE' })")
         print("                    .then(response => {")
         print("                        if (response.ok) {")
         print("                            form.closest('.photo-container').remove();")
@@ -73,8 +72,6 @@ def list_files():
         print("</html>")
 
     except Exception as e:
-        print("Content-Type: text/html")
-        print()
         print("<html><body>")
         print(f"<h1>Error: {str(e)}</h1>")
         print("</body></html>")

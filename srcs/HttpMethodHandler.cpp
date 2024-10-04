@@ -407,42 +407,19 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back("SERVER_PROTOCOL=HTTP/1.1");
 		envVariables.push_back("REQUEST_METHOD=" + request.getMethod());
 		envVariables.push_back("SCRIPT_FILENAME=" + filepath);
+		envVariables.push_back("ROOT_DIR=" + rootdir);
+		envVariables.push_back("TARGET_FILE=" + request.getFileName());
 		envVariables.push_back("UPLOAD_PATH=" + uploadpath);
 		envVariables.push_back(
 			"CONTENT_LENGTH=" + ft::toString(request.getBody().size())
 		);
-
-		// NOTE: Original Deniz c++11 version
-		// std::map<std::string, std::vector<std::string> > headers =
-		// request.getHeaders(); for (const auto &header : headers) { 	for
-		// (const auto &value : header.second) {
-		// Logger::log(Logger::DEBUG) << "Debug Headers: " << header.first << ":
-		// " << value << std::endl; 		envVariables.push_back(header.first
-		// + "=" + value);
-		// 	}
-		// }
-
-		// TODO: Deniz change without auto keyword, just iterate and append one
-		// to the other
-		//  There are two values for content-type in the header, combine them
-		//  for the CONTENT_TYPE= std::map<std::string, std::vector<std::string>
-		//  > headers2 = request.getHeaders(); auto contentTypeIt =
-		//  headers2.find("Content-Type"); if (contentTypeIt != headers2.end()
-		//  && !contentTypeIt->second.empty()) { 	std::string
-		//  combinedContentType = contentTypeIt->second[0]; 	for (size_t i =
-		//  1; i < contentTypeIt->second.size(); ++i) {
-		//  combinedContentType += "; " + contentTypeIt->second[i];
-		//  	}
-		//  	envVariables.push_back("CONTENT_TYPE=" + combinedContentType);
-		//  }
-
 		// clang-format off
 		std::map<std::string, std::vector<std::string> > headers
 			= request.getHeaders();
 		for (std::map<std::string, std::vector<std::string> >::const_iterator it
 			 = headers.begin();
 			 it != headers.end();
-				++it) // clang-format on
+			 ++it) // clang-format on
 		{
 			const std::string			   &headerKey = it->first;
 			const std::vector<std::string> &headerValues = it->second;
@@ -456,7 +433,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 				envVariables.push_back(headerKey + "=" + *valIt);
 			}
 		}
-
+    
 		// clang-format off
 		std::map<std::string, std::vector<std::string> > headers2
 			= request.getHeaders();

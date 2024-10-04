@@ -1,16 +1,30 @@
 use std::io::{self, Error};
 
 fn main() -> io::Result<()> {
-    let args: Vec<String> = std::env::args().collect();
 
-    if args.len() != 2 {
-        return Err(Error::new(
-            io::ErrorKind::InvalidInput,
-            "Incorrect number of arguments to rust-cgi.",
-        ));
-    }
+    // Get the DELETE_FILE environment variable
+    let root = match std::env::var("ROOT_DIR") {
+        Ok(val) => val,
+        Err(_) => {
+            return Err(Error::new(
+                io::ErrorKind::InvalidInput,
+                "Environment variable ROOT_DIR is not set.",
+            ));
+        }
+    };
 
-    let path = args[1].clone();
+    // Get the DELETE_FILE environment variable
+    let mut path = match std::env::var("TARGET_FILE") {
+        Ok(val) => val,
+        Err(_) => {
+            return Err(Error::new(
+                io::ErrorKind::InvalidInput,
+                "Environment variable TARGET_FILE is not set.",
+            ));
+        }
+    };
+
+    path = root + &path;
 
     // Check if the file exists
     if std::fs::metadata(&path).is_err() {
