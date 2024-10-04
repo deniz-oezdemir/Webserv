@@ -311,7 +311,7 @@ std::string HttpMethodHandler::getUploadPath_(
 {
 	return location.find("upload_store") != location.end()
 				   && !location.at("upload_store").empty()
-			   ? location.at("upload_store")[0]
+						? location.at("upload_store")[0]
 			   : "";
 }
 
@@ -340,6 +340,8 @@ bool HttpMethodHandler::isCgiRequest_(
 
 	if (it != location.end() && !it->second.empty())
 	{
+		if (it->second.size() != 2)
+			return true;
 		Logger::log(Logger::DEBUG) << "CGI Extension: " << it->second[0] << std::endl;
 		std::string cgiExtension = it->second[0]; // ".py"
 		return uri.find(cgiExtension) != std::string::npos;
@@ -352,6 +354,8 @@ std::string HttpMethodHandler::getCgiInterpreter_(
 	std::map<std::string, std::vector<std::string> > const &location
 ) // clang-format on
 {
+	if (location.find("cgi")->second.size() == 1)
+		return location.find("cgi")->second[0]; // binary path
 	return location.find("cgi")->second[1]; // "/usr/bin/python3"
 }
 
@@ -365,7 +369,6 @@ std::string HttpMethodHandler::handleCgiRequest_(
 	std::string const &uploadpath
 )
 {
-	(void)uploadpath;
 	Logger::log(Logger::INFO) << "Filepath: " << filepath << std::endl;
 	Logger::log(Logger::INFO) << "Interpreter: " << interpreter << std::endl;
 
@@ -690,9 +693,8 @@ std::string HttpMethodHandler::createFilePostResponse_(
 ) // clang-format on
 {
 	HttpResponse response;
-
 	// Open the file for writing
-	std::string	  uploadpathtmp = uploadpath + "/dummyfile";
+	std::string	  uploadpathtmp = uploadpath;
 	std::ofstream outFile;
 	outFile.open(uploadpathtmp.c_str());
 	if (!outFile)
