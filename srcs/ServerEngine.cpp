@@ -446,7 +446,6 @@ void ServerEngine::processPollEvents()
 		else if (pollFds_[pollIndex_].revents & POLLOUT)
 			processClientRequest_(pollIndex_);
 
-		// TODO: rename indexes variables for consistency
 		if (clientIndex_ > 0)
 		{
 			if (clients_[clientIndex_].isClosed() == true)
