@@ -402,12 +402,13 @@ std::string HttpMethodHandler::handleCgiRequest_(
 			"CONTENT_LENGTH=" + ft::toString(request.getBody().size())
 		);
 
-		std::map<std::string, std::vector<std::string>> headers
+		// clang-format off
+		std::map<std::string, std::vector<std::string> > headers
 			= request.getHeaders();
-		for (std::map<std::string, std::vector<std::string>>::const_iterator it
+		for (std::map<std::string, std::vector<std::string> >::const_iterator it
 			 = headers.begin();
 			 it != headers.end();
-			 ++it)
+			 ++it) // clang-format on
 		{
 			const std::string			   &headerKey = it->first;
 			const std::vector<std::string> &headerValues = it->second;
@@ -421,11 +422,11 @@ std::string HttpMethodHandler::handleCgiRequest_(
 				envVariables.push_back(headerKey + "=" + *valIt);
 			}
 		}
-
-		std::map<std::string, std::vector<std::string>> headers2
+		// clang-format off
+		std::map<std::string, std::vector<std::string> > headers2
 			= request.getHeaders();
-		std::map<std::string, std::vector<std::string>>::iterator contentTypeIt
-			= headers2.find("Content-Type");
+		std::map<std::string, std::vector<std::string> >::iterator contentTypeIt
+			= headers2.find("Content-Type"); // clang-format on
 		if (contentTypeIt != headers2.end() && !contentTypeIt->second.empty())
 		{
 			std::string combinedContentType = contentTypeIt->second[0];
