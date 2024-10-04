@@ -54,7 +54,7 @@ def list_files():
         print("            button.addEventListener('click', function() {")
         print("                const form = this.closest('.delete-form');")
         print("                const filename = form.getAttribute('data-filename');")
-        print("                fetch(`cgi/rust-cgi?/upload/${filename}`, { method: 'DELETE' })")
+        print("                fetch(`cgi/delete_cgi?/upload/${filename}`, { method: 'DELETE' })")
         print("                    .then(response => {")
         print("                        if (response.ok) {")
         print("                            form.closest('.photo-container').remove();")
