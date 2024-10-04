@@ -29,19 +29,20 @@ def ensure_content_length(content_length):
         print_html_error("Error: CONTENT_LENGTH is not set.")
         exit(1)
 
-def print_html_error(message):
-    """Print an HTML error message."""
+def print_html_error(message, status_code):
+    """Print an HTML error message with a specific status code."""
+    print(f"Status: {status_code} {http_status_message(status_code)}")
     print("Content-Type: text/html")
     print()
     print("<html>")
     print("<head>")
     print("<title>Error</title>")
-    print("<style>")
-    print("body { text-align: center; }")
-    print("</style>")
+    print("<link rel='stylesheet' href='/instagram-clone/css/styles.css'>")
     print("</head>")
     print("<body>")
-    print(f"<p>{message}</p>")
+    print("    <div class='container'>")
+    print(f"        <h1>{message}</h1>")
+    print("    </div>")
     print("</body>")
     print("</html>")
 
@@ -65,7 +66,8 @@ def validate_and_save_file(file_item, upload_path):
     if not file_item.filename.lower().endswith('.jpg'):
         logging.debug("Incorrect file format. Only .jpg files are accepted.")
         print("    <div class='container'>")
-        print("        <h1>Error: Only .jpg files are accepted.</h1>")
+        print("        <h1>415 Unsupported Media Type</h1>")
+        print("        <p>Only .jpg files are accepted.</p>")
         print("    </div>")
         return
 
@@ -85,7 +87,8 @@ def validate_and_save_file(file_item, upload_path):
     except (IOError, SyntaxError) as e:
         logging.debug(f"File is not a valid image: {e}")
         print("    <div class='container'>")
-        print("        <h1>Error: The file was not uploaded as it is not a valid image.</h1>")
+        print("        <h1>400 Bad request</h1>")
+        print("        <p>Only valid image files are accepted.</p>")
         print("    </div>")
 
 def main():
@@ -100,7 +103,7 @@ def main():
     print("<head>")
     print("    <meta charset='UTF-8'>")
     print("    <meta name='viewport' content='width=device-width, initial-scale=1.0'>")
-    print("    <title>Success</title>")
+    print("    <title>Post response</title>")
     print("    <style>")
     print("        body {")
     print("            font-family: Arial, sans-serif;")
