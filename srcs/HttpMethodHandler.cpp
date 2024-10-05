@@ -491,7 +491,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		// Write the request body to the pipe for the child process
 		const std::vector<char> &requestBody = request.getBody();
 		std::cout << "before send to cgi " << request << std::endl;
-		
+
 		// Debug
 		// std::string bodyStr(requestBody.begin(), requestBody.end());
 		// std::cout << "Request Body: " << bodyStr << std::endl;
@@ -520,6 +520,37 @@ std::string HttpMethodHandler::handleCgiRequest_(
 
 		close(pipefd[0]); // Close the read end of the pipe after reading
 
+		std::cout << "CGI Output: " << output.str() << std::endl;
+
+		// Check the first line of the output
+		std::string firstLine;
+		std::string expectedLine = "CGI_HEADERS";
+		std::string expectedEndLine = "CGI_HEADERS_END";
+		// clang-format off
+		std::vector<std::pair<std::string, std::string> > cgiHeaders; // clang-format on
+		std::getline(output, firstLine);
+		if (firstLine == expectedLine)
+		{
+			std::cout << "CGI_HEADERS" << std::endl;
+			// Extract the relevant information
+			std::string		  line;
+			std::stringstream bodyStream;
+			while (std::getline(output, line) && line != expectedEndLine)
+			{
+				unsigned int colonPos = line.find(':');
+				cgiHeaders.push_back(std::make_pair(
+					line.substr(0, colonPos), line.substr(colonPos + 2)
+				));
+			}
+			// Copy the remaining lines to bodyStream
+			while (std::getline(output, line))
+			{
+				bodyStream << line << "\n";
+			};
+			// Swap bodyStream with output to retain only the body content
+			output.swap(bodyStream);
+		}
+
 		Logger::log(Logger::DEBUG)
 			<< "CGI Output: " << output.str() << std::endl;
 
@@ -534,10 +565,27 @@ std::string HttpMethodHandler::handleCgiRequest_(
 			response.setHeader("Connection", "keep-alive");
 		else
 			response.setHeader("Connection", "close");
+
+		if (!cgiHeaders.empty())
+		{
+			Logger::log(Logger::DEBUG)
+			<< "CGI Headers: " << std::endl;
+			for (std::vector<std::pair<std::string, std::string> >::iterator it
+			 = cgiHeaders.begin();
+			 it != cgiHeaders.end();
+			 ++it)
+			{
+			Logger::log(Logger::DEBUG)
+				<< it->first << ": " << it->second << std::endl;
+				response.setHeader(it->first, it->second);
+			}
+		}
+
 		response.setBody(output.str());
 
 		return response.toString();
 	}
+
 }
 
 bool HttpMethodHandler::isDirectory_(std::string const &filepath)
