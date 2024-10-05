@@ -383,14 +383,14 @@ std::string HttpMethodHandler::handleCgiRequest_(
 	int pipefd[2];
 	if (pipe(pipefd) == -1)
 	{
-		Logger::log(Logger::ERROR, true) << "Pipe creation failed" << std::endl;
+		Logger::log(Logger::ERROR) << "Pipe creation failed" << std::endl;
 		return handleErrorResponse_(server, 500, rootdir, keepAlive);
 	}
 
 	pid_t pid = fork();
 	if (pid == -1)
 	{
-		Logger::log(Logger::ERROR, true) << "Fork failed" << std::endl;
+		Logger::log(Logger::ERROR) << "Fork failed" << std::endl;
 		return handleErrorResponse_(server, 500, rootdir, keepAlive);
 	}
 	else if (pid == 0)
@@ -470,7 +470,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 
 		if (execve(interpreter.c_str(), argv, &envp[0]) == -1)
 		{
-			Logger::log(Logger::ERROR, true)
+			Logger::log(Logger::ERROR)
 				<< "Failed to execute CGI script: " << filepath << std::endl;
 			close(pipefd[1]);
 		}
@@ -491,7 +491,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		waitpid(pid, &status, 0);
 		if (status != 0)
 		{
-			Logger::log(Logger::ERROR, true)
+			Logger::log(Logger::ERROR)
 				<< "CGI script execution failed" << std::endl;
 			return HttpErrorHandler::getErrorPage(500);
 		}
@@ -599,7 +599,7 @@ std::string HttpMethodHandler::generateAutoIndexPage_(
 	DIR *dir = opendir((root + uri).c_str());
 	if (dir == NULL)
 	{
-		Logger::log(Logger::ERROR, true)
+		Logger::log(Logger::ERROR)
 			<< "Failed to open directory: " << root + uri << std::endl;
 		return handleErrorResponse_(server, 405, root, keepAlive);
 	}
@@ -619,7 +619,7 @@ std::string HttpMethodHandler::generateAutoIndexPage_(
 		struct stat fileStat;
 		if (stat(fullPath.c_str(), &fileStat) == -1)
 		{
-			Logger::log(Logger::ERROR, true)
+			Logger::log(Logger::ERROR)
 				<< "Failed to get file stats: " << fullPath << "Error: ["
 				<< errno << "] " << strerror(errno) << std::endl;
 			continue;
