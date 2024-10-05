@@ -306,7 +306,7 @@ void ServerEngine::readClientRequest_(size_t &pollIndex_)
 	}
 	catch (std::exception &e)
 	{
-		Logger::log(Logger::DEBUG, true)
+		Logger::log(Logger::DEBUG)
 			<< "Client.hasRequestReady resulted in error: " << e.what()
 			<< std::endl;
 		std::string response = HttpErrorHandler::getErrorPage(400, true);
