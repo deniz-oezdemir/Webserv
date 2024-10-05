@@ -309,7 +309,7 @@ void ServerEngine::readClientRequest_(size_t &pollIndex_)
 			<< e.what() << " for pollIndex_:" << pollIndex_
 			<< " Going to send response and close client." << std::endl;
 		std::string response = HttpErrorHandler::getErrorPage(400, true);
-		// sendResponse_(pollIndex_, response);
+		sendResponse_(pollIndex_, response);
 		return;
 	}
 
@@ -532,19 +532,39 @@ void ServerEngine::closeConnection_(size_t &pollIndex_)
 {
 	Logger::log(Logger::INFO)
 		<< "closeConnection_ at pollIndex: " << pollIndex_ << std::endl;
+
+	// Check if pollIndex_ is within bounds
+	if (pollIndex_ >= this->pollFds_.size())
+	{
+		Logger::log(Logger::ERROR)
+			<< "Invalid pollIndex_: " << pollIndex_ << std::endl;
+		return;
+	}
+
+	// Check if clientIndex_ is within bounds
+	if (this->clientIndex_ >= (long long)this->clients_.size())
+	{
+		Logger::log(Logger::ERROR)
+			<< "Invalid clientIndex_: " << this->clientIndex_ << std::endl;
+		return;
+	}
+
+	// Erase the client from the clients_ vector
 	this->clients_.erase(this->clients_.begin() + this->clientIndex_);
 
 	// Check if the file descriptor is open before closing it
-	if (fcntl(this->pollFds_[pollIndex_].fd, F_GETFD) != -1 || errno != EBADF)
+	int fd = this->pollFds_[pollIndex_].fd;
+	if (fcntl(fd, F_GETFD) != -1 || errno != EBADF)
 	{
-		close(this->pollFds_[pollIndex_].fd);
+		close(fd);
 	}
 	else
 	{
 		Logger::log(Logger::DEBUG)
-			<< "Attempted to close an already closed or invalid fd: "
-			<< this->pollFds_[pollIndex_].fd << std::endl;
+			<< "Attempted to close an already closed or invalid fd: " << fd
+			<< std::endl;
 	}
 
+	// Erase the pollFd from the pollFds_ vector
 	this->pollFds_.erase(this->pollFds_.begin() + pollIndex_);
 }
