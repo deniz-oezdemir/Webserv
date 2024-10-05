@@ -187,9 +187,10 @@ void Client::readClientBuffer_(void)
 				<< "Client sent three consecutive empty lines."
 				<< "\nrequestStr_.length(): " << requestStr_.length()
 				<< "\nrequestStr_: " << requestStr_ << std::endl;
-			isClosed_ = true;
-			isError_ = true;
-			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+			hasCompleteRequest_ = true;
+			// isClosed_ = true;
+			// isError_ = true;
+			// throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 			return;
 		}
 

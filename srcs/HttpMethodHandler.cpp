@@ -490,6 +490,12 @@ std::string HttpMethodHandler::handleCgiRequest_(
 
 		// Write the request body to the pipe for the child process
 		const std::vector<char> &requestBody = request.getBody();
+		std::cout << "before send to cgi " << request << std::endl;
+		
+		// Debug
+		// std::string bodyStr(requestBody.begin(), requestBody.end());
+		// std::cout << "Request Body: " << bodyStr << std::endl;
+
 		write(pipefd[1], requestBody.data(), requestBody.size());
 		close(pipefd[1]); // Close the write end of the pipe after writing
 

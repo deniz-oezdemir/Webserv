@@ -54,7 +54,7 @@ fn print_login() {
     println!("<body>");
     println!("<div class=\"login-container\">");
     println!("<h1>Login</h1>");
-    println!("<form method=\"POST\" action=\"/www/instagram-clone/cgi/login.rs\">");
+    println!("<form method=\"POST\" action=\"/cgi/login_cgi\">");
     println!("<label for=\"username\">Username:</label>");
     println!("<input type=\"text\" id=\"username\" name=\"username\">");
     println!("<label for=\"password\">Password:</label>");

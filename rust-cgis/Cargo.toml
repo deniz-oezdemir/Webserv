@@ -6,6 +6,9 @@ edition = "2021"
 [dependencies]
 hyper = "0.14"
 cookie = "0.18"
+log = "0.4"
+log4rs = "1.2"
+uuid = { version = "1", features = ["v4"] }
 
 [[bin]]
 name = "cookie_check_cgi"
