@@ -106,9 +106,7 @@ bool Client::hasRequestReady(void)
 			   "limit."
 			<< std::endl
 			<< "totalBytesReadFromFd_: " << totalBytesReadFromFd_ << std::endl
-			<< "nextReadSize_: " << nextReadSize_
-			<< " First line of request is: " << std::endl
-			<< debugLine << std::endl;
+			<< "nextReadSize_: " << nextReadSize_ << std::endl;
 		isClosed_ = true;
 		isError_ = true;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);

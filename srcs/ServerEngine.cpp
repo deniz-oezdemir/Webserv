@@ -262,9 +262,6 @@ void ServerEngine::pollFdError_(size_t &pollIndex_)
  */
 long int ServerEngine::initializePollEvents_()
 {
-	// NOTE: Only use log for debugging.
-	// Logger::log(Logger::DEBUG)
-	// 	<< "initializePollEvents: Going to call poll()." << std::endl;
 	int pollCount = poll(pollFds_.data(), pollFds_.size(), POLL_TIMEOUT);
 	if (pollCount == -1)
 	{
@@ -280,10 +277,6 @@ long int ServerEngine::initializePollEvents_()
 			<< ") " << strerror(errno) << std::endl;
 		return pollCount;
 	}
-	// NOTE: Only use log for debugging.
-	// Logger::log(Logger::DEBUG)
-	// 	<< "initializePollEvents: poll() returned pollCount: " << pollCount
-	// 	<< std::endl;
 	return pollCount;
 }
 
@@ -305,10 +298,10 @@ void ServerEngine::readClientRequest_(size_t &pollIndex_)
 		{
 			if (clients_[clientIndex_].isClosed() == true)
 			{
-				Logger::log(Logger::DEBUG
-				) << "readClientRequest_: Client disconnected: Erase clients_["
-				  << clientIndex_ << "], " << "close and erase pollFds_["
-				  << pollIndex_ << "]" << std::endl;
+				Logger::log(Logger::DEBUG)
+					<< "readClientRequest_: Client disconnected: clients_["
+					<< clientIndex_ << "], " << " pollFds_[" << pollIndex_
+					<< "]" << std::endl;
 			}
 			return;
 		}
@@ -317,11 +310,7 @@ void ServerEngine::readClientRequest_(size_t &pollIndex_)
 	{
 		Logger::log(Logger::DEBUG)
 			<< "readClientRequest_: Client.hasRequestReady resulted in error: "
-			<< e.what() << " for pollIndex_:" << pollIndex_
-			<< " Going to send response and close client." << std::endl;
-		std::string response = HttpErrorHandler::getErrorPage(400, true);
-		sendResponse_(pollIndex_, response);
-		return;
+			<< e.what() << " for pollIndex_:" << pollIndex_ << std::endl;
 	}
 
 	pollFds_[pollIndex_].events = POLLOUT;
@@ -387,7 +376,7 @@ void ServerEngine::sendResponse_(
 	const std::string &response
 )
 {
-	Logger::log(Logger::DEBUG) << "Sending response" << std::endl;
+	Logger::log(Logger::DEBUG) << "Sending response: " << std::endl;
 	int retCode
 		= send(pollFds_[pollIndex_].fd, response.c_str(), response.size(), 0);
 
@@ -459,18 +448,8 @@ void ServerEngine::processPollEvents_()
 			}
 		}
 		else if (pollFds_[pollIndex_].revents & POLLOUT)
-			processClientRequest_(pollIndex_);
-
-		if (clientIndex_ >= 0)
 		{
-			// TODO: is this closeConnection_ call necessary?
-			if (clients_[clientIndex_].isClosed() == true)
-			{
-				Logger::log(Logger::DEBUG)
-					<< "processPollEvents: Client on pollFds_[" << pollIndex_
-					<< "] is closed. Calling closeConnection_" << std::endl;
-				closeConnection_(pollIndex_);
-			}
+			processClientRequest_(pollIndex_);
 		}
 	}
 }
