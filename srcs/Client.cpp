@@ -106,6 +106,7 @@ bool Client::hasRequestReady(void)
 		Logger::log(Logger::INFO, true)
 			<< "hasRequestReady: Client disconnected: " << *this << std::endl;
 		isClosed_ = true;
+		hasCompleteRequest_ = true;
 		return false;
 	}
 
@@ -145,6 +146,13 @@ std::string Client::extractRequestStr(void)
 		{
 			tmp = requestStr_;
 			reset_();
+			return tmp;
+		}
+		else
+		{
+			Logger::log(Logger::INFO, true)
+				<< "Attempted to extract request from client not ready."
+				<< *this << std::endl;
 		}
 	}
 	else
@@ -210,9 +218,9 @@ void Client::readClientBuffer_(void)
 		}
 		else
 		{
-			Logger::log(Logger::INFO)
-			<< "readClientBuffer_: Client headers complete and contains body."
-			<< std::endl;
+			Logger::log(Logger::INFO
+			) << "readClientBuffer_: Client headers complete and contains body."
+			  << std::endl;
 
 			if (isChunked_)
 			{
@@ -315,7 +323,7 @@ bool Client::processChunks_(size_t bodyStartPos)
 		}
 
 		std::string chunkSizeStr = requestStr_.substr(pos, chunkSizeEnd - pos);
-		size_t chunkSize;
+		size_t		chunkSize;
 		std::istringstream(chunkSizeStr) >> std::hex >> chunkSize;
 		pos = chunkSizeEnd + 2; // Move past the \r\n
 
