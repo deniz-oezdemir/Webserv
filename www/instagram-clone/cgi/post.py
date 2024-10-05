@@ -3,7 +3,6 @@ import cgi
 import logging
 from io import BytesIO
 import uuid
-from PIL import Image
 
 # Configure logging
 logging.basicConfig(filename='/tmp/post_debug.log', level=logging.DEBUG)
@@ -91,7 +90,6 @@ print("</body>")
 print("</html>")
 
 logging.debug("post.py finished")
-=======
 def log_environment_variables():
     """Log the environment variables."""
     method = os.environ.get("REQUEST_METHOD", "")
