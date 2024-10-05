@@ -331,7 +331,7 @@ void ServerEngine::processClientRequest_(size_t &pollIndex_)
 	if (clients_[clientIndex_].isError() == true
 		|| clients_[clientIndex_].isClosed() == true)
 	{
-		Logger::log(Logger::DEBUG, true)
+		Logger::log(Logger::DEBUG)
 			<< "processClientRequest_ got to request with error or closed. "
 			<< std::endl;
 		response = HttpErrorHandler::getErrorPage(400, true);
@@ -400,7 +400,8 @@ void ServerEngine::sendResponse_(
 	}
 	else
 	{
-		if (clients_[clientIndex_].isClosed())
+		if (clients_[clientIndex_].isClosed()
+			|| clients_[clientIndex_].isError())
 		{
 			closeConnection_(pollIndex_);
 		}

@@ -38,6 +38,9 @@ Client::Client(const Client &src)
 
 Client &Client::operator=(const Client &rhs)
 {
+	Logger::log(Logger::DEBUG)
+		<< "Client copy operator init. rhs:" << rhs << std::endl;
+
 	pollFd_ = rhs.pollFd_;
 	requestStr_ = rhs.requestStr_;
 	isChunked_ = rhs.isChunked_;
@@ -100,8 +103,8 @@ bool Client::hasRequestReady(void)
 			<< "hasRequestReady: Client sent request over default buffer size "
 			   "limit."
 			<< std::endl
-			<< "totalBytesReadFromFd_: " << totalBytesReadFromFd_
-			<< std::endl << "nextReadSize_: " << nextReadSize_ << std::endl;
+			<< "totalBytesReadFromFd_: " << totalBytesReadFromFd_ << std::endl
+			<< "nextReadSize_: " << nextReadSize_ << std::endl;
 		isClosed_ = true;
 		isError_ = true;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
@@ -118,11 +121,12 @@ bool Client::hasRequestReady(void)
 			<< "hasRequestReady:Failed to read from client: ("
 			<< ft::toString(errno) << ") " << strerror(errno) << std::endl;
 		isClosed_ = true;
+		isError_ = true;
 		return false;
 	}
 	else if (bytesReadFromFd == 0)
 	{
-		Logger::log(Logger::INFO, true)
+		Logger::log(Logger::INFO)
 			<< "hasRequestReady: Client disconnected: " << *this << std::endl;
 		isClosed_ = true;
 		hasCompleteRequest_ = true;
@@ -134,7 +138,7 @@ bool Client::hasRequestReady(void)
 
 	if (bytesReadFromFd != nextReadSize_)
 	{
-		Logger::log(Logger::DEBUG, true)
+		Logger::log(Logger::DEBUG)
 			<< "hasRequestReady: bytesReadFromFd: " << bytesReadFromFd
 			<< " do not match expected nextReadSize: " << nextReadSize_
 			<< std::endl;
@@ -145,7 +149,7 @@ bool Client::hasRequestReady(void)
 
 	if (readingPartialBody_ == true && bytesReadFromFd == nextReadSize_)
 	{
-		Logger::log(Logger::DEBUG, true)
+		Logger::log(Logger::DEBUG)
 			<< "hasRequestReady: Body arrived incomplete and has now been "
 			   "fully read."
 			<< std::endl;
@@ -162,19 +166,6 @@ bool Client::hasRequestReady(void)
 			<< totalBytesReadFromFd_ << std::endl;
 		isClosed_ = true;
 		isError_ = true;
-		return false;
-	}
-
-	if (requestStr_.length() > MAX_REQUEST_SIZE)
-	{
-		Logger::log(Logger::INFO)
-			<< "hasRequestReady: Client sent request over default buffer size "
-			   "limit."
-			<< "\nrequestStr_.length(): " << requestStr_.length()
-			<< "\nrequestStr_: " << requestStr_ << std::endl;
-		isClosed_ = true;
-		isError_ = true;
-		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 		return false;
 	}
 
