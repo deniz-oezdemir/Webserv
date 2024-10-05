@@ -22,6 +22,8 @@ Client::Client(int pollFd) : pollFd_(pollFd)
 	isError_ = false;
 	areHeadersRead_ = false;
 	nextReadSize_ = 1;
+	totalBytesReadFromFd_ = 0;
+	readingPartialBody_ = false;
 }
 
 Client::~Client(void)
@@ -44,6 +46,8 @@ Client &Client::operator=(const Client &rhs)
 	isError_ = rhs.isError_;
 	areHeadersRead_ = rhs.areHeadersRead_;
 	nextReadSize_ = rhs.nextReadSize_;
+	totalBytesReadFromFd_ = rhs.totalBytesReadFromFd_;
+	readingPartialBody_ = rhs.readingPartialBody_;
 
 	clientBuffer_.str("");
 	clientBuffer_.clear();
@@ -90,8 +94,23 @@ bool Client::hasRequestReady(void)
 		return true;
 	}
 
+	if (totalBytesReadFromFd_ + nextReadSize_ > MAX_REQUEST_SIZE)
+	{
+		Logger::log(Logger::INFO)
+			<< "hasRequestReady: Client sent request over default buffer size "
+			   "limit."
+			<< std::endl
+			<< "totalBytesReadFromFd_: " << totalBytesReadFromFd_
+			<< std::endl << "nextReadSize_: " << nextReadSize_ << std::endl;
+		isClosed_ = true;
+		isError_ = true;
+		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+		return false;
+	}
+
 	std::vector<char> buffer(nextReadSize_);
-	ssize_t bytesReadFromFd = read(pollFd_, buffer.data(), buffer.size());
+	size_t bytesReadFromFd = read(pollFd_, buffer.data(), buffer.size());
+	totalBytesReadFromFd_ += bytesReadFromFd;
 
 	if (bytesReadFromFd < 0)
 	{
@@ -113,6 +132,39 @@ bool Client::hasRequestReady(void)
 	clientBuffer_.write(buffer.data(), bytesReadFromFd);
 	requestStr_ = clientBuffer_.str();
 
+	if (bytesReadFromFd != nextReadSize_)
+	{
+		Logger::log(Logger::DEBUG, true)
+			<< "hasRequestReady: bytesReadFromFd: " << bytesReadFromFd
+			<< " do not match expected nextReadSize: " << nextReadSize_
+			<< std::endl;
+		nextReadSize_ = nextReadSize_ - bytesReadFromFd;
+		readingPartialBody_ = true;
+		return false;
+	}
+
+	if (readingPartialBody_ == true && bytesReadFromFd == nextReadSize_)
+	{
+		Logger::log(Logger::DEBUG, true)
+			<< "hasRequestReady: Body arrived incomplete and has now been "
+			   "fully read."
+			<< std::endl;
+		hasCompleteRequest_ = true;
+		return true;
+	}
+
+	if (requestStr_.length() != totalBytesReadFromFd_)
+	{
+		Logger::log(Logger::ERROR, true)
+			<< "hasRequestReady: Read error. requestStr_ length: "
+			<< requestStr_.length()
+			<< " do not match expected totalBytesReadFromFd_: "
+			<< totalBytesReadFromFd_ << std::endl;
+		isClosed_ = true;
+		isError_ = true;
+		return false;
+	}
+
 	if (requestStr_.length() > MAX_REQUEST_SIZE)
 	{
 		Logger::log(Logger::INFO)
@@ -123,6 +175,7 @@ bool Client::hasRequestReady(void)
 		isClosed_ = true;
 		isError_ = true;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+		return false;
 	}
 
 	if (areHeadersRead_ == true && nextReadSize_ != 1)
@@ -233,6 +286,10 @@ void Client::readClientBuffer_(void)
 			else
 			{
 				nextReadSize_ = getBodySize_();
+				Logger::log(Logger::INFO)
+					<< "readClientBuffer_: Client headers read and "
+					   "nextReadSize_ set to: "
+					<< nextReadSize_ << std::endl;
 			}
 			return;
 		}
@@ -407,6 +464,8 @@ void Client::reset_(void)
 	isChunked_ = false;
 	areHeadersRead_ = false;
 	nextReadSize_ = 1;
+	totalBytesReadFromFd_ = 0;
+	readingPartialBody_ = false;
 }
 
 std::ostream &operator<<(std::ostream &os, const Client &rhs)
