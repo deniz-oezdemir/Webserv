@@ -262,8 +262,9 @@ void ServerEngine::pollFdError_(size_t &pollIndex_)
  */
 long int ServerEngine::initializePollEvents_()
 {
-	Logger::log(Logger::ERROR)
-		<< "initializePollEvents: Going to call poll()." << std::endl;
+	// NOTE: Only use log for debugging.
+	// Logger::log(Logger::DEBUG)
+	// 	<< "initializePollEvents: Going to call poll()." << std::endl;
 	int pollCount = poll(pollFds_.data(), pollFds_.size(), POLL_TIMEOUT);
 	if (pollCount == -1)
 	{
@@ -279,9 +280,10 @@ long int ServerEngine::initializePollEvents_()
 			<< ") " << strerror(errno) << std::endl;
 		return pollCount;
 	}
-	Logger::log(Logger::ERROR)
-		<< "initializePollEvents: poll() returned pollCount: " << pollCount
-		<< std::endl;
+	// NOTE: Only use log for debugging.
+	// Logger::log(Logger::DEBUG)
+	// 	<< "initializePollEvents: poll() returned pollCount: " << pollCount
+	// 	<< std::endl;
 	return pollCount;
 }
 
