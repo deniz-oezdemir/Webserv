@@ -232,14 +232,12 @@ void ServerEngine::pollFdError_(size_t &pollIndex_)
 	Logger::log(Logger::DEBUG)
 		<< "Client disconnected improperly: " << error << " on pollFds_["
 		<< pollIndex_ << "]" << ", Fd[" << pollFds_[pollIndex_].fd
-		<< "] , errno: " << err << "," << errMsg << std::endl;
+		<< "] , errno: " << err << ", " << errMsg << std::endl;
 
 	if (!this->isPollFdServer_(this->pollFds_[pollIndex_].fd)
 		&& error.find("POLLNVAL") != std::string::npos)
 	{
-		// TODO: Deniz check whether closing fd here fixes last attempt to read
-		this->pollFds_.erase(this->pollFds_.begin() + pollIndex_);
-		clients_.erase(clients_.begin() + clientIndex_);
+		closeConnection_(pollIndex_);
 		return;
 	}
 	else if (!this->isPollFdServer_(this->pollFds_[pollIndex_].fd))
@@ -296,21 +294,23 @@ void ServerEngine::readClientRequest_(size_t &pollIndex_)
 		{
 			if (clients_[clientIndex_].isClosed() == true)
 			{
-				Logger::log(Logger::DEBUG)
-					<< "Client disconnected: Erase clients_[" << clientIndex_
-					<< "], " << "close and erase pollFds_[" << pollIndex_ << "]"
-					<< std::endl;
+				Logger::log(Logger::DEBUG
+				) << "readClientRequest_: Client disconnected: Erase clients_["
+				  << clientIndex_ << "], " << "close and erase pollFds_["
+				  << pollIndex_ << "]" << std::endl;
 			}
 			return;
 		}
 	}
 	catch (std::exception &e)
 	{
-		Logger::log(Logger::DEBUG, true)
-			<< "Client.hasRequestReady resulted in error: " << e.what()
-			<< std::endl;
+		Logger::log(Logger::DEBUG)
+			<< "readClientRequest_: Client.hasRequestReady resulted in error: "
+			<< e.what() << " for pollIndex_:" << pollIndex_
+			<< " Going to send response and close client." << std::endl;
 		std::string response = HttpErrorHandler::getErrorPage(400, true);
 		sendResponse_(pollIndex_, response);
+		return;
 	}
 
 	pollFds_[pollIndex_].events = POLLOUT;
@@ -333,7 +333,7 @@ void ServerEngine::processClientRequest_(size_t &pollIndex_)
 	if (clients_[clientIndex_].isError() == true
 		|| clients_[clientIndex_].isClosed() == true)
 	{
-		Logger::log(Logger::DEBUG, true)
+		Logger::log(Logger::DEBUG)
 			<< "processClientRequest_ got to request with error or closed. "
 			<< std::endl;
 		response = HttpErrorHandler::getErrorPage(400, true);
@@ -349,7 +349,7 @@ void ServerEngine::processClientRequest_(size_t &pollIndex_)
 	catch (std::exception &e)
 	{
 		response = HttpErrorHandler::getErrorPage(400, true);
-		Logger::log(Logger::ERROR, true)
+		Logger::log(Logger::DEBUG)
 			<< "Failed to parse the request: " << e.what() << std::endl;
 		sendResponse_(pollIndex_, response);
 		return;
@@ -402,7 +402,8 @@ void ServerEngine::sendResponse_(
 	}
 	else
 	{
-		if (clients_[clientIndex_].isClosed())
+		if (clients_[clientIndex_].isClosed()
+			|| clients_[clientIndex_].isError())
 		{
 			closeConnection_(pollIndex_);
 		}
@@ -446,7 +447,7 @@ void ServerEngine::processPollEvents()
 		else if (pollFds_[pollIndex_].revents & POLLOUT)
 			processClientRequest_(pollIndex_);
 
-		if (clientIndex_ > 0)
+		if (clientIndex_ >= 0)
 		{
 			if (clients_[clientIndex_].isClosed() == true)
 			{
@@ -531,7 +532,39 @@ void ServerEngine::closeConnection_(size_t &pollIndex_)
 {
 	Logger::log(Logger::INFO)
 		<< "closeConnection_ at pollIndex: " << pollIndex_ << std::endl;
+
+	// Check if pollIndex_ is within bounds
+	if (pollIndex_ >= this->pollFds_.size())
+	{
+		Logger::log(Logger::ERROR)
+			<< "Invalid pollIndex_: " << pollIndex_ << std::endl;
+		return;
+	}
+
+	// Check if clientIndex_ is within bounds
+	if (this->clientIndex_ >= (long long)this->clients_.size())
+	{
+		Logger::log(Logger::ERROR)
+			<< "Invalid clientIndex_: " << this->clientIndex_ << std::endl;
+		return;
+	}
+
+	// Erase the client from the clients_ vector
 	this->clients_.erase(this->clients_.begin() + this->clientIndex_);
-	close(this->pollFds_[pollIndex_].fd);
+
+	// Check if the file descriptor is open before closing it
+	int fd = this->pollFds_[pollIndex_].fd;
+	if (fcntl(fd, F_GETFD) != -1 || errno != EBADF)
+	{
+		close(fd);
+	}
+	else
+	{
+		Logger::log(Logger::DEBUG)
+			<< "Attempted to close an already closed or invalid fd: " << fd
+			<< std::endl;
+	}
+
+	// Erase the pollFd from the pollFds_ vector
 	this->pollFds_.erase(this->pollFds_.begin() + pollIndex_);
 }

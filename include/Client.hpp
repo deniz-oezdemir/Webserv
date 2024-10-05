@@ -46,11 +46,13 @@ class Client
 	int				  pollFd_;
 	std::stringstream clientBuffer_;
 	std::string		  requestStr_;
+	size_t			  totalBytesReadFromFd_;
 	bool			  isChunked_;
 	bool			  hasCompleteRequest_;
 	bool			  isClosed_;
 	bool			  isError_;
 	bool			  areHeadersRead_;
+	bool			  readingPartialBody_;
 	size_t			  nextReadSize_;
 };
 

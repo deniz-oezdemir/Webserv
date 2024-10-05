@@ -87,7 +87,7 @@ else:
 
 logging.debug("post.py part 3 passed")
 
-print("<p><a href=\"http://localhost:8087/\">Go back</a></p>")
+print("<p><a href=\"http://localhost:8087/home.py\">Go back</a></p>")
 print("</body>")
 print("</html>")
 
