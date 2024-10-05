@@ -6,8 +6,7 @@
 #define DEFAULT_HOST	 "localhost"
 #define QUEUE_SIZE		 1
 #define POLL_TIMEOUT	 -1
-#define READ_BUFFER_SIZE 16384
-#define MAX_READ_SIZE	 192800
+#define MAX_REQUEST_SIZE 2097152
 #define SERVER_NAME		 "webserv/0.5"
 
 #define HTTP_ACCEPTED_METHODS                                                  \

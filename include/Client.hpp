@@ -27,28 +27,33 @@ class Client
 	bool isClosed(void) const;
 	bool isError(void) const;
 	bool isChunked(void) const;
+	bool areHeadersRead(void) const;
 	int	 getFd(void) const;
 
   private:
 	Client(void);
 
-	void readClientBuffer_(void);
-	bool isCompleteRequest_(void);
-	bool hasSizeIndicator_(void);
-	bool isBodyFullyReceived_(size_t headerEndPos);
-	void moveExtraCharsToBuffer__(size_t pos);
-	void reset_();
-	bool handleContentLength_(size_t bodyStartPos);
-	bool handleChunkedEncoding_(size_t bodyStartPos);
-	bool processChunks_(size_t chunkStart);
+	void   readClientBuffer_(void);
+	bool   isCompleteRequest_(void);
+	bool   hasSizeIndicator_(void);
+	void   moveExtraCharsToBuffer__(size_t pos);
+	void   reset_(void);
+	bool   handleChunkedEncoding_(size_t bodyStartPos);
+	bool   processChunks_(size_t chunkStart);
+	bool   areHeadersComplete_(void);
+	size_t getBodySize_(void);
 
 	int				  pollFd_;
 	std::stringstream clientBuffer_;
 	std::string		  requestStr_;
+	size_t			  totalBytesReadFromFd_;
 	bool			  isChunked_;
 	bool			  hasCompleteRequest_;
 	bool			  isClosed_;
 	bool			  isError_;
+	bool			  areHeadersRead_;
+	bool			  readingPartialBody_;
+	size_t			  nextReadSize_;
 };
 
 std::ostream &operator<<(std::ostream &os, const Client &rhs);
