@@ -159,7 +159,7 @@ bool ServerEngine::isPollFdServer_(int &fd)
 void ServerEngine::acceptConnection_(size_t &pollIndex_)
 {
 	Logger::log(Logger::DEBUG) << "Accepting client connection on the server["
-								 << pollIndex_ << ']' << std::endl;
+							   << pollIndex_ << ']' << std::endl;
 	sockaddr_in serverAddr = this->servers_[pollIndex_].getServerAddr();
 	int			addrLen = sizeof(serverAddr);
 	int			clientFd = accept(
@@ -202,7 +202,7 @@ void ServerEngine::acceptConnection_(size_t &pollIndex_)
 	pollfd clientPollFd = {clientFd, POLLIN, 0};
 	pollFds_.push_back(clientPollFd);
 	Logger::log(Logger::DEBUG) << "Client connection added to pollFds_["
-								 << pollIndex_ << "]" << std::endl;
+							   << pollIndex_ << "]" << std::endl;
 
 	Client client(clientPollFd.fd);
 	clients_.push_back(client);
@@ -286,7 +286,7 @@ void ServerEngine::initializePollEvents()
 void ServerEngine::readClientRequest_(size_t &pollIndex_)
 {
 	Logger::log(Logger::INFO) << "Reading client request at pollFds_["
-								<< pollIndex_ << ']' << std::endl;
+							  << pollIndex_ << ']' << std::endl;
 
 	try
 	{
@@ -294,10 +294,10 @@ void ServerEngine::readClientRequest_(size_t &pollIndex_)
 		{
 			if (clients_[clientIndex_].isClosed() == true)
 			{
-				Logger::log(Logger::DEBUG)
-					<< "Client disconnected: Erase clients_[" << clientIndex_
-					<< "], " << "close and erase pollFds_[" << pollIndex_ << "]"
-					<< std::endl;
+				Logger::log(Logger::DEBUG
+				) << "readClientRequest_: Client disconnected: Erase clients_["
+				  << clientIndex_ << "], " << "close and erase pollFds_["
+				  << pollIndex_ << "]" << std::endl;
 			}
 			return;
 		}
@@ -305,10 +305,12 @@ void ServerEngine::readClientRequest_(size_t &pollIndex_)
 	catch (std::exception &e)
 	{
 		Logger::log(Logger::DEBUG)
-			<< "Client.hasRequestReady resulted in error: " << e.what()
-			<< std::endl;
+			<< "readClientRequest_: Client.hasRequestReady resulted in error: "
+			<< e.what() << " for pollIndex_:" << pollIndex_
+			<< " Going to send response and close client." << std::endl;
 		std::string response = HttpErrorHandler::getErrorPage(400, true);
-		sendResponse_(pollIndex_, response);
+		// sendResponse_(pollIndex_, response);
+		return;
 	}
 
 	pollFds_[pollIndex_].events = POLLOUT;
@@ -347,7 +349,7 @@ void ServerEngine::processClientRequest_(size_t &pollIndex_)
 	catch (std::exception &e)
 	{
 		response = HttpErrorHandler::getErrorPage(400, true);
-		Logger::log(Logger::ERROR, true)
+		Logger::log(Logger::DEBUG)
 			<< "Failed to parse the request: " << e.what() << std::endl;
 		sendResponse_(pollIndex_, response);
 		return;
@@ -434,7 +436,7 @@ void ServerEngine::processPollEvents()
 		else if (pollFds_[pollIndex_].revents & POLLIN)
 		{
 			Logger::log(Logger::DEBUG) << "pollFds_[" << pollIndex_
-										 << "] is ready for read" << std::endl;
+									   << "] is ready for read" << std::endl;
 			if (this->isPollFdServer_(pollFds_[pollIndex_].fd))
 				acceptConnection_(pollIndex_);
 			else
@@ -532,17 +534,17 @@ void ServerEngine::closeConnection_(size_t &pollIndex_)
 		<< "closeConnection_ at pollIndex: " << pollIndex_ << std::endl;
 	this->clients_.erase(this->clients_.begin() + this->clientIndex_);
 
-		// Check if the file descriptor is open before closing it
-		if (fcntl(this->pollFds_[pollIndex_].fd, F_GETFD) != -1 || errno != EBADF)
-		{
-				close(this->pollFds_[pollIndex_].fd);
-		}
-		else
-		{
-				Logger::log(Logger::DEBUG)
-						<< "Attempted to close an already closed or invalid fd: "
-						<< this->pollFds_[pollIndex_].fd << std::endl;
-		}
+	// Check if the file descriptor is open before closing it
+	if (fcntl(this->pollFds_[pollIndex_].fd, F_GETFD) != -1 || errno != EBADF)
+	{
+		close(this->pollFds_[pollIndex_].fd);
+	}
+	else
+	{
+		Logger::log(Logger::DEBUG)
+			<< "Attempted to close an already closed or invalid fd: "
+			<< this->pollFds_[pollIndex_].fd << std::endl;
+	}
 
 	this->pollFds_.erase(this->pollFds_.begin() + pollIndex_);
 }
