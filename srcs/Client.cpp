@@ -112,7 +112,7 @@ bool Client::hasRequestReady(void)
 	}
 
 	std::vector<char> buffer(nextReadSize_);
-	size_t bytesReadFromFd = read(pollFd_, buffer.data(), buffer.size());
+	long int bytesReadFromFd = read(pollFd_, buffer.data(), buffer.size());
 	totalBytesReadFromFd_ += bytesReadFromFd;
 
 	if (bytesReadFromFd < 0)
@@ -136,7 +136,7 @@ bool Client::hasRequestReady(void)
 	clientBuffer_.write(buffer.data(), bytesReadFromFd);
 	requestStr_ = clientBuffer_.str();
 
-	if (bytesReadFromFd != nextReadSize_)
+	if (bytesReadFromFd != (long)nextReadSize_)
 	{
 		Logger::log(Logger::DEBUG)
 			<< "hasRequestReady: bytesReadFromFd: " << bytesReadFromFd
@@ -147,7 +147,7 @@ bool Client::hasRequestReady(void)
 		return false;
 	}
 
-	if (readingPartialBody_ == true && bytesReadFromFd == nextReadSize_)
+	if (readingPartialBody_ == true && bytesReadFromFd == (long)nextReadSize_)
 	{
 		Logger::log(Logger::DEBUG)
 			<< "hasRequestReady: Body arrived incomplete and has now been "

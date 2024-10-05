@@ -44,6 +44,7 @@ class ServerEngine
 	// clang-format on
 	~ServerEngine();
 	void start(void);
+	std::string createResponse(const HttpRequest &request);
 
   private:
 	ServerEngine();
@@ -68,7 +69,6 @@ class ServerEngine
 	void		processPollEvents(void);
 	void		readClientRequest_(size_t &pollIndex_);
 	void		processClientRequest_(size_t &pollIndex_);
-	std::string createResponse(const HttpRequest &request);
 	void		sendResponse_(size_t &pollIndex_, const std::string &response);
 	bool		isPollFdServer_(int &fd);
 	void		acceptConnection_(size_t &pollIndex_);
