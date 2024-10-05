@@ -4,10 +4,10 @@
 #include "macros.hpp"
 #include "utils.hpp"
 #include <cerrno>
+#include <cmath>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
-#include <exception>
 #include <fcntl.h>
 #include <stdexcept>
 #include <string>
@@ -20,6 +20,8 @@ Client::Client(int pollFd) : pollFd_(pollFd)
 	isChunked_ = false;
 	isClosed_ = false;
 	isError_ = false;
+	areHeadersRead_ = false;
+	nextReadSize_ = 1;
 }
 
 Client::~Client(void)
@@ -40,6 +42,8 @@ Client &Client::operator=(const Client &rhs)
 	hasCompleteRequest_ = rhs.hasCompleteRequest_;
 	isClosed_ = rhs.isClosed_;
 	isError_ = rhs.isError_;
+	areHeadersRead_ = rhs.areHeadersRead_;
+	nextReadSize_ = rhs.nextReadSize_;
 
 	clientBuffer_.str("");
 	clientBuffer_.clear();
@@ -58,17 +62,20 @@ Client &Client::operator=(const Client &rhs)
  */
 bool Client::hasRequestReady(void)
 {
+	Logger::log(Logger::DEBUG) << "hasRequestReady init." << std::endl;
+
 	if (isClosed_ == true)
 	{
-		Logger::log(Logger::ERROR) << "Attempted to read from closed client."
-								   << "Client info: " << *this << std::endl;
+		Logger::log(Logger::ERROR)
+			<< "hasRequestReady: Attempted to read from closed client."
+			<< "Client info: " << *this << std::endl;
 		throw std::invalid_argument("Cannot read from closed client.");
 		return false;
 	}
 	if (isError_ == true)
 	{
 		Logger::log(Logger::ERROR)
-			<< "Attempted to read from client with error."
+			<< "hasRequestReady: Attempted to read from client with error."
 			<< "Client info: " << *this << std::endl;
 		throw std::invalid_argument("Cannot read from client with error.");
 		return false;
@@ -77,38 +84,54 @@ bool Client::hasRequestReady(void)
 	if (hasCompleteRequest_)
 	{
 		Logger::log(Logger::ERROR)
-			<< "Attemped to read from client that has "
+			<< "hasRequestReady: Attemped to read from client that has "
 			   "full request pending extraction! Client info: "
 			<< *this << std::endl;
 		return true;
 	}
 
-	std::vector<char> buffer(READ_BUFFER_SIZE);
+	std::vector<char> buffer(nextReadSize_);
 	ssize_t bytesReadFromFd = read(pollFd_, buffer.data(), buffer.size());
 
 	if (bytesReadFromFd < 0)
 	{
-		if (errno != EWOULDBLOCK && errno != EAGAIN)
-		{
-			Logger::log(Logger::ERROR, true)
-				<< "Failed to read from client: (" << ft::toString(errno)
-				<< ") " << strerror(errno) << std::endl;
-		}
+		Logger::log(Logger::ERROR, true)
+			<< "hasRequestReady:Failed to read from client: ("
+			<< ft::toString(errno) << ") " << strerror(errno) << std::endl;
 		isClosed_ = true;
 		return false;
 	}
 	else if (bytesReadFromFd == 0)
 	{
-		if (errno != EWOULDBLOCK && errno != EAGAIN)
-		{
-			Logger::log(Logger::INFO, true)
-				<< "Client disconnected: " << *this << std::endl;
-		}
+		Logger::log(Logger::INFO, true)
+			<< "hasRequestReady: Client disconnected: " << *this << std::endl;
 		isClosed_ = true;
 		return false;
 	}
 
 	clientBuffer_.write(buffer.data(), bytesReadFromFd);
+	requestStr_ = clientBuffer_.str();
+
+	if (requestStr_.length() > MAX_REQUEST_SIZE)
+	{
+		Logger::log(Logger::INFO)
+			<< "hasRequestReady: Client sent request over default buffer size "
+			   "limit."
+			<< "\nrequestStr_.length(): " << requestStr_.length()
+			<< "\nrequestStr_: " << requestStr_ << std::endl;
+		isClosed_ = true;
+		isError_ = true;
+		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+	}
+
+	if (areHeadersRead_ == true && nextReadSize_ != 1)
+	{
+		Logger::log(Logger::DEBUG)
+			<< "hasRequestReady: Headers and body read." << std::endl;
+		hasCompleteRequest_ = true;
+		return true;
+	}
+
 	readClientBuffer_();
 	return hasCompleteRequest_;
 }
@@ -131,6 +154,8 @@ std::string Client::extractRequestStr(void)
 			<< std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
+	Logger::log(Logger::INFO, true)
+		<< "extractRequestStr returning empty string." << *this << std::endl;
 
 	return tmp;
 }
@@ -155,154 +180,76 @@ bool Client::isChunked(void) const
 	return isChunked_;
 }
 
+bool Client::areHeadersRead(void) const
+{
+	return areHeadersRead_;
+}
+
 /**
  * @brief Reads data from the client buffer and processes it.
  *
  * Reads lines from the client buffer into the request string and checks if
- * a complete request has been received.
+ * a complete request has been received. Handles both regular and chunked
+ * transfer encoding.
  */
 void Client::readClientBuffer_(void)
 {
-	int emptyLineCount = 0;
+	areHeadersRead_ = areHeadersComplete_();
 
-	while (clientBuffer_.str().empty() == false && isClosed_ == false)
+	if (areHeadersRead_ == true)
 	{
-		std::string line;
-		std::getline(clientBuffer_, line, '\n');
-		requestStr_ += line + "\n";
-
-		if (line.empty())
+		Logger::log(Logger::DEBUG)
+			<< "readClientBuffer_:: Headers all read." << std::endl;
+		if (hasSizeIndicator_() == false)
 		{
-			emptyLineCount++;
+			Logger::log(Logger::INFO)
+				<< "readClientBuffer_: Client headers complete and no body."
+				<< std::endl;
+			hasCompleteRequest_ = true;
+			return;
 		}
 		else
 		{
-			emptyLineCount = 0;
-		}
-
-		// TODO: check this bullshit  manu
-		if (emptyLineCount >= 3)
-		{
 			Logger::log(Logger::INFO)
-				<< "Client sent three consecutive empty lines."
-				<< "\nrequestStr_.length(): " << requestStr_.length()
-				<< "\nrequestStr_: " << requestStr_ << std::endl;
-			hasCompleteRequest_ = true;
-			// isClosed_ = true;
-			// isError_ = true;
-			// throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
-			return;
-		}
+			<< "readClientBuffer_: Client headers complete and contains body."
+			<< std::endl;
 
-		if (requestStr_.length() > MAX_READ_SIZE)
-		{
-			Logger::log(Logger::INFO)
-				<< "Client sent request over default buffer size limit."
-				<< "\nrequestStr_.length(): " << requestStr_.length()
-				<< "\nrequestStr_: " << requestStr_ << std::endl;
-			isClosed_ = true;
-			isError_ = true;
-			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
-			return;
-		}
-
-		if (isCompleteRequest_() == true)
-		{
-			hasCompleteRequest_ = true;
-			return;
-		}
-	}
-}
-
-/**
- * @brief Checks if the current request is complete.
- *
- * Determines if the request string contains a complete HTTP request by
- * checking for the end of headers and the presence of a body if indicated
- * by the headers.
- *
- * @return true if the request is complete, false otherwise.
- */
-bool Client::isCompleteRequest_(void)
-{
-	size_t headerEndPos = requestStr_.find("\r\n\r\n");
-	if (headerEndPos != std::string::npos)
-	{
-		if (!hasSizeIndicator_())
-		{
-			// No body, request ends at the first \r\n\r\n
-			hasCompleteRequest_ = true;
-			moveExtraCharsToBuffer__(headerEndPos + 4);
-			return true;
-		}
-		else
-		{
-			// Request has a body, check if the body is fully received
-			if (isBodyFullyReceived_(headerEndPos))
+			if (isChunked_)
 			{
-				hasCompleteRequest_ = true;
-				return true;
+				Logger::log(Logger::INFO)
+					<< "readClientBuffer_: Client contains chunked encoding."
+					<< std::endl;
+				hasCompleteRequest_
+					= processChunks_(requestStr_.find("\r\n\r\n") + 4);
 			}
+			else
+			{
+				nextReadSize_ = getBodySize_();
+			}
+			return;
 		}
 	}
-
-	return false;
+	else
+	{
+		Logger::log(Logger::DEBUG)
+			<< "readClientBuffer_: Headers still not fully read. Read "
+			<< requestStr_.length() << " bytes from FD." << std::endl;
+		hasCompleteRequest_ = false;
+		return;
+	}
 }
 
 /**
- * @brief Checks if the body of the request is fully received.
+ * @brief Checks if the headers are complete.
  *
- * Determines if the body of the request has been fully received based on
- * the Content-Length or Transfer-Encoding headers.
+ * Determines if the request string contains a complete set of HTTP headers
+ * by checking for the end of headers.
  *
- * @param headerEndPos The position in the request string where the headers end.
- * @return true if the body is fully received, false otherwise.
+ * @return true if the headers are complete, false otherwise.
  */
-bool Client::isBodyFullyReceived_(size_t headerEndPos)
+bool Client::areHeadersComplete_(void)
 {
-	size_t bodyStartPos = headerEndPos + 4;
-	if (ft::caseInsensitiveFind(requestStr_, "Content-Length"))
-	{
-		return handleContentLength_(bodyStartPos);
-	}
-	else if (ft::caseInsensitiveFind(requestStr_, "Transfer-Encoding"))
-	{
-		Logger::log(Logger::INFO)
-			<< "Found chunked request: " << requestStr_ << std::endl;
-		return handleChunkedEncoding_(bodyStartPos);
-	}
-	return false;
-}
-
-/**
- * @brief Handles the Content-Length header to determine if the body is fully
- * received.
- *
- * Checks the Content-Length header to determine if the entire body of the
- * request has been received. If the body is fully received, it moves any extra
- * characters to the buffer.
- *
- * @param bodyStartPos The position in the request string where the body starts.
- * @return true if the body is fully received, false otherwise.
- */
-bool Client::handleContentLength_(size_t bodyStartPos)
-{
-	size_t contentLengthPos = requestStr_.find("Content-Length");
-	if (contentLengthPos == std::string::npos)
-	{
-		contentLengthPos = requestStr_.find("content-length");
-	}
-	size_t contentLengthEndPos = requestStr_.find("\r\n", contentLengthPos);
-	std::string contentLengthStr = requestStr_.substr(
-		contentLengthPos + 15, contentLengthEndPos - (contentLengthPos + 15)
-	);
-	size_t contentLength = std::atoi(contentLengthStr.c_str());
-	if (requestStr_.size() >= bodyStartPos + contentLength)
-	{
-		moveExtraCharsToBuffer__(bodyStartPos + contentLength);
-		return true;
-	}
-	return false;
+	return requestStr_.find("\r\n\r\n") != std::string::npos;
 }
 
 /**
@@ -356,102 +303,38 @@ bool Client::handleChunkedEncoding_(size_t bodyStartPos)
  * starts.
  * @return true if the body is fully received, false otherwise.
  */
-bool Client::processChunks_(size_t chunkStart)
+bool Client::processChunks_(size_t bodyStartPos)
 {
-	size_t		totalSize = 0;
-	std::string concatenatedBody;
-
-	while (true)
+	size_t pos = bodyStartPos;
+	while (pos < requestStr_.size())
 	{
-		Logger::log(Logger::DEBUG)
-			<< "Processing chunk starting at position: " << chunkStart
-			<< std::endl;
-
-		size_t chunkSizeEndPos = requestStr_.find("\r\n", chunkStart);
-		if (chunkSizeEndPos == std::string::npos)
+		size_t chunkSizeEnd = requestStr_.find("\r\n", pos);
+		if (chunkSizeEnd == std::string::npos)
 		{
-			Logger::log(Logger::DEBUG)
-				<< "Chunk size end position not found." << std::endl;
-			return false;
+			return false; // Incomplete chunk size line
 		}
 
-		std::string chunkSizeStr
-			= requestStr_.substr(chunkStart, chunkSizeEndPos - chunkStart);
-		size_t chunkSize = std::strtoul(chunkSizeStr.c_str(), NULL, 16);
-		Logger::log(Logger::DEBUG)
-			<< "Chunk size: " << chunkSize << " (hex: " << chunkSizeStr << ")"
-			<< std::endl;
+		std::string chunkSizeStr = requestStr_.substr(pos, chunkSizeEnd - pos);
+		size_t chunkSize;
+		std::istringstream(chunkSizeStr) >> std::hex >> chunkSize;
+		pos = chunkSizeEnd + 2; // Move past the \r\n
 
 		if (chunkSize == 0)
 		{
-			size_t endOfChunksPos = chunkSizeEndPos + 2;
-			if (requestStr_.find("\r\n", endOfChunksPos) == endOfChunksPos)
-			{
-				moveExtraCharsToBuffer__(endOfChunksPos + 2);
-				hasCompleteRequest_ = true;
-				isChunked_ = false;
-
-				// Extract headers
-				size_t		headerEndPos = requestStr_.find("\r\n\r\n");
-				std::string headers = requestStr_.substr(0, headerEndPos + 4);
-
-				// Construct the final request string with headers and
-				// concatenated body
-				std::string resultBody = headers + concatenatedBody;
-				requestStr_ = resultBody;
-
-				Logger::log(Logger::INFO)
-					<< "End of chunks reached. Complete request: "
-					<< requestStr_ << std::endl;
-				return true;
-			}
-			Logger::log(Logger::DEBUG)
-				<< "End of chunks not properly terminated." << std::endl;
-			return false;
+			// Last chunk
+			hasCompleteRequest_ = true;
+			return true;
 		}
 
-		size_t chunkDataStartPos = chunkSizeEndPos + 2;
-		size_t chunkDataEndPos = chunkDataStartPos + chunkSize;
-		if (requestStr_.size() < chunkDataEndPos + 2)
+		if (pos + chunkSize + 2 > requestStr_.size())
 		{
-			Logger::log(Logger::DEBUG)
-				<< "Incomplete chunk data. Expected end position: "
-				<< chunkDataEndPos + 2 << std::endl;
-			return false;
+			return false; // Incomplete chunk data
 		}
 
-		// Append the chunk data to the concatenated body
-		std::string chunkData
-			= requestStr_.substr(chunkDataStartPos, chunkSize);
-		concatenatedBody += chunkData;
-		totalSize += chunkSize;
-
-		Logger::log(Logger::DEBUG) << "Chunk data: " << chunkData << std::endl;
-		Logger::log(Logger::DEBUG)
-			<< "Total size so far: " << totalSize << std::endl;
-
-		Logger::log(Logger::DEBUG)
-			<< "Chunk data processed. Next chunk starts at: "
-			<< chunkDataEndPos + 2 << std::endl;
-		chunkStart = chunkDataEndPos + 2;
+		pos += chunkSize + 2; // Move past the chunk data and \r\n
 	}
-}
 
-/**
- * @brief Extracts extra characters from the request string.
- *
- * Removes extra characters from the request string and adds them back to
- * the beginning of the client buffer for the next read.
- *
- * @param pos The position in the request string where the extra characters
- * start.
- */
-void Client::moveExtraCharsToBuffer__(size_t pos)
-{
-	std::string extraChars = requestStr_.substr(pos);
-	requestStr_ = requestStr_.substr(0, pos);
-	clientBuffer_.str(extraChars + clientBuffer_.str());
-	clientBuffer_.seekg(0, std::ios::beg); // Reset the get pointer
+	return false;
 }
 
 /**
@@ -469,16 +352,53 @@ bool Client::hasSizeIndicator_(void)
 }
 
 /**
+ * @brief Gets the size of the body based on headers.
+ *
+ * Determines the size of the body based on the Content-Length or
+ * Transfer-Encoding headers.
+ *
+ * @return The size of the body.
+ */
+size_t Client::getBodySize_(void)
+{
+	size_t bodySize = 0;
+	if (ft::caseInsensitiveFind(requestStr_, "Content-Length"))
+	{
+		size_t contentLengthPos = requestStr_.find("Content-Length");
+		if (contentLengthPos == std::string::npos)
+		{
+			contentLengthPos = requestStr_.find("content-length");
+		}
+		size_t contentLengthEndPos = requestStr_.find("\r\n", contentLengthPos);
+		std::string contentLengthStr = requestStr_.substr(
+			contentLengthPos + 15, contentLengthEndPos - (contentLengthPos + 15)
+		);
+		bodySize = std::atoi(contentLengthStr.c_str());
+	}
+	else if (ft::caseInsensitiveFind(requestStr_, "Transfer-Encoding"))
+	{
+		// Handle chunked transfer encoding
+		bodySize = std::string::npos; // Indicate chunked encoding
+	}
+	return bodySize;
+}
+
+/**
  * @brief Resets the state of the Client object. Necessary after response has
  * been sent to client.
+ *
+ * Clears the request string and client buffer, and resets state variables
+ * to their initial values.
  */
-void Client::reset_()
+void Client::reset_(void)
 {
 	requestStr_.clear();
 	clientBuffer_.str("");
 	clientBuffer_.clear();
 	hasCompleteRequest_ = false;
 	isChunked_ = false;
+	areHeadersRead_ = false;
+	nextReadSize_ = 1;
 }
 
 std::ostream &operator<<(std::ostream &os, const Client &rhs)
@@ -488,6 +408,7 @@ std::ostream &operator<<(std::ostream &os, const Client &rhs)
 	os << "Is closed: " << rhs.isClosed() << std::endl;
 	os << "Is error: " << rhs.isError() << std::endl;
 	os << "Is chunked: " << rhs.isChunked() << std::endl;
+	os << "Headers fully read: " << rhs.areHeadersRead() << std::endl;
 
 	return os;
 }
