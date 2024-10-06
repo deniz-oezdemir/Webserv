@@ -30,15 +30,23 @@ fn main() {
     // Check environment variables
     let method = env::var("REQUEST_METHOD").unwrap_or_default();
     let content_length = env::var("CONTENT_LENGTH").unwrap_or_default();
-    let content_type = env::var("CONTENT_TYPE").unwrap_or_default();
+    let root_dir = env::var("ROOT_DIR").unwrap_or_default();
 
     debug!("REQUEST_METHOD: {}", method);
     debug!("CONTENT_LENGTH: {}", content_length);
-    debug!("CONTENT_TYPE: {}", content_type);
+    debug!("ROOT_DIR: {}", root_dir);
 
     // Ensure CONTENT_LENGTH is set
-    if content_length.is_empty() {
+    if content_length.is_empty() { 
         error!("CONTENT_LENGTH is not set");
+        process::exit(1); // Exit with error status
+    }
+    if root_dir.is_empty() {
+        error!("ROOT_DIR is not set");
+        process::exit(1); // Exit with error status
+    }
+    if method.is_empty() || method != "POST" {
+        error!("METHOD is not set or not POST");
         process::exit(1); // Exit with error status
     }
 
@@ -47,10 +55,9 @@ fn main() {
     let mut input_data = vec![0; content_length];
     if let Err(e) = io::stdin().read_exact(&mut input_data) {
         error!("Error reading form data: {}", e);
-        return;
+        process::exit(1); // Exit with error status
     }
     debug!("Raw input data: {:?}", input_data);
-
     // Convert input data to string and log it
     let input_string = String::from_utf8_lossy(&input_data);
     debug!("Input data as string: '{}'", input_string);
@@ -70,24 +77,22 @@ fn main() {
 
     debug!("Form data - username: {:?}, password: {:?}", username, password);
 
-    // Generate token and save to db.txt
+    // Generate token and save to db.json;
     if let (Some(username), Some(password)) = (username, password) {
         let hashed_password = hash_password(&password);
         debug!("Hashed password: {}", hashed_password);
-        if let Some(_existing_token) = check_user_exists(&username, &hashed_password) {
-            // User exists, generate a new token
+        if let Some(_existing_token) = check_user_exists(&username, &hashed_password, &root_dir) {
             debug!("User exists, generating new token");
             let new_token = generate_token(&username, &password);
             debug!("New token generated: {}", new_token);
-            update_token(&username, &new_token);
+            update_token(&username, &new_token, &root_dir);
             send_token_to_client(&new_token);
             return;
         } else {
-            // User does not exist, create a new entry
             debug!("User does not exist, creating new entry");
             let token = generate_token(&username, &password);
             debug!("New token generated: {}", token);
-            save_to_db(&username, &hashed_password, &token);
+            save_to_db(&username, &hashed_password, &token, &root_dir);
             send_token_to_client(&token);
             return;
         }
@@ -101,7 +106,7 @@ fn main() {
         println!("</head>");
         println!("<body>");
         println!("<p>Invalid login data.</p>");
-        println!("<p><a href=\"http://localhost:8087/\">Go back</a></p>");
+        println!("<p><a href=\"/\">Go back</a></p>");
         println!("</body>");
         println!("</html>");
     }
@@ -122,7 +127,7 @@ fn hash_password(password: &str) -> String {
     format!("{:x}", hasher.finalize())
 }
 
-fn save_to_db(username: &str, hashed_password: &str, token: &str) {
+fn save_to_db(username: &str, hashed_password: &str, token: &str, root_dir: &str) {
     let db_entry = json!({
         "username": username,
         "hashed_password": hashed_password,
@@ -132,15 +137,15 @@ fn save_to_db(username: &str, hashed_password: &str, token: &str) {
     let mut file = OpenOptions::new()
         .append(true)
         .create(true)
-        .open("www/instagram-clone/db/db.txt")
+        .open(root_dir.to_owned() + "/db/db.json")
         .unwrap();
 
     writeln!(file, "{}", db_entry.to_string()).unwrap();
     debug!("Saved to db: {}", db_entry.to_string());
 }
 
-fn check_user_exists(username: &str, hashed_password: &str) -> Option<String> {
-    let file = File::open("www/instagram-clone/db/db.txt").unwrap();
+fn check_user_exists(username: &str, hashed_password: &str, root_dir: &str) -> Option<String> {
+    let file = File::open(root_dir.to_owned() + "/db/db.json").unwrap();
     let reader = BufReader::new(file);
 
     for line in reader.lines() {
@@ -155,8 +160,8 @@ fn check_user_exists(username: &str, hashed_password: &str) -> Option<String> {
     None
 }
 
-fn update_token(username: &str, new_token: &str) {
-    let file = File::open("www/instagram-clone/db/db.txt").unwrap();
+fn update_token(username: &str, new_token: &str, root_dir: &str) {
+    let file = File::open(root_dir.to_owned() + "/db/db.json").unwrap();
     let reader = BufReader::new(file);
     let mut entries: Vec<Value> = Vec::new();
 
@@ -170,7 +175,7 @@ fn update_token(username: &str, new_token: &str) {
         entries.push(entry);
     }
 
-    let file = File::create("www/instagram-clone/db/db.txt").unwrap();
+    let file = File::create(root_dir.to_owned() + "/db/db.json").unwrap();
     let mut writer = BufWriter::new(file);
 
     for entry in entries {
@@ -181,9 +186,9 @@ fn update_token(username: &str, new_token: &str) {
 
 fn send_token_to_client(token: &str) {
     println!("CGI_HEADERS");
-    println!("Set-Cookie: token={}; Max-Age=86400; Path=/; HttpOnly", token);
-    println!("Status: 302 Found");
-    println!("Location: /home.py");
+    println!("Set-Cookie: 42Token={}; Max-Age=86400; Path=/; HttpOnly", token);
+    println!("Status: 302");
+    println!("Location: /");
     println!("CGI_HEADERS_END");
     println!();
     debug!("Token sent to client: {}", token);

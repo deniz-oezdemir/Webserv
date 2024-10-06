@@ -1,1 +1,0 @@
-{"hashed_password":"ad34912895e6b33814c91bd880feb3d3620aa6c8163f6f7b84c79551551158e1","token":"ade50f53dc31fe3cae6bf2a4ee53a7cd44f847bdc475ebf070c76937cf4b4a53","username":"dsfsdfsdf"}

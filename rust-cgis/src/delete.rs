@@ -1,4 +1,5 @@
 use std::io::{self, Error};
+use std::path::{PathBuf};
 
 fn main() -> io::Result<()> {
 
@@ -14,7 +15,7 @@ fn main() -> io::Result<()> {
     };
 
     // Get the TARGET_FILE environment variable
-    let mut path = match std::env::var("TARGET_FILE") {
+    let target_file = match std::env::var("TARGET_FILE") {
         Ok(val) => val,
         Err(_) => {
             return Err(Error::new(
@@ -24,26 +25,26 @@ fn main() -> io::Result<()> {
         }
     };
 
-    path = root + &path;
+    // Construct the full path
+    let path = PathBuf::from(root.clone() + &target_file);
 
     // Check if the file exists
-    if std::fs::metadata(&path).is_err() {
-        eprintln!("File does not exist: {path}");
+    if !path.exists() {
+        eprintln!("File does not exist: {} {} {}", root, target_file, path.display());
         return Err(Error::new(
             io::ErrorKind::NotFound,
             "File does not exist.",
         ));
     }
 
+    // Attempt to delete the file
     match std::fs::remove_file(&path) {
         Ok(_) => {
-            eprintln!("File deleted: {path}")
+            return Ok(());
         }
-        Err(_) => {
-            eprintln!("File {path} could not be deleted")
+        Err(e) => {
+            eprintln!("File {} could not be deleted: {}", path.display(), e);
+            return Err(e);
         }
     };
-
-    Ok(())
 }
-

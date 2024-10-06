@@ -26,8 +26,6 @@ logging.debug(f"UPLOAD_PATH: {upload_path}")
 # Ensure CONTENT_LENGTH is set
 if not content_length:
 	logging.error("CONTENT_LENGTH is not set")
-	print("Content-Type: text/html")
-	print()
 	print("<html>")
 	print("<head>")
 	print("<title>Error</title>")

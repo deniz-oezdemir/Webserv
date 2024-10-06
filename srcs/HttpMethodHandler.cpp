@@ -419,6 +419,9 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back(
 			"CONTENT_LENGTH=" + ft::toString(request.getBody().size())
 		);
+
+		// TODO: Ask denys why we need this? what happen when there are repeated
+		// keys like in the cookies?
 		// clang-format off
 		std::map<std::string, std::vector<std::string> > headers
 			= request.getHeaders();
@@ -490,11 +493,6 @@ std::string HttpMethodHandler::handleCgiRequest_(
 
 		// Write the request body to the pipe for the child process
 		const std::vector<char> &requestBody = request.getBody();
-		std::cout << "before send to cgi " << request << std::endl;
-
-		// Debug
-		// std::string bodyStr(requestBody.begin(), requestBody.end());
-		// std::cout << "Request Body: " << bodyStr << std::endl;
 
 		write(pipefd[1], requestBody.data(), requestBody.size());
 		close(pipefd[1]); // Close the write end of the pipe after writing
@@ -520,51 +518,58 @@ std::string HttpMethodHandler::handleCgiRequest_(
 
 		close(pipefd[0]); // Close the read end of the pipe after reading
 
-		std::cout << "CGI Output: " << output.str() << std::endl;
-
 		// Check the first line of the output
-		std::string firstLine;
-		std::string expectedLine = "CGI_HEADERS";
-		std::string expectedEndLine = "CGI_HEADERS_END";
-		// clang-format off
-		std::vector<std::pair<std::string, std::string> > cgiHeaders; // clang-format on
+		std::string const				   expectedLine = "CGI_HEADERS";
+		std::string const				   expectedEndLine = "CGI_HEADERS_END";
+		std::string						   firstLine;
+		std::map<std::string, std::string> cgiHeaders;
 		std::getline(output, firstLine);
 		if (firstLine == expectedLine)
 		{
 			std::cout << "CGI_HEADERS" << std::endl;
-			// Extract the relevant information
+			// Extract the response headers
 			std::string		  line;
 			std::stringstream bodyStream;
 			while (std::getline(output, line) && line != expectedEndLine)
 			{
 				unsigned int colonPos = line.find(':');
-				cgiHeaders.push_back(std::make_pair(
-					line.substr(0, colonPos), line.substr(colonPos + 2)
-				));
+				cgiHeaders[line.substr(0, colonPos)]
+					= line.substr(colonPos + 2);
 			}
 			// Copy the remaining lines to bodyStream
 			while (std::getline(output, line))
-			{
 				bodyStream << line << "\n";
-			};
 			// Swap bodyStream with output to retain only the body content
 			output.swap(bodyStream);
 		}
 
-		Logger::log(Logger::DEBUG)
-			<< "CGI Output: " << output.str() << std::endl;
-
+		// TODO: Ask Denys How are you handlling the status code in the scripts?
 		HttpResponse response;
-		if (output.str().find("400") != std::string::npos) {
-				response.setStatusCode(400);
-				response.setReasonPhrase("Bad Request");
-		} else if (output.str().find("415") != std::string::npos) {
-				response.setStatusCode(415);
-				response.setReasonPhrase("Unsupported Media Type");
-		} else {
-				response.setStatusCode(200);
-				response.setReasonPhrase("OK");
+		if (output.str().find("400") != std::string::npos)
+		{
+			response.setStatusCode(400);
+			response.setReasonPhrase("Bad Request");
 		}
+		else if (output.str().find("415") != std::string::npos)
+		{
+			response.setStatusCode(415);
+			response.setReasonPhrase("Unsupported Media Type");
+		}
+		else
+		{
+			response.setStatusCode(200);
+			response.setReasonPhrase("OK");
+		}
+
+		if (!cgiHeaders.empty() && cgiHeaders.find("Status") != cgiHeaders.end())
+		{
+			std::string statusLine = cgiHeaders["Status"];
+			statusLine = ft::trim(statusLine);
+			int statusCode = ft::strToUShort(statusLine);
+			response.setStatusCode(statusCode);
+			response.setReasonPhrase(ft::getStatusCodeReason(statusCode));
+		}
+
 		response.setHeader("Server", SERVER_NAME);
 		response.setHeader("Date", ft::createTimestamp());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
@@ -576,24 +581,25 @@ std::string HttpMethodHandler::handleCgiRequest_(
 
 		if (!cgiHeaders.empty())
 		{
-			Logger::log(Logger::DEBUG)
-			<< "CGI Headers: " << std::endl;
-			for (std::vector<std::pair<std::string, std::string> >::iterator it
-			 = cgiHeaders.begin();
-			 it != cgiHeaders.end();
-			 ++it)
+			Logger::log(Logger::DEBUG) << "CGI Headers: " << std::endl;
+			for (std::map<std::string, std::string>::const_iterator it
+				 = cgiHeaders.begin();
+				 it != cgiHeaders.end();
+				 ++it)
 			{
-			Logger::log(Logger::DEBUG)
-				<< it->first << ": " << it->second << std::endl;
 				response.setHeader(it->first, it->second);
+				Logger::log(Logger::DEBUG)
+					<< it->first << ": " << it->second << std::endl;
 			}
 		}
 
 		response.setBody(output.str());
 
+		Logger::log(Logger::DEBUG) << "Handling CGI: responding:\n"
+								   << response.toString() << std::endl;
+
 		return response.toString();
 	}
-
 }
 
 bool HttpMethodHandler::isDirectory_(std::string const &filepath)
