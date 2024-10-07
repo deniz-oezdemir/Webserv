@@ -106,3 +106,24 @@ Limit the client body (use: curl -X POST -H "Content-Type: plain/text" --data "B
 
 TODO:
 Try to list a directory.
+
+## Diagram of Informationflow (tbd)
+
+```mermaid
+graph TD
+    A[Server Initialization] -->|Reads Configurations| B[ServerConfig]
+    A -->|Initializes Servers| C[ServerEngine]
+    C -->|Sets up Poll FDs| D[Poll File Descriptors]
+    D -->|Monitors Connections| E[Incoming Connections]
+    E -->|Accepts Connection| F[Client]
+    F -->|Parses Request| G[HttpRequest]
+    G -->|Processes Request| H[ServerEngine]
+    H -->|Generates Response| I[Response]
+    I -->|Sends Response| J[Client]
+    H -->|Static Content| K[Serve Files]
+    H -->|Dynamic Content| L[Execute CGI]
+    H -->|Error Handling| M[Generate Error Response]
+    A -->|Logs Events| N[Logger]
+    F -->|Logs Events| N
+    H -->|Logs Events| N
+    I -->|Logs Events| N
