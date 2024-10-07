@@ -73,7 +73,7 @@ void BodyParser::checkBody_(
 			|| headers.count("Transfer-Encoding") > 0
 			|| headers.count("transfer-encoding") > 0)
 		{
-			Logger::log(Logger::INFO)
+			Logger::log(Logger::DEBUG)
 				<< "checkBody: GET or DELETE method should not have "
 				   "Content-Length header "
 				   "present. Method:"
@@ -82,7 +82,7 @@ void BodyParser::checkBody_(
 		}
 		if (!body.empty())
 		{
-			Logger::log(Logger::INFO)
+			Logger::log(Logger::DEBUG)
 				<< "Body should be empty for GET or DELETE requests."
 				<< std::endl;
 			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
@@ -96,7 +96,7 @@ void BodyParser::checkBody_(
 			&& headers.count("Transfer-Encoding") < 1
 			&& headers.count("transfer-encoding") < 1)
 		{
-			Logger::log(Logger::INFO)
+			Logger::log(Logger::DEBUG)
 				<< "checkBody: POST method requires Content-Length "
 				   "or Transfer-Encoding header."
 				<< std::endl;
@@ -112,7 +112,7 @@ void BodyParser::checkBody_(
 			&& (unsigned long)std::atol(headers.at("content-length")[0].c_str())
 				   != body.size()))
 	{
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::DEBUG)
 			<< "checkBody: Content-Length does not match actual body length. "
 			   "Stated length: "
 			<< (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())

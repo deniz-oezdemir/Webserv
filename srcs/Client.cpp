@@ -73,7 +73,7 @@ bool Client::hasRequestReady(void)
 
 	if (isClosed_ == true)
 	{
-		Logger::log(Logger::ERROR)
+		Logger::log(Logger::DEBUG)
 			<< "hasRequestReady: Attempted to read from closed client."
 			<< "Client info: " << *this << std::endl;
 		throw std::invalid_argument("Cannot read from closed client.");
@@ -81,7 +81,7 @@ bool Client::hasRequestReady(void)
 	}
 	if (isError_ == true)
 	{
-		Logger::log(Logger::ERROR)
+		Logger::log(Logger::DEBUG)
 			<< "hasRequestReady: Attempted to read from client with error."
 			<< "Client info: " << *this << std::endl;
 		throw std::invalid_argument("Cannot read from client with error.");
@@ -90,7 +90,7 @@ bool Client::hasRequestReady(void)
 
 	if (hasCompleteRequest_)
 	{
-		Logger::log(Logger::ERROR)
+		Logger::log(Logger::DEBUG)
 			<< "hasRequestReady: Attemped to read from client that has "
 			   "full request pending extraction! Client info: "
 			<< *this << std::endl;
@@ -128,7 +128,7 @@ bool Client::hasRequestReady(void)
 	}
 	else if (readingPartialBody_ == false && bytesReadFromFd == 0)
 	{
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::DEBUG)
 			<< "hasRequestReady: Client disconnected: " << *this << std::endl;
 		isClosed_ = true;
 		hasCompleteRequest_ = true;
@@ -161,7 +161,7 @@ bool Client::hasRequestReady(void)
 
 	if (requestStr_.length() != totalBytesReadFromFd_)
 	{
-		Logger::log(Logger::ERROR)
+		Logger::log(Logger::DEBUG)
 			<< "hasRequestReady: Read error. requestStr_ length: "
 			<< requestStr_.length()
 			<< " do not match expected totalBytesReadFromFd_: "
@@ -196,19 +196,19 @@ std::string Client::extractRequestStr(void)
 		}
 		else
 		{
-			Logger::log(Logger::INFO, true)
+			Logger::log(Logger::DEBUG, true)
 				<< "Attempted to extract request from client not ready."
 				<< *this << std::endl;
 		}
 	}
 	else
 	{
-		Logger::log(Logger::INFO, true)
+		Logger::log(Logger::DEBUG, true)
 			<< "Attempted to extract request from client with error." << *this
 			<< std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
-	Logger::log(Logger::INFO, true)
+	Logger::log(Logger::DEBUG, true)
 		<< "extractRequestStr returning empty string." << *this << std::endl;
 
 	return tmp;
@@ -256,7 +256,7 @@ void Client::readClientBuffer_(void)
 			<< "readClientBuffer_:: Headers all read." << std::endl;
 		if (hasSizeIndicator_() == false)
 		{
-			Logger::log(Logger::INFO)
+			Logger::log(Logger::DEBUG)
 				<< "readClientBuffer_: Client headers complete and no body."
 				<< std::endl;
 			hasCompleteRequest_ = true;
@@ -264,13 +264,13 @@ void Client::readClientBuffer_(void)
 		}
 		else
 		{
-			Logger::log(Logger::INFO
+			Logger::log(Logger::DEBUG
 			) << "readClientBuffer_: Client headers complete and contains body."
 			  << std::endl;
 
 			if (isChunked_)
 			{
-				Logger::log(Logger::INFO)
+				Logger::log(Logger::DEBUG)
 					<< "readClientBuffer_: Client contains chunked encoding."
 					<< std::endl;
 				hasCompleteRequest_
@@ -279,7 +279,7 @@ void Client::readClientBuffer_(void)
 			else
 			{
 				nextReadSize_ = getBodySize_();
-				Logger::log(Logger::INFO)
+				Logger::log(Logger::DEBUG)
 					<< "readClientBuffer_: Client headers read and "
 					   "nextReadSize_ set to: "
 					<< nextReadSize_ << std::endl;
@@ -341,7 +341,7 @@ bool Client::handleChunkedEncoding_(size_t bodyStartPos)
 	}
 	else
 	{
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::DEBUG)
 			<< "Parsing error with chunked! Fd set to close." << std::endl;
 		isClosed_ = true;
 	}

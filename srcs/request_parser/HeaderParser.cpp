@@ -108,7 +108,7 @@ void HeaderParser::checkSingleHeader_(std::string &headerLine)
 	std::string::size_type colonPos = headerLine.find(':');
 	if (colonPos == std::string::npos)
 	{
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::DEBUG)
 			<< "Header does not contain colon (:). Header: " << headerLine
 			<< std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
@@ -122,7 +122,7 @@ void HeaderParser::checkSingleHeader_(std::string &headerLine)
 
 	if (start != 0 || end != headerName.size() - 1)
 	{
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::DEBUG)
 			<< "Header name has leading or trailing whitespace. Header name: "
 			<< headerName << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
@@ -138,14 +138,14 @@ void HeaderParser::checkSingleHeader_(std::string &headerLine)
 
 	if (!isValidHeaderName_(headerName))
 	{
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::DEBUG)
 			<< "Header name is malformed. Header name: " << headerName
 			<< std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 	if (!isValidHeaderValue_(headerValue))
 	{
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::DEBUG)
 			<< "Header value is malformed. Header value: " << headerValue
 			<< std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
@@ -190,7 +190,7 @@ void HeaderParser::checkRawHeaders_(
 		// Only the Host header is allowed empty values
 		if (it->second.empty() && it->first != "Host")
 		{
-			Logger::log(Logger::INFO)
+			Logger::log(Logger::DEBUG)
 				<< "Header has emtpy value and is not Host. Header: "
 				<< it->first << std::endl;
 			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
@@ -201,7 +201,7 @@ void HeaderParser::checkRawHeaders_(
 		{
 			if (hasHost)
 			{
-				Logger::log(Logger::INFO)
+				Logger::log(Logger::DEBUG)
 					<< "Repeated Host header." << std::endl;
 				throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 			}
@@ -215,7 +215,7 @@ void HeaderParser::checkRawHeaders_(
 			{
 				if (!checkRepeatedHeaderAllowed_(it->first))
 				{
-					Logger::log(Logger::INFO)
+					Logger::log(Logger::DEBUG)
 						<< "Non-repeatable header appears more than once. "
 						   "Header: "
 						<< it->first << std::endl;
@@ -227,7 +227,7 @@ void HeaderParser::checkRawHeaders_(
 
 	if (!hasHost)
 	{
-		Logger::log(Logger::INFO) << "Absent Host header." << std::endl;
+		Logger::log(Logger::DEBUG) << "Absent Host header." << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
 }

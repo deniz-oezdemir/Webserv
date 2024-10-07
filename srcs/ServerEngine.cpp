@@ -57,8 +57,8 @@ ServerEngine::ServerEngine(
  */
 ServerEngine::~ServerEngine()
 {
-	Logger::log(Logger::DEBUG)
-		<< "Shutting down the server engine" << std::endl;
+	Logger::log(Logger::INFO)
+		<< "Shutting down the server engine." << std::endl;
 	for (size_t i = 0; i < pollFds_.size(); ++i)
 	{
 		if (!this->isPollFdServer_(pollFds_[i].fd) && pollFds_[i].fd != -1)
@@ -91,7 +91,7 @@ void ServerEngine::initServer_(
 		this->servers_[globalServerIndex].init();
 		Logger::log(Logger::INFO)
 			<< "Server " << serverIndex + 1 << "[" << listenIndex << "] "
-			<< " fd: " << servers_[globalServerIndex].getServerFd() << "| "
+			<< " fd: " << servers_[globalServerIndex].getServerFd() << " | "
 			<< "Listen: " << this->servers_[globalServerIndex].getIPV4() << ':'
 			<< this->servers_[globalServerIndex].getPort() << std::endl;
 		++globalServerIndex;
@@ -267,8 +267,8 @@ long int ServerEngine::initializePollEvents_()
 	{
 		if (g_shutdown)
 		{
-			Logger::log(Logger::DEBUG
-			) << "initializePollEvents: Shutdown signal received, exiting poll."
+			Logger::log(Logger::INFO
+			) << "Shutdown signal received, exiting poll..."
 			  << std::endl;
 			return pollCount;
 		}
@@ -289,7 +289,7 @@ long int ServerEngine::initializePollEvents_()
  */
 void ServerEngine::readClientRequest_(size_t &pollIndex_)
 {
-	Logger::log(Logger::INFO) << "Reading client request at pollFds_["
+	Logger::log(Logger::DEBUG) << "Reading client request at pollFds_["
 							  << pollIndex_ << ']' << std::endl;
 
 	try
@@ -427,7 +427,6 @@ void ServerEngine::processPollEvents_()
 {
 	for (pollIndex_ = 0; pollIndex_ < pollFds_.size(); pollIndex_++)
 	{
-		std::cout << "pollFds_ size is:" << pollFds_.size() << std::endl;
 		clientIndex_ = pollIndex_ - totalServerInstances_;
 		Logger::log(Logger::DEBUG)
 			<< "clientIndex is set to " << clientIndex_ << std::endl;
@@ -461,7 +460,7 @@ void ServerEngine::processPollEvents_()
  */
 void ServerEngine::start()
 {
-	Logger::log(Logger::INFO) << "Starting the Server Engine" << std::endl;
+	Logger::log(Logger::INFO) << "Starting the Server Engine." << std::endl;
 	this->initServerPollFds_();
 
 	while (!g_shutdown)
@@ -533,7 +532,7 @@ int ServerEngine::findServer_(
  */
 void ServerEngine::closeConnection_(size_t &pollIndex_)
 {
-	Logger::log(Logger::INFO)
+	Logger::log(Logger::DEBUG)
 		<< "closeConnection_ at pollIndex: " << pollIndex_ << std::endl;
 
 	// Check if pollIndex_ is within bounds
