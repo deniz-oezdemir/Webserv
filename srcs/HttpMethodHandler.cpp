@@ -92,7 +92,7 @@ std::string HttpMethodHandler::handleGetRequest_(
 		// Search for index file in the directory
 		filepath = findIndexFile_(filepath, location, server);
 		if (filepath.empty())
-				return handleErrorResponse_(server, 404, rootdir, keepAlive);
+			return handleErrorResponse_(server, 404, rootdir, keepAlive);
 	}
 
 	// Check if the file exists and return the response
@@ -499,9 +499,15 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		std::stringstream output;
 		ssize_t			  bytesRead;
 
-		// TODO: check < 0 and = 0 separate
 		while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer))) > 0)
 			output.write(buffer, bytesRead);
+
+		if (bytesRead == -1)
+		{
+			Logger::log(Logger::ERROR)
+				<< "CGI script read() execution failed" << std::endl;
+			return HttpErrorHandler::getErrorPage(500);
+		}
 
 		close(pipefd[0]); // Close the read end of the pipe after reading
 
