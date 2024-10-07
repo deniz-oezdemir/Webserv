@@ -87,13 +87,12 @@ std::string HttpMethodHandler::handleGetRequest_(
 	// Check if the request is for a directory and handle autoindex
 	if (isDirectory_(filepath))
 	{
+		if (isAutoIndexEnabled_(location))
+			return handleAutoIndex_(rootdir, uri, server, keepAlive);
 		// Search for index file in the directory
 		filepath = findIndexFile_(filepath, location, server);
 		if (filepath.empty())
 		{
-			if (isAutoIndexEnabled_(location))
-				return handleAutoIndex_(rootdir, uri, server, keepAlive);
-			else
 				return handleErrorResponse_(server, 404, rootdir, keepAlive);
 		}
 	}
