@@ -30,6 +30,8 @@ class Client
 	bool areHeadersRead(void) const;
 	int	 getFd(void) const;
 
+	void setIsClosed(bool closed);
+
   private:
 	Client(void);
 

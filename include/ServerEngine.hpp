@@ -43,7 +43,7 @@ class ServerEngine
 	);
 	// clang-format on
 	~ServerEngine();
-	void start(void);
+	void		start(void);
 	std::string createResponse(const HttpRequest &request);
 
   private:
@@ -64,17 +64,17 @@ class ServerEngine
 		size_t									 &serverIndex,
 		size_t									 &globalServerIndex
 	);
-	void		initServerPollFds_(void);
-	void		initializePollEvents(void);
-	void		processPollEvents(void);
-	void		readClientRequest_(size_t &pollIndex_);
-	void		processClientRequest_(size_t &pollIndex_);
-	void		sendResponse_(size_t &pollIndex_, const std::string &response);
-	bool		isPollFdServer_(int &fd);
-	void		acceptConnection_(size_t &pollIndex_);
-	void		restartServer_(size_t &pollIndex_);
-	void		pollFdError_(size_t &pollIndex_);
-	void		closeConnection_(size_t &pollIndex_);
+	void	 initServerPollFds_(void);
+	long int initializePollEvents_(void);
+	void	 processPollEvents_(void);
+	void	 readClientRequest_(size_t &pollIndex_);
+	void	 processClientRequest_(size_t &pollIndex_);
+	void	 sendResponse_(size_t &pollIndex_, const std::string &response);
+	bool	 isPollFdServer_(int &fd);
+	void	 acceptConnection_(size_t &pollIndex_);
+	void	 restartServer_(size_t &pollIndex_);
+	void	 pollFdError_(size_t &pollIndex_);
+	void	 closeConnection_(size_t &pollIndex_);
 
 	int findServer_(std::string const &host, unsigned short const &port);
 };

@@ -27,14 +27,6 @@ HttpRequest RequestParser::parseRequest(std::string str)
 	if (!headerAcceptedChars.empty())
 		createHeaderAcceptedChars();
 
-	// Replace all occurrences of "\r\n" with "\n" in the HTTP request
-	std::string::size_type pos = 0;
-	while ((pos = str.find("\r\n", pos)) != std::string::npos)
-	{
-		str.replace(pos, 2, "\n");
-		pos += 1;
-	}
-
 	std::istringstream requestStream(str);
 
 	// Print request_string to debug

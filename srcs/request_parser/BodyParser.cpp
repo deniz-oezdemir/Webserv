@@ -74,7 +74,8 @@ void BodyParser::checkBody_(
 			|| headers.count("transfer-encoding") > 0)
 		{
 			Logger::log(Logger::INFO)
-				<< "GET or DELETE method should not have Content-Length header "
+				<< "checkBody: GET or DELETE method should not have "
+				   "Content-Length header "
 				   "present. Method:"
 				<< method << std::endl;
 			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
@@ -86,6 +87,7 @@ void BodyParser::checkBody_(
 				<< std::endl;
 			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 		}
+		return;
 	}
 	else if (method == "POST")
 	{
@@ -94,26 +96,35 @@ void BodyParser::checkBody_(
 			&& headers.count("Transfer-Encoding") < 1
 			&& headers.count("transfer-encoding") < 1)
 		{
-			Logger::log(Logger::INFO) << "POST method requires Content-Length "
-										 "or Transfer-Encoding header."
-									  << std::endl;
+			Logger::log(Logger::INFO)
+				<< "checkBody: POST method requires Content-Length "
+				   "or Transfer-Encoding header."
+				<< std::endl;
 			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 		}
 	}
+	else
+	{
+		return;
+	}
 
-	// // TODO: remove magic number 6
-	// // Check actual body length matches Content-Length header
-	// if ((headers.count("Content-Length") > 0
-	// 	 && (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())
-	// 			!= body.size() + 6)
-	// 	|| (headers.count("content-length") > 0
-	// 		&& (unsigned long)std::atol(headers.at("content-length")[0].c_str())
-	// 			   != body.size() + 6))
-	// {
-	// 	Logger::log(Logger::INFO
-	// 	) << "Content-Length does not match actual body length. Stated length: "
-	// 	  << (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())
-	// 	  << " Actual length: " << body.size() << std::endl;
-	// 	throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
-	// }
+	// Check actual body length matches Content-Length header
+	if ((headers.count("Content-Length") > 0
+		 && (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())
+				!= body.size())
+		|| (headers.count("content-length") > 0
+			&& (unsigned long)std::atol(headers.at("content-length")[0].c_str())
+				   != body.size()))
+	{
+		Logger::log(Logger::INFO)
+			<< "checkBody: Content-Length does not match actual body length. "
+			   "Stated length: "
+			<< (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())
+			<< " Actual length: " << body.size() << std::endl;
+		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
+	}
+	Logger::log(Logger::DEBUG)
+		<< "checkBody: Body checks passed. Stated content length: "
+		<< (unsigned long)std::atol(headers.at("Content-Length")[0].c_str())
+		<< " Actual length: " << body.size() << std::endl;
 }

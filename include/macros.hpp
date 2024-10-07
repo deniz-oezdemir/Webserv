@@ -5,8 +5,8 @@
 #define DEFAULT_IP		 "0.0.0.0"
 #define DEFAULT_HOST	 "localhost"
 #define QUEUE_SIZE		 1
-#define POLL_TIMEOUT	 -1
-#define MAX_REQUEST_SIZE 2097152
+#define POLL_TIMEOUT	 10
+#define MAX_REQUEST_SIZE 4097152
 #define SERVER_NAME		 "webserv/0.5"
 
 #define HTTP_ACCEPTED_METHODS                                                  \

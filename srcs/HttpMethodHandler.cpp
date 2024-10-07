@@ -6,6 +6,7 @@
 #include "utils.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <dirent.h>
 #include <fstream>
@@ -385,14 +386,14 @@ std::string HttpMethodHandler::handleCgiRequest_(
 	int pipefd[2];
 	if (pipe(pipefd) == -1)
 	{
-		Logger::log(Logger::ERROR, true) << "Pipe creation failed" << std::endl;
+		Logger::log(Logger::ERROR) << "Pipe creation failed" << std::endl;
 		return handleErrorResponse_(server, 500, rootdir, keepAlive);
 	}
 
 	pid_t pid = fork();
 	if (pid == -1)
 	{
-		Logger::log(Logger::ERROR, true) << "Fork failed" << std::endl;
+		Logger::log(Logger::ERROR) << "Fork failed" << std::endl;
 		return handleErrorResponse_(server, 500, rootdir, keepAlive);
 	}
 	else if (pid == 0)
@@ -419,29 +420,30 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back(
 			"CONTENT_LENGTH=" + ft::toString(request.getBody().size())
 		);
-
-		// TODO: Ask denys why we need this? what happen when there are repeated
-		// keys like in the cookies?
-		// clang-format off
-		std::map<std::string, std::vector<std::string> > headers
-			= request.getHeaders();
-		for (std::map<std::string, std::vector<std::string> >::const_iterator it
-			 = headers.begin();
-			 it != headers.end();
-			 ++it) // clang-format on
-		{
-			const std::string			   &headerKey = it->first;
-			const std::vector<std::string> &headerValues = it->second;
-			for (std::vector<std::string>::const_iterator valIt
-				 = headerValues.begin();
-				 valIt != headerValues.end();
-				 ++valIt)
-			{
-				Logger::log(Logger::DEBUG) << "Debug Headers: " << headerKey
-										   << ": " << *valIt << std::endl;
-				envVariables.push_back(headerKey + "=" + *valIt);
-			}
-		}
+		Logger::log(Logger::DEBUG, true)
+			<< "handleCgiRequest_: full request: " << request << std::endl;
+		// // clang-format off
+		// std::map<std::string, std::vector<std::string> > headers
+		// 	= request.getHeaders();
+		// for (std::map<std::string, std::vector<std::string> >::const_iterator
+		// it 	 = headers.begin(); 	 it != headers.end();
+		// 	 ++it) // clang-format on
+		// {
+		// 	int								i = 0;
+		// 	const std::string			   &headerKey = it->first;
+		// 	const std::vector<std::string> &headerValues = it->second;
+		// 	for (std::vector<std::string>::const_iterator valIt
+		// 		 = headerValues.begin();
+		// 		 valIt != headerValues.end();
+		// 		 ++valIt)
+		// 	{
+		// 		i++;
+		// 		Logger::log(Logger::DEBUG, true)
+		// 			<< "Debug Headers " << i << " :" << std::endl
+		// 			<< headerKey << ": " << *valIt << std::endl;
+		// 		envVariables.push_back(headerKey + "=" + *valIt);
+		// 	}
+		// }
 
 		// clang-format off
 		std::map<std::string, std::vector<std::string> > headers2
@@ -467,7 +469,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		}
 		envp.push_back(NULL);
 
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::INFO, true)
 			<< "Filepath before argv: " << filepath << std::endl;
 
 		char *argv[]
@@ -497,11 +499,15 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		write(pipefd[1], requestBody.data(), requestBody.size());
 		close(pipefd[1]); // Close the write end of the pipe after writing
 
+		Logger::log(Logger::DEBUG, true)
+			<< "handleCgiRequest_: passing arguments to CGI child, body length:"
+			<< requestBody.size() << std::endl;
+
 		int status;
 		waitpid(pid, &status, 0);
 		if (status != 0)
 		{
-			Logger::log(Logger::ERROR, true)
+			Logger::log(Logger::ERROR)
 				<< "CGI script execution failed" << std::endl;
 			return HttpErrorHandler::getErrorPage(500);
 		}
@@ -542,8 +548,10 @@ std::string HttpMethodHandler::handleCgiRequest_(
 			// Swap bodyStream with output to retain only the body content
 			output.swap(bodyStream);
 		}
+		Logger::log(Logger::DEBUG)
+			<< "CGI Output: " << output.str() << std::endl;
 
-		// TODO: Ask Denys How are you handlling the status code in the scripts?
+		// TODO: Ask Denys about the status code in the CGI response
 		HttpResponse response;
 		if (output.str().find("400") != std::string::npos)
 		{
@@ -665,7 +673,7 @@ std::string HttpMethodHandler::generateAutoIndexPage_(
 	DIR *dir = opendir((root + uri).c_str());
 	if (dir == NULL)
 	{
-		Logger::log(Logger::ERROR, true)
+		Logger::log(Logger::ERROR)
 			<< "Failed to open directory: " << root + uri << std::endl;
 		return handleErrorResponse_(server, 405, root, keepAlive);
 	}
@@ -685,7 +693,7 @@ std::string HttpMethodHandler::generateAutoIndexPage_(
 		struct stat fileStat;
 		if (stat(fullPath.c_str(), &fileStat) == -1)
 		{
-			Logger::log(Logger::ERROR, true)
+			Logger::log(Logger::ERROR)
 				<< "Failed to get file stats: " << fullPath << "Error: ["
 				<< errno << "] " << strerror(errno) << std::endl;
 			continue;

@@ -37,6 +37,12 @@ void HeaderParser::parseHeaders(
 			headerLine.erase(headerLine.size() - 1); // Remove the trailing '\r'
 		}
 
+        // Stop if we reach an empty line (end of headers)
+        if (headerLine.empty())
+        {
+            break;
+        }
+
 		checkSingleHeader_(headerLine);
 
 		std::size_t colonPos = headerLine.find(':');
