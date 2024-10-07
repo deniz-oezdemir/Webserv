@@ -28,7 +28,7 @@ void ParseReqFirstLine::checkStartLine(
 {
 	if (startLine.empty())
 	{
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::DEBUG)
 			<< "Request start line is empty or incorrect. Start line was: "
 			<< startLine << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
@@ -41,7 +41,7 @@ void ParseReqFirstLine::checkStartLine(
 	std::istringstream startLineStream(startLine.c_str());
 	if (!(startLineStream >> *method >> *uri >> *httpVersion))
 	{
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::DEBUG)
 			<< "Request start line is malformed: " << startLine << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 	}
@@ -63,7 +63,7 @@ void ParseReqFirstLine::checkMethod_(std::string &method)
 	size_t		arraySize = sizeof(array) / sizeof(std::string);
 	if (std::find(array, array + arraySize, method) == array + arraySize)
 	{
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::DEBUG)
 			<< "Method not found: " << method << std::endl;
 	}
 }
@@ -87,7 +87,7 @@ void ParseReqFirstLine::checkUri_(std::string &uri)
 	if (uri[0] != '/'
 		&& (uri.find("http://") != 0 && uri.find("https://") != 0))
 	{
-		Logger::log(Logger::INFO) << "Uri is not \'*\' and does not start with "
+		Logger::log(Logger::DEBUG) << "Uri is not \'*\' and does not start with "
 									 "/, http://, or https://: "
 								  << uri << std::endl;
 		throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
@@ -100,7 +100,7 @@ void ParseReqFirstLine::checkUri_(std::string &uri)
 			&& std::string("-._~:/?#[]@!$&'()*+,;=%").find(c)
 				   == std::string::npos)
 		{
-			Logger::log(Logger::INFO)
+			Logger::log(Logger::DEBUG)
 				<< "Uri contains incorrect characters: " << uri << std::endl;
 			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 		}
@@ -109,7 +109,7 @@ void ParseReqFirstLine::checkUri_(std::string &uri)
 			&& (i + 2 >= uri.size() || !std::isxdigit(uri[i + 1])
 				|| !std::isxdigit(uri[i + 2])))
 		{
-			Logger::log(Logger::INFO)
+			Logger::log(Logger::DEBUG)
 				<< "Uri contains non-hex characters after \'%\': " << uri
 				<< std::endl;
 			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
@@ -131,7 +131,7 @@ void ParseReqFirstLine::checkHttpVersion_(std::string &httpVersion)
 {
 	if (httpVersion != "HTTP/1.1")
 	{
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::DEBUG)
 			<< "HTTP version is not \'HTTP/1.1\': " << httpVersion << std::endl;
 		throw HttpException(HTTP_501_CODE, HTTP_501_REASON);
 	}

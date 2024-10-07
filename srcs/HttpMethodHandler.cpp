@@ -378,8 +378,8 @@ std::string HttpMethodHandler::handleCgiRequest_(
 	std::string const &uploadpath
 )
 {
-	Logger::log(Logger::INFO) << "Filepath: " << filepath << std::endl;
-	Logger::log(Logger::INFO) << "Interpreter: " << interpreter << std::endl;
+	Logger::log(Logger::DEBUG) << "Filepath: " << filepath << std::endl;
+	Logger::log(Logger::DEBUG) << "Interpreter: " << interpreter << std::endl;
 
 	int pipefd[2];
 	if (pipe(pipefd) == -1)
@@ -416,28 +416,6 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		);
 		Logger::log(Logger::DEBUG, true)
 			<< "handleCgiRequest_: full request: " << request << std::endl;
-		// // clang-format off
-		// std::map<std::string, std::vector<std::string> > headers
-		// 	= request.getHeaders();
-		// for (std::map<std::string, std::vector<std::string> >::const_iterator
-		// it 	 = headers.begin(); 	 it != headers.end();
-		// 	 ++it) // clang-format on
-		// {
-		// 	int								i = 0;
-		// 	const std::string			   &headerKey = it->first;
-		// 	const std::vector<std::string> &headerValues = it->second;
-		// 	for (std::vector<std::string>::const_iterator valIt
-		// 		 = headerValues.begin();
-		// 		 valIt != headerValues.end();
-		// 		 ++valIt)
-		// 	{
-		// 		i++;
-		// 		Logger::log(Logger::DEBUG, true)
-		// 			<< "Debug Headers " << i << " :" << std::endl
-		// 			<< headerKey << ": " << *valIt << std::endl;
-		// 		envVariables.push_back(headerKey + "=" + *valIt);
-		// 	}
-		// }
 
 		// clang-format off
 		std::map<std::string, std::vector<std::string> > headers2
@@ -463,7 +441,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		}
 		envp.push_back(NULL);
 
-		Logger::log(Logger::INFO, true)
+		Logger::log(Logger::DEBUG, true)
 			<< "Filepath before argv: " << filepath << std::endl;
 
 		char *argv[]

@@ -35,7 +35,7 @@ void TokenValidator::validateTokens(
 					&& headerAcceptedChars.find(header->first)->second.find(*c)
 						   == std::string::npos)
 				{
-					Logger::log(Logger::INFO)
+					Logger::log(Logger::DEBUG)
 						<< "Header contains token with invalid delimeter "
 						   "character Header: "
 						<< header->first << " | failed token: " << *token

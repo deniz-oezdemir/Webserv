@@ -37,7 +37,7 @@ fn main() -> io::Result<()> {
 
     match std::fs::remove_file(&path) {
         Ok(_) => {
-            eprintln!("File deleted: {path}")
+            // eprintln!("File deleted: {path}")
         }
         Err(_) => {
             eprintln!("File {path} could not be deleted")
