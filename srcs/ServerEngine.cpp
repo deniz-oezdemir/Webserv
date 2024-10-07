@@ -550,7 +550,7 @@ void ServerEngine::closeConnection_(size_t &pollIndex_)
 	{
 		Logger::log(Logger::DEBUG)
 			<< "closeConnection: Invalid clientIndex_: " << this->clientIndex_
-			<< " close() will not be caled" << std::endl;
+			<< " close() will not be called" << std::endl;
 		return;
 	}
 

@@ -416,11 +416,13 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		// clang-format off
 		std::map<std::string, std::vector<std::string> > headers
 			= request.getHeaders();
+		Logger::log(Logger::DEBUG, true) << "handleCgiRequest_: full request: " << request << std::endl;
 		for (std::map<std::string, std::vector<std::string> >::const_iterator it
 			 = headers.begin();
 			 it != headers.end();
 			 ++it) // clang-format on
 		{
+			int								i = 0;
 			const std::string			   &headerKey = it->first;
 			const std::vector<std::string> &headerValues = it->second;
 			for (std::vector<std::string>::const_iterator valIt
@@ -428,8 +430,10 @@ std::string HttpMethodHandler::handleCgiRequest_(
 				 valIt != headerValues.end();
 				 ++valIt)
 			{
-				Logger::log(Logger::DEBUG) << "Debug Headers: " << headerKey
-										   << ": " << *valIt << std::endl;
+				i++;
+				Logger::log(Logger::DEBUG, true)
+					<< "Debug Headers " << i << " :" << std::endl
+					<< headerKey << ": " << *valIt << std::endl;
 				envVariables.push_back(headerKey + "=" + *valIt);
 			}
 		}
@@ -512,15 +516,20 @@ std::string HttpMethodHandler::handleCgiRequest_(
 			<< "CGI Output: " << output.str() << std::endl;
 
 		HttpResponse response;
-		if (output.str().find("400") != std::string::npos) {
-				response.setStatusCode(400);
-				response.setReasonPhrase("Bad Request");
-		} else if (output.str().find("415") != std::string::npos) {
-				response.setStatusCode(415);
-				response.setReasonPhrase("Unsupported Media Type");
-		} else {
-				response.setStatusCode(200);
-				response.setReasonPhrase("OK");
+		if (output.str().find("400") != std::string::npos)
+		{
+			response.setStatusCode(400);
+			response.setReasonPhrase("Bad Request");
+		}
+		else if (output.str().find("415") != std::string::npos)
+		{
+			response.setStatusCode(415);
+			response.setReasonPhrase("Unsupported Media Type");
+		}
+		else
+		{
+			response.setStatusCode(200);
+			response.setReasonPhrase("OK");
 		}
 		response.setHeader("Server", SERVER_NAME);
 		response.setHeader("Date", ft::createTimestamp());
@@ -717,7 +726,7 @@ std::string HttpMethodHandler::createFilePostResponse_(
 {
 	HttpResponse response;
 	// Open the file for writing
-	std::string	uploadpathtmp;
+	std::string uploadpathtmp;
 	std::string fileName = request.getFileName();
 	if (fileName.empty())
 		uploadpathtmp = uploadpath;
@@ -780,7 +789,8 @@ std::string HttpMethodHandler::createDeleteResponse_(
 	std::string	 body;
 	HttpResponse response;
 
-	std::string	deletePath;;
+	std::string deletePath;
+	;
 	std::string fileName = request.getFileName();
 
 	if (fileName.empty())
