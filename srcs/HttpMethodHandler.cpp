@@ -6,6 +6,7 @@
 #include "utils.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <dirent.h>
 #include <fstream>
@@ -413,30 +414,30 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back(
 			"CONTENT_LENGTH=" + ft::toString(request.getBody().size())
 		);
-		// clang-format off
-		std::map<std::string, std::vector<std::string> > headers
-			= request.getHeaders();
-		Logger::log(Logger::DEBUG, true) << "handleCgiRequest_: full request: " << request << std::endl;
-		for (std::map<std::string, std::vector<std::string> >::const_iterator it
-			 = headers.begin();
-			 it != headers.end();
-			 ++it) // clang-format on
-		{
-			int								i = 0;
-			const std::string			   &headerKey = it->first;
-			const std::vector<std::string> &headerValues = it->second;
-			for (std::vector<std::string>::const_iterator valIt
-				 = headerValues.begin();
-				 valIt != headerValues.end();
-				 ++valIt)
-			{
-				i++;
-				Logger::log(Logger::DEBUG, true)
-					<< "Debug Headers " << i << " :" << std::endl
-					<< headerKey << ": " << *valIt << std::endl;
-				envVariables.push_back(headerKey + "=" + *valIt);
-			}
-		}
+		Logger::log(Logger::DEBUG, true)
+			<< "handleCgiRequest_: full request: " << request << std::endl;
+		// // clang-format off
+		// std::map<std::string, std::vector<std::string> > headers
+		// 	= request.getHeaders();
+		// for (std::map<std::string, std::vector<std::string> >::const_iterator
+		// it 	 = headers.begin(); 	 it != headers.end();
+		// 	 ++it) // clang-format on
+		// {
+		// 	int								i = 0;
+		// 	const std::string			   &headerKey = it->first;
+		// 	const std::vector<std::string> &headerValues = it->second;
+		// 	for (std::vector<std::string>::const_iterator valIt
+		// 		 = headerValues.begin();
+		// 		 valIt != headerValues.end();
+		// 		 ++valIt)
+		// 	{
+		// 		i++;
+		// 		Logger::log(Logger::DEBUG, true)
+		// 			<< "Debug Headers " << i << " :" << std::endl
+		// 			<< headerKey << ": " << *valIt << std::endl;
+		// 		envVariables.push_back(headerKey + "=" + *valIt);
+		// 	}
+		// }
 
 		// clang-format off
 		std::map<std::string, std::vector<std::string> > headers2
@@ -490,6 +491,10 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		const std::vector<char> &requestBody = request.getBody();
 		write(pipefd[1], requestBody.data(), requestBody.size());
 		close(pipefd[1]); // Close the write end of the pipe after writing
+
+		Logger::log(Logger::DEBUG, true)
+			<< "handleCgiRequest_: passing arguments to CGI child, body length:"
+			<< requestBody.size() << std::endl;
 
 		int status;
 		waitpid(pid, &status, 0);

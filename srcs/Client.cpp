@@ -126,7 +126,7 @@ bool Client::hasRequestReady(void)
 		isError_ = true;
 		return false;
 	}
-	else if (bytesReadFromFd == 0)
+	else if (readingPartialBody_ == false && bytesReadFromFd == 0)
 	{
 		Logger::log(Logger::INFO)
 			<< "hasRequestReady: Client disconnected: " << *this << std::endl;
