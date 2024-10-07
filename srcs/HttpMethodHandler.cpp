@@ -74,6 +74,7 @@ std::string HttpMethodHandler::handleGetRequest_(
 		return handleErrorResponse_(server, 413, rootdir, keepAlive);
 
 	if (isCgiRequest_(location, uri))
+	{
 		return handleCgiRequest_(
 			filepath,
 			getCgiInterpreter_(location),
@@ -82,6 +83,7 @@ std::string HttpMethodHandler::handleGetRequest_(
 			server,
 			rootdir
 		);
+	}
 	// Check if the request is for a directory and handle autoindex
 	if (isDirectory_(filepath))
 	{
@@ -347,7 +349,7 @@ bool HttpMethodHandler::isCgiRequest_(
 
 	if (it != location.end() && !it->second.empty())
 	{
-		if (it->second.size() != 2)
+		if (it->second.size() == 1 || it->second.size() == 2)
 			return true;
 		Logger::log(Logger::DEBUG)
 			<< "CGI Extension: " << it->second[0] << std::endl;
@@ -411,6 +413,10 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		envVariables.push_back("ROOT_DIR=" + rootdir);
 		envVariables.push_back("TARGET_FILE=" + request.getFileName());
 		envVariables.push_back("UPLOAD_PATH=" + uploadpath);
+		if (request.hasCookie())
+		{
+			envVariables.push_back("COOKIE=" + request.getCookie());
+		}
 		envVariables.push_back(
 			"CONTENT_LENGTH=" + ft::toString(request.getBody().size())
 		);
@@ -467,6 +473,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 
 		// Write the request body to the pipe for the child process
 		const std::vector<char> &requestBody = request.getBody();
+
 		write(pipefd[1], requestBody.data(), requestBody.size());
 		close(pipefd[1]); // Close the write end of the pipe after writing
 
@@ -495,6 +502,31 @@ std::string HttpMethodHandler::handleCgiRequest_(
 
 		close(pipefd[0]); // Close the read end of the pipe after reading
 
+		// Check the first line of the output
+		std::string const				   expectedLine = "CGI_HEADERS";
+		std::string const				   expectedEndLine = "CGI_HEADERS_END";
+		std::string						   firstLine;
+		std::map<std::string, std::string> cgiHeaders;
+		std::getline(output, firstLine);
+		if (firstLine == expectedLine)
+		{
+			std::cout << "CGI_HEADERS" << std::endl;
+			// Extract the response headers
+			std::string		  line;
+			std::stringstream bodyStream;
+			while (std::getline(output, line) && line != expectedEndLine)
+			{
+				unsigned int colonPos = line.find(':');
+				cgiHeaders[line.substr(0, colonPos)]
+					= line.substr(colonPos + 2);
+			}
+			// Copy the remaining lines to bodyStream
+			while (std::getline(output, line))
+				bodyStream << line << "\n";
+			// Swap bodyStream with output to retain only the body content
+			output.swap(bodyStream);
+		}
+
 		Logger::log(Logger::DEBUG)
 			<< "CGI Output: " << output.str() << std::endl;
 
@@ -514,6 +546,17 @@ std::string HttpMethodHandler::handleCgiRequest_(
 			response.setStatusCode(200);
 			response.setReasonPhrase("OK");
 		}
+
+
+		if (!cgiHeaders.empty() && cgiHeaders.find("Status") != cgiHeaders.end())
+		{
+			std::string statusLine = cgiHeaders["Status"];
+			statusLine = ft::trim(statusLine);
+			int statusCode = ft::strToUShort(statusLine);
+			response.setStatusCode(statusCode);
+			response.setReasonPhrase(ft::getStatusCodeReason(statusCode));
+		}
+
 		response.setHeader("Server", SERVER_NAME);
 		response.setHeader("Date", ft::createTimestamp());
 		response.setHeader("Content-Type", "text/html; charset=UTF-8");
@@ -522,7 +565,25 @@ std::string HttpMethodHandler::handleCgiRequest_(
 			response.setHeader("Connection", "keep-alive");
 		else
 			response.setHeader("Connection", "close");
+
+		if (!cgiHeaders.empty())
+		{
+			Logger::log(Logger::DEBUG) << "CGI Headers: " << std::endl;
+			for (std::map<std::string, std::string>::const_iterator it
+				 = cgiHeaders.begin();
+				 it != cgiHeaders.end();
+				 ++it)
+			{
+				response.setHeader(it->first, it->second);
+				Logger::log(Logger::DEBUG)
+					<< it->first << ": " << it->second << std::endl;
+			}
+		}
+
 		response.setBody(output.str());
+
+		Logger::log(Logger::DEBUG) << "Handling CGI: responding:\n"
+								   << response.toString() << std::endl;
 
 		return response.toString();
 	}

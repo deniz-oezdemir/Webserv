@@ -261,16 +261,34 @@ bool HttpRequest::extractKeepAlive_(void)
 std::string HttpRequest::extractCookie_(void)
 {
 	std::string cookie;
+	std::vector<std::string>::iterator it;
+	std::vector<std::string>::iterator end;
 
 	if (headers_.count("Cookie") > 0)
 	{
 		hasCookie_ = true;
-		return headers_.at("Cookie")[0];
+		it = headers_.at("Cookie").begin();
+		end = headers_.at("Cookie").end();
+		for (; it != end; ++it)
+		{
+			if (it->find("42Token=") != std::string::npos)
+			{
+				return it->substr(8);
+			}
+		}
 	}
 	if (headers_.count("cookie") > 0)
 	{
 		hasCookie_ = true;
-		return headers_.at("cookie")[0];
+		it = headers_.at("cookie").begin();
+		end = headers_.at("cookie").end();
+		for (; it != end; ++it)
+		{
+			if (it->find("42Token=") != std::string::npos)
+			{
+				return it->substr(8);
+			}
+		}
 	}
 	hasCookie_ = false;
 
@@ -281,10 +299,10 @@ std::string HttpRequest::extractCookie_(void)
  * @brief Extracts the file name from the URI.
  *
  * This method processes the `uri_` member variable to separate the file name
- * from the URI. The URI is split at the first occurrence of the question mark ('?').
- * The part before the question mark remains in `uri_`, and the part after the
- * question mark is stored in `fileName`. If the question mark is the last character
- * in the URI, it is removed, and `fileName` will be empty.
+ * from the URI. The URI is split at the first occurrence of the question mark
+ * ('?'). The part before the question mark remains in `uri_`, and the part
+ * after the question mark is stored in `fileName`. If the question mark is the
+ * last character in the URI, it is removed, and `fileName` will be empty.
  *
  * @return The extracted file name.
  */
@@ -302,7 +320,6 @@ std::string HttpRequest::extractFileName_(void)
 	hasFileName_ = !fileName.empty();
 	return fileName;
 }
-
 
 /**
  * @brief Normalizes the HTTP request by extracting and storing relevant

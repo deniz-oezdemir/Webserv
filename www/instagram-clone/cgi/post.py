@@ -9,7 +9,8 @@ import uuid
 from PIL import Image
 
 # Configure logging
-logging.basicConfig(filename='/tmp/post_debug.log', level=logging.DEBUG)
+logging.basicConfig(filename="/tmp/post_debug.log", level=logging.DEBUG)
+
 
 def log_environment_variables():
     """Log the environment variables."""
@@ -25,12 +26,14 @@ def log_environment_variables():
 
     return method, content_length, content_type, upload_path
 
+
 def ensure_content_length(content_length):
     """Ensure CONTENT_LENGTH is set."""
     if not content_length:
         logging.error("CONTENT_LENGTH is not set")
         print_html_error("Error: CONTENT_LENGTH is not set.", 400)
         exit(1)
+
 
 def print_html_error(message, status_code):
     """Print an HTML error message with a specific status code."""
@@ -49,8 +52,9 @@ def print_html_error(message, status_code):
     print("</body>")
     print("</html>")
 
+
 def read_all_input(content_length):
-    input_data = b''
+    input_data = b""
     while len(input_data) < content_length:
         chunk = os.read(0, content_length - len(input_data))
         if not chunk:
@@ -58,10 +62,11 @@ def read_all_input(content_length):
         input_data += chunk
     return input_data
 
+
 def read_form_data(content_length):
     """Read and return form data."""
     try:
-        content_length = int(os.environ.get('CONTENT_LENGTH', 0))
+        content_length = int(os.environ.get("CONTENT_LENGTH", 0))
         input_data = read_all_input(content_length)
 
         input_stream = BytesIO(input_data)
@@ -71,7 +76,9 @@ def read_form_data(content_length):
         logging.debug(f"Input stream: {input_stream}")
         # logging.debug(f"Input stream len: {len(input_stream)}")
 
-        form = cgi.FieldStorage(fp=input_stream, environ=os.environ, keep_blank_values=True)
+        form = cgi.FieldStorage(
+            fp=input_stream, environ=os.environ, keep_blank_values=True
+        )
         logging.debug(f"Form keys: {form.keys()}")
         return form
     except Exception as e:
@@ -79,9 +86,10 @@ def read_form_data(content_length):
         print_html_error("Error reading form data.", 400)
         exit(1)
 
+
 def validate_and_save_file(file_item, upload_path):
     """Validate the file and save it if valid."""
-    if not file_item.filename.lower().endswith('.jpg'):
+    if not file_item.filename.lower().endswith(".jpg"):
         logging.debug("Incorrect file format. Only .jpg files are accepted.")
         print("    <div class='container'>")
         print("        <h1>415 Unsupported Media Type</h1>")
@@ -96,7 +104,7 @@ def validate_and_save_file(file_item, upload_path):
 
         filename = f"{uuid.uuid4().hex}.jpg"
         os.makedirs(upload_path, exist_ok=True)
-        with open(os.path.join(upload_path, filename), 'wb') as f:
+        with open(os.path.join(upload_path, filename), "wb") as f:
             f.write(file_item.file.read())
         logging.debug(f"File {filename} uploaded successfully")
         print("    <div class='container'>")
@@ -108,6 +116,7 @@ def validate_and_save_file(file_item, upload_path):
         print("        <h1>400 Bad request</h1>")
         print("        <p>Only valid image files are accepted.</p>")
         print("    </div>")
+
 
 def main():
     logging.debug("post.py script started")
@@ -186,8 +195,8 @@ def main():
     print("</body>")
     print("</html>")
 
-
     logging.debug("post.py finished")
+
 
 if __name__ == "__main__":
     main()
