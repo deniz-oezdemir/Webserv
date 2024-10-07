@@ -433,7 +433,7 @@ Test(RequestParser, testCookieParsing)
 	headers["Host"].push_back(host);
 	headers["User-Agent"].push_back("telnet/12.21");
 	headers["Accept"].push_back("*/*");
-	headers["Cookie"].push_back("sessionId=abc123");
+	headers["Cookie"].push_back("42Token=abc123");
 	std::vector<char> body;
 
 	std::string requestStr
@@ -442,7 +442,7 @@ Test(RequestParser, testCookieParsing)
 	HttpRequest request = RequestParser::parseRequest(requestStr);
 
 	cr_assert(request.hasCookie(), "Request should have a cookie");
-	cr_assert_str_eq(request.getCookie().c_str(), "sessionId=abc123");
+	cr_assert_str_eq(request.getCookie().c_str(), "abc123");
 
 	delete[] argv;
 }
@@ -452,11 +452,11 @@ Test(RequestParser, testFileName)
 	char **argv = new char *[2];
 	argv[0] = (char *)"./server";
 	argv[1] = (char *)"test.config";
-	std::string										method("GET");
-	std::string										httpVersion("HTTP/1.1");
-	std::string										uri("/localhost:8080?test.md");
-	std::string										host("www.example.com");
-	std::string										target(host + uri);
+	std::string method("GET");
+	std::string httpVersion("HTTP/1.1");
+	std::string uri("/localhost:8080?test.md");
+	std::string host("www.example.com");
+	std::string target(host + uri);
 	std::map<std::string, std::vector<std::string>> headers;
 	headers["Host"].push_back(host);
 	headers["User-Agent"].push_back("telnet/12.21");

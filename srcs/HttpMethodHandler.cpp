@@ -510,7 +510,6 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		std::getline(output, firstLine);
 		if (firstLine == expectedLine)
 		{
-			std::cout << "CGI_HEADERS" << std::endl;
 			// Extract the response headers
 			std::string		  line;
 			std::stringstream bodyStream;
@@ -524,7 +523,8 @@ std::string HttpMethodHandler::handleCgiRequest_(
 			while (std::getline(output, line))
 				bodyStream << line << "\n";
 			// Swap bodyStream with output to retain only the body content
-			output.swap(bodyStream);
+			output.clear();
+			output << bodyStream;
 		}
 
 		Logger::log(Logger::DEBUG)
@@ -547,8 +547,8 @@ std::string HttpMethodHandler::handleCgiRequest_(
 			response.setReasonPhrase("OK");
 		}
 
-
-		if (!cgiHeaders.empty() && cgiHeaders.find("Status") != cgiHeaders.end())
+		if (!cgiHeaders.empty()
+			&& cgiHeaders.find("Status") != cgiHeaders.end())
 		{
 			std::string statusLine = cgiHeaders["Status"];
 			statusLine = ft::trim(statusLine);

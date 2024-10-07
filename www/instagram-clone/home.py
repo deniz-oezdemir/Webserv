@@ -121,7 +121,7 @@ def main():
     if not token:
         print("CGI_HEADERS")
         print("Status: 302")
-        print("Location: /cgi_check_token")
+        print("Location: /cgi/cookie_check_cgi")
         print("CGI_HEADERS_END")
         print()
         return
@@ -132,7 +132,7 @@ def main():
     if not username:
         print("CGI_HEADERS")
         print("Status: 302")
-        print("Location: /cgi_check_token")
+        print("Location: /cgi/cookie_check_cgi")
         print("CGI_HEADERS_END")
         print()
         return

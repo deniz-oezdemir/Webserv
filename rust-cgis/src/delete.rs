@@ -47,4 +47,5 @@ fn main() -> io::Result<()> {
             return Err(e);
         }
     };
+    Ok(())
 }

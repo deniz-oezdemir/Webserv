@@ -330,7 +330,7 @@ void ServerConfig::handleClosingBracket_(
 
 bool ServerConfig::isValidLogLevel_(const std::string &logLevel)
 {
-	return std::find(validLogLevels.begin(), validLogLevels.end(), logLevel)
+	return ft::find(validLogLevels.begin(), validLogLevels.end(), logLevel)
 		   != validLogLevels.end();
 }
 
