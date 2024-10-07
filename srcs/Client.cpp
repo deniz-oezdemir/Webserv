@@ -219,6 +219,11 @@ int Client::getFd(void) const
 	return pollFd_;
 }
 
+void Client::setIsClosed(bool closed)
+{
+	isClosed_ = closed;
+}
+
 bool Client::isClosed(void) const
 {
 	return isClosed_;
