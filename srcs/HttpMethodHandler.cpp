@@ -462,7 +462,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		}
 		envp.push_back(NULL);
 
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::INFO, true)
 			<< "Filepath before argv: " << filepath << std::endl;
 
 		char *argv[]
@@ -474,7 +474,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 
 		if (execve(interpreter.c_str(), argv, &envp[0]) == -1)
 		{
-			Logger::log(Logger::ERROR)
+			Logger::log(Logger::ERROR, true)
 				<< "Failed to execute CGI script: " << filepath << std::endl;
 			close(pipefd[1]);
 		}
