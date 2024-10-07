@@ -32,6 +32,47 @@ void ConfigParser::errorHandler(
 		);
 }
 
+bool ConfigParser::checkDirective(
+	std::vector<std::string> const &tokens,
+	unsigned int const			   &lineIndex,
+	bool const					   &isTest,
+	bool const					   &isTestPrint,
+	std::string const			   &filepath,
+	bool						   &isConfigOK
+)
+{
+	if (tokens[0] == "limit_except")
+		return ConfigParser::checkLimitExcept(
+			tokens, lineIndex, isTest, isTestPrint, filepath, isConfigOK
+		);
+
+	else if (tokens[0] == "autoindex")
+		return ConfigParser::checkAutoIndex(
+			tokens, lineIndex, isTest, isTestPrint, filepath, isConfigOK
+		);
+	else if (tokens[0] == "return")
+		return ConfigParser::checkReturn(
+			tokens, lineIndex, isTest, isTestPrint, filepath, isConfigOK
+		);
+	else if (tokens[0] == "cgi")
+		return ConfigParser::checkCgi(
+			tokens, lineIndex, isTest, isTestPrint, filepath, isConfigOK
+		);
+	else if (tokens[0] == "upload_store")
+		return ConfigParser::checkUploadStore(
+			tokens, lineIndex, isTest, isTestPrint, filepath, isConfigOK
+		);
+	else if (tokens[0] == "client_max_body_size")
+		return ConfigParser::checkClientMaxBodySize(
+			tokens, lineIndex, isTest, isTestPrint, filepath, isConfigOK
+		);
+	else if (tokens[0] == "root")
+		return ConfigParser::checkRoot(
+			tokens, lineIndex, isTest, isTestPrint, filepath, isConfigOK
+		);
+	return false;
+}
+
 // Check the number of arguments in the directive, if the number of arguments is
 // greater than maxSize, print an error message and return false. If the last
 // argument does not end with ';', print an error message and return false.
