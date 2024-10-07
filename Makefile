@@ -94,9 +94,9 @@ OBJECTS := $(addprefix $(OBJ_DIR)/, $(notdir $(SOURCE:.cpp=.o)))
 ifdef DEV
 CXXFLAGS					:=
 else ifdef DEBUG
-	CXXFLAGS				:= -g3 -fsanitize=address
+	CXXFLAGS				:= -g3
 else
-	CXXFLAGS				:= -Wall -Wextra -Werror -std=c++98
+	CXXFLAGS				:= -Wall -Wextra -Werror -std=c++98 -Ofast
 endif
 ifeq ($(shell uname), Linux)
 	CXXFLAGS				+= -D LINUX

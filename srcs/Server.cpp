@@ -364,7 +364,7 @@ std::map<std::string, std::vector<std::string> > const
 // clang-format on
 Server::getThisLocation(std::string const &location) const
 {
-	std::string tmp = location;
+	std::string										   tmp = location;
 	std::map<std::string, ConfigValue>::const_iterator it
 		= serverConfig_.find(tmp);
 	while (it == serverConfig_.end() && !tmp.empty())

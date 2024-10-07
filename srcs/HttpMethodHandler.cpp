@@ -474,7 +474,12 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		// Write the request body to the pipe for the child process
 		const std::vector<char> &requestBody = request.getBody();
 
-		write(pipefd[1], requestBody.data(), requestBody.size());
+		if (write(pipefd[1], requestBody.data(), requestBody.size()) < 0)
+		{
+			Logger::log(Logger::ERROR)
+				<< "CGI script execution failed to write" << std::endl;
+			return HttpErrorHandler::getErrorPage(500);
+		}
 		close(pipefd[1]); // Close the write end of the pipe after writing
 
 		Logger::log(Logger::DEBUG, true)
@@ -820,7 +825,6 @@ std::string HttpMethodHandler::createFilePostResponse_(
 	return response.toString();
 }
 
-// TODO: Sebas use only the filename as parameter not the request
 std::string HttpMethodHandler::createDeleteResponse_(
 	HttpRequest const &request,
 	const std::string &filepath,
@@ -842,7 +846,7 @@ std::string HttpMethodHandler::createDeleteResponse_(
 	else
 		deletePath = filepath + "/" + fileName;
 
-	if (remove(deletePath.c_str()) == 0)
+	if (std::remove(deletePath.c_str()) == 0)
 	{
 		// Check for redirections
 		if (!redirect.empty())
