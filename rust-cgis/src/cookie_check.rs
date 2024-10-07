@@ -48,7 +48,7 @@ fn check_token_exists(token: &str, root_dir: &str) -> bool {
 fn print_redirect() {
     println!("CGI_HEADERS");
     println!("Status: 302");
-    println!("Location: /cgi/home_cgi");
+    println!("Location: /home.py");
     println!("CGI_HEADERS_END");
     println!();
 }

@@ -548,10 +548,10 @@ std::string HttpMethodHandler::handleCgiRequest_(
 			// Swap bodyStream with output to retain only the body content
 			output.swap(bodyStream);
 		}
+
 		Logger::log(Logger::DEBUG)
 			<< "CGI Output: " << output.str() << std::endl;
 
-		// TODO: Ask Denys about the status code in the CGI response
 		HttpResponse response;
 		if (output.str().find("400") != std::string::npos)
 		{
@@ -568,6 +568,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 			response.setStatusCode(200);
 			response.setReasonPhrase("OK");
 		}
+
 
 		if (!cgiHeaders.empty() && cgiHeaders.find("Status") != cgiHeaders.end())
 		{
