@@ -502,6 +502,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		std::stringstream output;
 		ssize_t			  bytesRead;
 
+		// TODO: check < 0 and = 0 separate
 		while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer))) > 0)
 			output.write(buffer, bytesRead);
 
