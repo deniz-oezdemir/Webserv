@@ -26,14 +26,14 @@ HttpRequest RequestParser::parseRequest(std::string str)
 	// Only create map once, c++98 sucks!
 	if (!headerAcceptedChars.empty())
 		createHeaderAcceptedChars();
-
-	// Replace all occurrences of "\r\n" with "\n" in the HTTP request
-	std::string::size_type pos = 0;
-	while ((pos = str.find("\r\n", pos)) != std::string::npos)
-	{
-		str.replace(pos, 2, "\n");
-		pos += 1;
-	}
+	//
+	// // Replace all occurrences of "\r\n" with "\n" in the HTTP request
+	// std::string::size_type pos = 0;
+	// while ((pos = str.find("\r\n", pos)) != std::string::npos)
+	// {
+	// 	str.replace(pos, 2, "\n");
+	// 	pos += 1;
+	// }
 
 	std::istringstream requestStream(str);
 
