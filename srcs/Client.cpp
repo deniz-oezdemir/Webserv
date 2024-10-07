@@ -101,7 +101,7 @@ bool Client::hasRequestReady(void)
 	{
 		std::string debugLine;
 		std::getline(clientBuffer_, debugLine);
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::DEBUG)
 			<< "hasRequestReady: Client sent request over default buffer size "
 			   "limit."
 			<< std::endl

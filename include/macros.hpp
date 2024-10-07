@@ -6,13 +6,12 @@
 #define DEFAULT_HOST	 "localhost"
 #define QUEUE_SIZE		 1
 #define POLL_TIMEOUT	 10
-#define MAX_REQUEST_SIZE 4097152
+// Set MAX_REQUEST_SIZE larger than necessary as each server has it's own limit
+// set in the config
+#define MAX_REQUEST_SIZE 10000000
 #define SERVER_NAME		 "webserv/0.5"
 
-#define HTTP_ACCEPTED_METHODS                                                  \
-	{                                                                          \
-		"GET", "POST", "DELETE"                                                \
-	}
+#define HTTP_ACCEPTED_METHODS {"GET", "POST", "DELETE"}
 
 // HTTP CODES
 #define HTTP_200_CODE	200
