@@ -28,8 +28,10 @@ OBJ_DIR						:= obj
 SRC_DIR						:= srcs
 INC_DIR						:= include
 
-vpath %.cpp $(SRC_DIR) $(SRC_DIR)/request_parser
-vpath %.hpp $(INC_DIR) $(INC_DIR)/request_parser
+vpath %.cpp $(SRC_DIR) $(SRC_DIR)/request_parser $(SRC_DIR)/configuration \
+	$(SRC_DIR)/utils $(SRC_DIR)/signals
+vpath %.hpp $(INC_DIR) $(INC_DIR)/request_parser $(INC_DIR)/configuration \
+	$(INC_DIR)/utils $(INC_DIR)/signals
 vpath %.o $(OBJ_DIR)
 
 
@@ -39,6 +41,7 @@ HEADERS := 	colors.hpp \
 			ServerException.hpp \
 			ServerConfig.hpp \
 			ConfigValue.hpp \
+			ConfigParser.hpp \
 			utils.hpp \
 			Server.hpp \
 			HttpRequest.hpp \
@@ -58,11 +61,15 @@ HEADERS := 	colors.hpp \
 			Client.hpp
 
 SOURCE := 	main.cpp \
-			ServerInput.cpp \
-			ServerException.cpp \
-			ServerConfig.cpp \
-			ConfigValue.cpp \
-			utils.cpp \
+			utils/Logger.cpp \
+			utils/ServerException.cpp \
+			utils/utils.cpp \
+			signals/signals.cpp \
+			signals/globals.cpp \
+			configuration/ServerInput.cpp \
+			configuration/ConfigParser.cpp \
+			configuration/ServerConfig.cpp \
+			configuration/ConfigValue.cpp \
 			Server.cpp \
 			HttpRequest.cpp \
 			request_parser/RequestParser.cpp \
@@ -71,12 +78,9 @@ SOURCE := 	main.cpp \
 			request_parser/HttpHeaders.cpp \
 			request_parser/BodyParser.cpp \
 			request_parser/TokenValidator.cpp \
-          	Logger.cpp \
 			HttpException.cpp \
 			ServerEngine.cpp \
 			HttpResponse.cpp \
-			signals.cpp \
-			globals.cpp \
 			HttpMethodHandler.cpp \
 			HttpErrorHandler.cpp \
 			Client.cpp

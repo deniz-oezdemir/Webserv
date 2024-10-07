@@ -381,14 +381,84 @@ void ServerConfig::parseLocationBlock_(
 		);
 }
 
+void ServerConfig::handleClosingBracket(
+	std::stack<bool> &brackets,
+	unsigned int	  lineIndex,
+	bool			  isTest,
+	bool			  isTestPrint
+)
+{
+	if (!brackets.empty())
+		brackets.pop();
+	else
+		ConfigParser::errorHandler(
+			"Missing '{' to pair '}'",
+			lineIndex,
+			isTest,
+			isTestPrint,
+			this->filepath_,
+			this->isConfigOK_
+		);
+}
+
+bool ServerConfig::isValidLogLevel(const std::string &logLevel)
+{
+	return std::find(
+			   this->validLogLevels.begin(),
+			   this->validLogLevels.end(),
+			   logLevel
+		   )
+		   != this->validLogLevels.end();
+}
+
+void ServerConfig::handleGeneralDirective(
+	std::vector<std::string> &tokens,
+	unsigned int			  lineIndex,
+	bool					  isTest,
+	bool					  isTestPrint
+)
+{
+	if (ConfigParser::checkValues(
+			tokens,
+			2,
+			lineIndex,
+			isTest,
+			isTestPrint,
+			this->filepath_,
+			this->isConfigOK_
+		))
+	{
+		tokens[1].erase(tokens[1].size() - 1);
+		if (ft::isStrOfDigits(tokens[1]) || tokens[1] == "auto"
+			|| (tokens[0] == "error_log" && isValidLogLevel(tokens[1])))
+			this->generalConfig_[tokens[0]] = tokens[1];
+		else
+			ConfigParser::errorHandler(
+				"Invalid value [" + tokens[1] + "] for " + tokens[0]
+					+ " directive",
+				lineIndex,
+				isTest,
+				isTestPrint,
+				this->filepath_,
+				this->isConfigOK_
+			);
+	}
+}
+
+bool ServerConfig::isGeneralDirective(const std::string &directive)
+{
+	return directive == "worker_processes" || directive == "worker_connections"
+		   || directive == "error_log";
+}
+
 void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 {
 	std::stack<bool>		 brackets;
 	std::string				 line;
 	unsigned int			 lineIndex(1);
 	std::vector<std::string> tokens;
-	// Reserve memory for the tokens to avoid reallocations.
 	tokens.reserve(6);
+
 	while (std::getline(this->file_, line))
 	{
 		ft::trim(line);
@@ -405,17 +475,7 @@ void ServerConfig::parseFile(bool isTest, bool isTestPrint)
 		// message for unmatched brackets.
 		if (tokens[0] == "}")
 		{
-			if (!brackets.empty())
-				brackets.pop();
-			else
-				ConfigParser::errorHandler(
-					"Missing '{' to pair '}'",
-					lineIndex,
-					isTest,
-					isTestPrint,
-					this->filepath_,
-					this->isConfigOK_
-				);
+			handleClosingBracket(brackets, lineIndex, isTest, isTestPrint);
 		}
 		else if (tokens[0] == "worker_processes"
 				 || tokens[0] == "worker_connections")
