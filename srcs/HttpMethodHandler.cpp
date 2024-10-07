@@ -92,9 +92,7 @@ std::string HttpMethodHandler::handleGetRequest_(
 		// Search for index file in the directory
 		filepath = findIndexFile_(filepath, location, server);
 		if (filepath.empty())
-		{
 				return handleErrorResponse_(server, 404, rootdir, keepAlive);
-		}
 	}
 
 	// Check if the file exists and return the response
