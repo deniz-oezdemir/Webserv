@@ -6,6 +6,7 @@
 #include "utils.hpp"
 
 #include <csignal>
+#include <cstddef>
 #include <dirent.h>
 #include <errno.h>
 #include <exception>
@@ -357,6 +358,29 @@ void ServerEngine::processClientRequest_(size_t &pollIndex_)
 
 	if (request != NULL)
 	{
+		// Check request body size is not larger that allowed server size
+
+		size_t serverMaxBodySize
+			= servers_[findServer_(request->getHost(), request->getPort())]
+				  .getClientMaxBodySize();
+
+		if (request->getBody().size() > serverMaxBodySize)
+		{
+			Logger::log(Logger::DEBUG)
+				<< "processPollEvents_: request body size ["
+				<< request->getBody().size()
+				<< "] is larger than server max body size ["
+				<< serverMaxBodySize
+				<< "]."
+				   "allowed by server"
+				<< std::endl;
+
+			response = HttpErrorHandler::getErrorPage(400, true);
+			clients_[clientIndex_].setIsClosed(true);
+			sendResponse_(pollIndex_, response);
+			delete request;
+			return;
+		}
 		response = createResponse(*request);
 		sendResponse_(pollIndex_, response);
 		delete request;
