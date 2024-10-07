@@ -103,6 +103,10 @@ void BodyParser::checkBody_(
 			throw HttpException(HTTP_400_CODE, HTTP_400_REASON);
 		}
 	}
+	else
+	{
+		return;
+	}
 
 	// Check actual body length matches Content-Length header
 	if ((headers.count("Content-Length") > 0

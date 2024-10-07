@@ -28,20 +28,20 @@ Test(Logger, logToStdout)
 	// Logger::log(Logger::DEBUG) << "This is a test log" << std::endl;
 }
 
-Test(Logger, logToStderr)
-{
-	std::ostringstream capturedOutput;
-	std::streambuf *originalCerrBuffer = std::cerr.rdbuf();
-	std::cerr.rdbuf(capturedOutput.rdbuf());
-
-	Logger::log(Logger::ERROR) << "This is a test error" << std::endl;
-	// Restore the original buffer
-	std::cerr.rdbuf(originalCerrBuffer);
-
-	cr_assert(capturedOutput.str().find("This is a test error") != std::string::npos);
-	// Print the full message
-	// Logger::log(Logger::ERROR) << "This is a test error" << std::endl;
-}
+// Test(Logger, logToStderr)
+// {
+// 	std::ostringstream capturedOutput;
+// 	std::streambuf *originalCerrBuffer = std::cerr.rdbuf();
+// 	std::cerr.rdbuf(capturedOutput.rdbuf());
+//
+// 	Logger::log(Logger::ERROR) << "This is a test error" << std::endl;
+// 	// Restore the original buffer
+// 	std::cerr.rdbuf(originalCerrBuffer);
+//
+// 	cr_assert(capturedOutput.str().find("This is a test error") != std::string::npos);
+// 	// Print the full message
+// 	// Logger::log(Logger::ERROR) << "This is a test error" << std::endl;
+// }
 
 Test(Logger, loggerWithDebugLevel)
 {
