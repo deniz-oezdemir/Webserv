@@ -93,3 +93,16 @@ Siege does not not properly close client connections for time-based testing. But
 ```bash
 siege -r 10 -c 255 http://127.00.00:8080/
 ```
+
+## Testing
+
+`curl --resolve dog.com:8085:127.0.0.1 http://dog.com:8085/`
+
+`curl --resolve dad.com:8086:127.0.0.1 http://dad.com:8086/`
+
+
+TODO:
+Limit the client body (use: curl -X POST -H "Content-Type: plain/text" --data "BODY IS HERE write something shorter or longer than body limit").
+
+TODO:
+Try to list a directory.

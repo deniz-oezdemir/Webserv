@@ -268,9 +268,8 @@ long int ServerEngine::initializePollEvents_()
 	{
 		if (g_shutdown)
 		{
-			Logger::log(Logger::INFO
-			) << "Shutdown signal received, exiting poll..."
-			  << std::endl;
+			Logger::log(Logger::INFO)
+				<< "Shutdown signal received, exiting poll..." << std::endl;
 			return pollCount;
 		}
 		Logger::log(Logger::ERROR)
@@ -291,7 +290,7 @@ long int ServerEngine::initializePollEvents_()
 void ServerEngine::readClientRequest_(size_t &pollIndex_)
 {
 	Logger::log(Logger::DEBUG) << "Reading client request at pollFds_["
-							  << pollIndex_ << ']' << std::endl;
+							   << pollIndex_ << ']' << std::endl;
 
 	try
 	{
@@ -359,27 +358,29 @@ void ServerEngine::processClientRequest_(size_t &pollIndex_)
 	if (request != NULL)
 	{
 		// Check request body size is not larger that allowed server size
-
-		size_t serverMaxBodySize
-			= servers_[findServer_(request->getHost(), request->getPort())]
-				  .getClientMaxBodySize();
-
-		if (request->getBody().size() > serverMaxBodySize)
+		if (findServer_(request->getHost(), request->getPort()) >= 0)
 		{
-			Logger::log(Logger::DEBUG)
-				<< "processPollEvents_: request body size ["
-				<< request->getBody().size()
-				<< "] is larger than server max body size ["
-				<< serverMaxBodySize
-				<< "]."
-				   "allowed by server"
-				<< std::endl;
+			size_t serverMaxBodySize
+				= servers_[findServer_(request->getHost(), request->getPort())]
+					  .getClientMaxBodySize();
 
-			response = HttpErrorHandler::getErrorPage(400, true);
-			clients_[clientIndex_].setIsClosed(true);
-			sendResponse_(pollIndex_, response);
-			delete request;
-			return;
+			if (request->getBody().size() > serverMaxBodySize)
+			{
+				Logger::log(Logger::DEBUG)
+					<< "processPollEvents_: request body size ["
+					<< request->getBody().size()
+					<< "] is larger than server max body size ["
+					<< serverMaxBodySize
+					<< "]."
+					   "allowed by server"
+					<< std::endl;
+
+				response = HttpErrorHandler::getErrorPage(400, true);
+				clients_[clientIndex_].setIsClosed(true);
+				sendResponse_(pollIndex_, response);
+				delete request;
+				return;
+			}
 		}
 		response = createResponse(*request);
 		sendResponse_(pollIndex_, response);
