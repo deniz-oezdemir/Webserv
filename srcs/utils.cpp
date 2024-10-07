@@ -237,7 +237,7 @@ std::string readFile(const std::string &filePath)
 	std::fstream file(filePath.c_str());
 	if (!file.is_open())
 	{
-		Logger::log(Logger::ERROR, true)
+		Logger::log(Logger::ERROR)
 			<< "Failed to open file: " << filePath << std::endl;
 		return "";
 	}
@@ -246,7 +246,7 @@ std::string readFile(const std::string &filePath)
 	buffer << file.rdbuf();
 	if (buffer.str().empty())
 	{
-		Logger::log(Logger::ERROR, true)
+		Logger::log(Logger::ERROR)
 			<< "File is empty or could not be read: " << filePath << std::endl;
 	}
 	return buffer.str();

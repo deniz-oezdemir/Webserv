@@ -99,6 +99,8 @@ bool Client::hasRequestReady(void)
 
 	if (totalBytesReadFromFd_ + nextReadSize_ > MAX_REQUEST_SIZE)
 	{
+		std::string debugLine;
+		std::getline(clientBuffer_, debugLine);
 		Logger::log(Logger::INFO)
 			<< "hasRequestReady: Client sent request over default buffer size "
 			   "limit."
@@ -117,7 +119,7 @@ bool Client::hasRequestReady(void)
 
 	if (bytesReadFromFd < 0)
 	{
-		Logger::log(Logger::ERROR, true)
+		Logger::log(Logger::ERROR)
 			<< "hasRequestReady:Failed to read from client: ("
 			<< ft::toString(errno) << ") " << strerror(errno) << std::endl;
 		isClosed_ = true;
@@ -159,7 +161,7 @@ bool Client::hasRequestReady(void)
 
 	if (requestStr_.length() != totalBytesReadFromFd_)
 	{
-		Logger::log(Logger::ERROR, true)
+		Logger::log(Logger::ERROR)
 			<< "hasRequestReady: Read error. requestStr_ length: "
 			<< requestStr_.length()
 			<< " do not match expected totalBytesReadFromFd_: "

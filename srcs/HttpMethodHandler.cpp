@@ -383,14 +383,14 @@ std::string HttpMethodHandler::handleCgiRequest_(
 	int pipefd[2];
 	if (pipe(pipefd) == -1)
 	{
-		Logger::log(Logger::ERROR, true) << "Pipe creation failed" << std::endl;
+		Logger::log(Logger::ERROR) << "Pipe creation failed" << std::endl;
 		return handleErrorResponse_(server, 500, rootdir, keepAlive);
 	}
 
 	pid_t pid = fork();
 	if (pid == -1)
 	{
-		Logger::log(Logger::ERROR, true) << "Fork failed" << std::endl;
+		Logger::log(Logger::ERROR) << "Fork failed" << std::endl;
 		return handleErrorResponse_(server, 500, rootdir, keepAlive);
 	}
 	else if (pid == 0)
@@ -416,11 +416,13 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		// clang-format off
 		std::map<std::string, std::vector<std::string> > headers
 			= request.getHeaders();
+		Logger::log(Logger::DEBUG, true) << "handleCgiRequest_: full request: " << request << std::endl;
 		for (std::map<std::string, std::vector<std::string> >::const_iterator it
 			 = headers.begin();
 			 it != headers.end();
 			 ++it) // clang-format on
 		{
+			int								i = 0;
 			const std::string			   &headerKey = it->first;
 			const std::vector<std::string> &headerValues = it->second;
 			for (std::vector<std::string>::const_iterator valIt
@@ -428,8 +430,10 @@ std::string HttpMethodHandler::handleCgiRequest_(
 				 valIt != headerValues.end();
 				 ++valIt)
 			{
-				Logger::log(Logger::DEBUG) << "Debug Headers: " << headerKey
-										   << ": " << *valIt << std::endl;
+				i++;
+				Logger::log(Logger::DEBUG, true)
+					<< "Debug Headers " << i << " :" << std::endl
+					<< headerKey << ": " << *valIt << std::endl;
 				envVariables.push_back(headerKey + "=" + *valIt);
 			}
 		}
@@ -458,7 +462,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		}
 		envp.push_back(NULL);
 
-		Logger::log(Logger::INFO)
+		Logger::log(Logger::INFO, true)
 			<< "Filepath before argv: " << filepath << std::endl;
 
 		char *argv[]
@@ -491,7 +495,7 @@ std::string HttpMethodHandler::handleCgiRequest_(
 		waitpid(pid, &status, 0);
 		if (status != 0)
 		{
-			Logger::log(Logger::ERROR, true)
+			Logger::log(Logger::ERROR)
 				<< "CGI script execution failed" << std::endl;
 			return HttpErrorHandler::getErrorPage(500);
 		}
@@ -512,15 +516,20 @@ std::string HttpMethodHandler::handleCgiRequest_(
 			<< "CGI Output: " << output.str() << std::endl;
 
 		HttpResponse response;
-		if (output.str().find("400") != std::string::npos) {
-				response.setStatusCode(400);
-				response.setReasonPhrase("Bad Request");
-		} else if (output.str().find("415") != std::string::npos) {
-				response.setStatusCode(415);
-				response.setReasonPhrase("Unsupported Media Type");
-		} else {
-				response.setStatusCode(200);
-				response.setReasonPhrase("OK");
+		if (output.str().find("400") != std::string::npos)
+		{
+			response.setStatusCode(400);
+			response.setReasonPhrase("Bad Request");
+		}
+		else if (output.str().find("415") != std::string::npos)
+		{
+			response.setStatusCode(415);
+			response.setReasonPhrase("Unsupported Media Type");
+		}
+		else
+		{
+			response.setStatusCode(200);
+			response.setReasonPhrase("OK");
 		}
 		response.setHeader("Server", SERVER_NAME);
 		response.setHeader("Date", ft::createTimestamp());
@@ -599,7 +608,7 @@ std::string HttpMethodHandler::generateAutoIndexPage_(
 	DIR *dir = opendir((root + uri).c_str());
 	if (dir == NULL)
 	{
-		Logger::log(Logger::ERROR, true)
+		Logger::log(Logger::ERROR)
 			<< "Failed to open directory: " << root + uri << std::endl;
 		return handleErrorResponse_(server, 405, root, keepAlive);
 	}
@@ -619,7 +628,7 @@ std::string HttpMethodHandler::generateAutoIndexPage_(
 		struct stat fileStat;
 		if (stat(fullPath.c_str(), &fileStat) == -1)
 		{
-			Logger::log(Logger::ERROR, true)
+			Logger::log(Logger::ERROR)
 				<< "Failed to get file stats: " << fullPath << "Error: ["
 				<< errno << "] " << strerror(errno) << std::endl;
 			continue;
@@ -717,7 +726,7 @@ std::string HttpMethodHandler::createFilePostResponse_(
 {
 	HttpResponse response;
 	// Open the file for writing
-	std::string	uploadpathtmp;
+	std::string uploadpathtmp;
 	std::string fileName = request.getFileName();
 	if (fileName.empty())
 		uploadpathtmp = uploadpath;
@@ -780,7 +789,8 @@ std::string HttpMethodHandler::createDeleteResponse_(
 	std::string	 body;
 	HttpResponse response;
 
-	std::string	deletePath;;
+	std::string deletePath;
+	;
 	std::string fileName = request.getFileName();
 
 	if (fileName.empty())
