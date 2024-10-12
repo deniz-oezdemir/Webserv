@@ -134,7 +134,8 @@ def main():
     print("    <style>")
     print("        body {")
     print("            font-family: Arial, sans-serif;")
-    print("            background-color: #f0f0f0;")
+    print("            background-color: black;")  # Black background for the body
+    print("            color: white;")  # White text color
     print("            margin: 0;")
     print("            padding: 0;")
     print("            display: flex;")
@@ -144,7 +145,8 @@ def main():
     print("            height: 100vh;")
     print("        }")
     print("        .container {")
-    print("            background-color: #fff;")
+    print("            background-color: black;")  # Black background for the container
+    print("            color: white;")  # White text color for the container
     print("            padding: 20px;")
     print("            border-radius: 8px;")
     print("            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);")
@@ -169,6 +171,13 @@ def main():
     print("        }")
     print("        button:hover {")
     print("            background-color: #0056b3;")
+    print("        }")
+    print("        a {")
+    print("            color: #007bff;")
+    print("            text-decoration: none;")
+    print("        }")
+    print("        a:hover {")
+    print("            text-decoration: underline;")
     print("        }")
     print("    </style>")
     print("</head>")
