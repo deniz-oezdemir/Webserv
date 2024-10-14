@@ -4,7 +4,6 @@ webServ
 obj/
 *.o
 .vscode/
-tests/*
 !tests/*.*
 rust-cgis/target
 www/instagram-clone/upload

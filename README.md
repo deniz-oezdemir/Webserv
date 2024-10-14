@@ -1,19 +1,85 @@
+![C++](https://img.shields.io/badge/C++-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
+![HTTP](https://img.shields.io/badge/HTTP-00599C?style=for-the-badge&logo=http&logoColor=white)
+![CGI](https://img.shields.io/badge/CGI-FF6F00?style=for-the-badge&logo=common-gateway-interface&logoColor=white)
+![Criterion](https://img.shields.io/badge/Criterion-FF6F00?style=for-the-badge&logo=criterion&logoColor=white)
+![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
+![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
+
 # Webserv
-
-## Usage
-
 https://github.com/user-attachments/assets/8ecc6cc6-2315-4811-82c2-c528cd770d82
 
+This is our solution for the Webserv project of [42 School Berlin](https://42berlin.de/de/). 
+
+👥 Team: [Deniz Özdemir](https://github.com/deniz-oezdemir), [Manuel Migoya](https://github.com/migmanu/) and [Sebastian Navarro](https://github.com/SebasNadu/).
+
+⏳ Timeline: 1.5 months.
+
+🏅 Grade:
+
+## Summary
+
+### Basic Requirements
+Webserv is a minimal implementation of a web server, loosely following the `nginx` approach. The [subject](en.subject.pdf) requires the server to:
+
+- Handle multiple client requests simultaneously using non-blocking I/O operations and the `poll()` system call (or equivalent).
+- Serve static websites.
+- Handle CGIs.
+- Manage file uploads.
+- Listen on multiple ports.
+- Never crash and handle all errors according to RFC standards.
+
+### Bonus 🎉
+In addition to the mandatory requirements, we implemented several bonus features to enhance our web server:
+
+- **Cookies and Session Management:** Allows for more complex web applications requiring user state persistence.
+- **Multiple CGI Scripts:** Enables dynamic content generation with languages like PHP and Python.
+
+These enhancements were rigorously tested to ensure seamless integration with the core functionalities. Overall, our project demonstrates a comprehensive understanding of HTTP server implementation and showcases our ability to extend its capabilities beyond the basics.
+
+### Extras ✨
+Besides the bonus features, we added several extra functionalities:
+
+- **Test Suite:** Utilized [Criterion](https://github.com/Snaipe/Criterion) for thorough testing. **Warning:** this does not follow the subject requirements, as it needs cpp11.
+- **Custom Logger:** Implemented a detailed, level-based logging system.
+- **Syntax Checks:** Added a lot more syntax checks for HTTP requests than what the subject requires.
 
 
+## Diagram of Information flow (tbd)
 
-### Compilation
-
-```bash
-make
+```mermaid
+graph TD
+    A[Server Initialization] -->|Reads Configurations| B[ServerConfig]
+    A -->|Initializes Servers| C[ServerEngine]
+    C -->|Sets up Poll FDs| D[Poll File Descriptors]
+    D -->|Monitors Connections| E[Incoming Connections]
+    E -->|Accepts Connection| F[Client]
+    F -->|Parses Request| G[HttpRequest]
+    G -->|Processes Request| H[ServerEngine]
+    H -->|Generates Response| I[Response]
+    I -->|Sends Response| J[Client]
+    H -->|Static Content| K[Serve Files]
+    H -->|Dynamic Content| L[Execute CGI]
+    H -->|Error Handling| M[Generate Error Response]
+    A -->|Logs Events| N[Logger]
+    F -->|Logs Events| N
+    H -->|Logs Events| N
+    I -->|Logs Events| N
 ```
 
-### Execution
+
+## Usage 🚀
+
+In order to test our Webserv implementation, clone and make it.
+
+
+```bash
+git clone https://github.com/deniz-oezdemir/Webserv.git
+cd Webserv
+make
+```
+You can start by using the default config provided. This config has seven virtual servers listening on ports 8081 to 8087. We recommend to start with `http://localhost:8087/`, our humble Instagram clone.
 
 ```bash
 ./webserv [OPTIONAL: flags] [OPTIONAL: config_file]
@@ -27,9 +93,9 @@ make
 | -v, --version | Display WebServ version                                      |
 | -V, --Version | Display WebServ version and extra info                       |
 | -t, --test    | Check the configuration file and exit the server             |
-| -T, --Test    | Check and print the configuration file, than exit the server |
+| -T, --Test    | Check and print the configuration file, then exit the server |
 
-### Execute Tests
+### Execute Tests 🧪
 
 #### Run all tests
 
@@ -48,7 +114,7 @@ make test T=SpecificTestName
 
 - test non blocking behaviour from multiple terminal clients with different messages like `yes "Example message 1" | telnet localhost 8080`
 
-## Configuration File
+## Configuration File 🛠️
 
 ### General Directives
 
@@ -83,9 +149,9 @@ make test T=SpecificTestName
 | `cgi`                  | Specifies the CGI extension script and the binary path to execute. e.g., `cgi .py /usr/bin/python3`. |
 
 
-## Stress tresting
+## Stress testing 🏋️
 
-To test the performance and measure its response under load, you  use the `siege` command. Here's an example of how to use it:
+To test the performance and measure its response under load, you use the `siege` command. Here's an example of how to use it:
 
 ```bash
 siege -c 255 -t 10s http://127.00.00:8080/
@@ -93,42 +159,15 @@ siege -c 255 -t 10s http://127.00.00:8080/
 
 In this command, the options `-c` and `-t` are used to specify the number of concurrent users and the duration of the test. The URL `http://127.00.00:8080/` should be replaced with the actual URL of your server.
 
-Siege does not not properly close client connections for time-based testing. But it does os when using a set number of connections:
+Siege does not properly close client connections for time-based testing. But it does so when using a set number of connections:
 
 ```bash
 siege -r 10 -c 255 http://127.00.00:8080/
 ```
 
-## Testing
+## Testing 🔍
 
 `curl --resolve dog.com:8085:127.0.0.1 http://dog.com:8085/`
 
 `curl --resolve dad.com:8086:127.0.0.1 http://dad.com:8086/`
 
-
-TODO:
-Limit the client body (use: curl -X POST -H "Content-Type: plain/text" --data "BODY IS HERE write something shorter or longer than body limit").
-
-TODO:
-Try to list a directory.
-
-## Diagram of Informationflow (tbd)
-
-```mermaid
-graph TD
-    A[Server Initialization] -->|Reads Configurations| B[ServerConfig]
-    A -->|Initializes Servers| C[ServerEngine]
-    C -->|Sets up Poll FDs| D[Poll File Descriptors]
-    D -->|Monitors Connections| E[Incoming Connections]
-    E -->|Accepts Connection| F[Client]
-    F -->|Parses Request| G[HttpRequest]
-    G -->|Processes Request| H[ServerEngine]
-    H -->|Generates Response| I[Response]
-    I -->|Sends Response| J[Client]
-    H -->|Static Content| K[Serve Files]
-    H -->|Dynamic Content| L[Execute CGI]
-    H -->|Error Handling| M[Generate Error Response]
-    A -->|Logs Events| N[Logger]
-    F -->|Logs Events| N
-    H -->|Logs Events| N
-    I -->|Logs Events| N
