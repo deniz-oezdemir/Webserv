@@ -26,7 +26,7 @@ This is our solution for the Webserv project of [42 School Berlin](https://42ber
   - [Basic Requirements](#basic-requirements)
   - [Bonus](#bonus)
   - [Extras](#extras)
-- [Information Flow](#diagram-of-information-flow)
+- [Class Diagram](#class-diagram)
 - [Usage](#usage)
   - [Flags](#flags)
   - [Execute Tests](#execute-tests)
@@ -65,8 +65,8 @@ Besides the bonus features, we added several extra functionalities:
 - **Custom Logger:** Implemented a detailed, level-based logging system.
 - **Syntax Checks:** Added a lot more syntax checks for HTTP requests than what the subject requires.
 
-## Information Flow
-The following class diagram illustrates the relationships and key methods of the main components:
+##mClass Diagram
+The following diagram illustrates the relationships and key methods of the main classes:
 
 ```mermaid
 classDiagram
