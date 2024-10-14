@@ -65,7 +65,7 @@ Besides the bonus features, we added several extra functionalities:
 - **Custom Logger:** Implemented a detailed, level-based logging system.
 - **Syntax Checks:** Added a lot more syntax checks for HTTP requests than what the subject requires.
 
-##mClass Diagram
+## Class Diagram
 The following diagram illustrates the relationships and key methods of the main classes:
 
 ```mermaid
