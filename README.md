@@ -15,7 +15,7 @@ https://github.com/user-attachments/assets/8ecc6cc6-2315-4811-82c2-c528cd770d82
 
 This is our solution for the Webserv project of [42 School Berlin](https://42berlin.de/de/).
 
-👥 Team: [Deniz Özdemir](https://github.com/deniz-oezdemir), [Manuel Migoya](https://github.com/migmanu/) and [Sebastian Navarro](https://github.com/SebasNadu/).
+👥 Team: [Manuel Migoya](https://github.com/migmanu/), [Sebastian Navarro](https://github.com/SebasNadu/), and [Deniz Özdemir](https://github.com/deniz-oezdemir).
 
 ⏳ Timeline: 1.5 months.
 
