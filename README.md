@@ -26,7 +26,7 @@ This is our solution for the Webserv project of [42 School Berlin](https://42ber
   - [Basic Requirements](#basic-requirements)
   - [Bonus](#bonus)
   - [Extras](#extras)
-- [Diagram of Information Flow](#diagram-of-information-flow)
+- [Information Flow](#diagram-of-information-flow)
 - [Usage](#usage)
   - [Flags](#flags)
   - [Execute Tests](#execute-tests)
@@ -65,80 +65,62 @@ Besides the bonus features, we added several extra functionalities:
 - **Custom Logger:** Implemented a detailed, level-based logging system.
 - **Syntax Checks:** Added a lot more syntax checks for HTTP requests than what the subject requires.
 
-## Diagram of Information Flow (tbd)
-
-```mermaid
-graph TD
-    A[Server Initialization] -->|Reads Configurations| B[ServerConfig]
-    A -->|Initializes Servers| C[ServerEngine]
-    C -->|Sets up Poll FDs| D[Poll File Descriptors]
-    D -->|Monitors Connections| E[Incoming Connections]
-    E -->|Accepts Connection| F[Client]
-    F -->|Parses Request| G[HttpRequest]
-    G -->|Processes Request| H[ServerEngine]
-    H -->|Generates Response| I[Response]
-    I -->|Sends Response| J[Client]
-    H -->|Static Content| K[Serve Files]
-    H -->|Dynamic Content| L[Execute CGI]
-    H -->|Error Handling| M[Generate Error Response]
-    A -->|Logs Events| N[Logger]
-    F -->|Logs Events| N
-    H -->|Logs Events| N
-    I -->|Logs Events| N
-```
+## Information Flow
+The following class diagram illustrates the relationships and key methods of the main components:
 
 ```mermaid
 classDiagram
     class ServerInput {
-        +parseArg_()
+        parseArg_()
     }
 
     class ServerConfig {
-        +parseFile()
-        +isConfigOK()
+        parseFile()
+        isConfigOK()
     }
 
     class ServerEngine {
         -Server[] servers_
         -Client[] clients_
-        +initServerPollFds_()
-        +initializePollEvents_()
-        +processPollEvents_()
+        initServerPollFds_()
+        initializePollEvents_()
+        processPollEvents_()
     }
 
     class Server {
-        +init()
+        init()
     }
 
     class Client {
-        +readClientBuffer_()
+        readClientBuffer_()
     }
 
     class ConfigParser {
-        +checkValues()
+        checkValues()
     }
 
     class ConfigValue {
-        +getType()
+        getType()
     }
 
     class HttpErrorHandler {
-        +getErrorPage()
+        getErrorPage()
     }
 
     class HttpMethodHandler {
-        +handleRequest()
+        handleRequest()
+        handleCgiRequest_()
     }
 
     class HttpRequest {
-        +get...()
-        +set...()
-        +normalizeRequest_()
+        get...()
+        set...()
+        normalizeRequest_()
     }
 
     class HttpResponse {
-        +set...()
-        +toString()
+        set...()
+        toString()
     }
 
     ServerEngine --> Client : manages
