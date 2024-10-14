@@ -1,19 +1,76 @@
 # Webserv
+https://github.com/user-attachments/assets/8ecc6cc6-2315-4811-82c2-c528cd770d82
+
+This is our solution for the Webserv project of [42 School Berlin](https://42berlin.de/de/). 
+
+Team: [Deniz Oezemir](https://github.com/deniz-oezdemir), [Manuel Migoya](https://github.com/migmanu/) and [Sebastian Navarro](https://github.com/SebasNadu/).
+
+Timeline: 1.5 months.
+
+Grade:
+
+## Summary
+
+### Basic Requirements
+Webserv is a minimal implementation of a web server, loosely following the `nginx` approach. The [subject]() requires the server to:
+
+- Handle multiple client requests simultaneously using non-blocking I/O operations and the `poll()` system call (or equivalent).
+- Serve static websites.
+- Handle CGIs.
+- Manage file uploads.
+- Listen on multiple ports.
+- Never crash and handle all errors according to RFC standards.
+
+### Bonus
+In addition to the mandatory requirements, we implemented several bonus features to enhance our web server:
+
+- **Cookies and Session Management:** Allows for more complex web applications requiring user state persistence.
+- **Multiple CGI Scripts:** Enables dynamic content generation with languages like PHP and Python.
+
+These enhancements were rigorously tested to ensure seamless integration with the core functionalities. Overall, our project demonstrates a comprehensive understanding of HTTP server implementation and showcases our ability to extend its capabilities beyond the basics.
+
+### Extras
+Besides the bonus features, we added several extra functionalities:
+
+- **Test Suite:** Utilized [Criterion](https://github.com/Snaipe/Criterion) for thorough testing. **Warning:** this does not follow the subject requirements, as it needs cpp11.
+- **Custom Logger:** Implemented a detailed, level-based logging system.
+- **Syntax Checks:** Added a lot more syntax checks for HTTP requests than what the subject requires.
+
+
+## Diagram of Information flow (tbd)
+
+```mermaid
+graph TD
+    A[Server Initialization] -->|Reads Configurations| B[ServerConfig]
+    A -->|Initializes Servers| C[ServerEngine]
+    C -->|Sets up Poll FDs| D[Poll File Descriptors]
+    D -->|Monitors Connections| E[Incoming Connections]
+    E -->|Accepts Connection| F[Client]
+    F -->|Parses Request| G[HttpRequest]
+    G -->|Processes Request| H[ServerEngine]
+    H -->|Generates Response| I[Response]
+    I -->|Sends Response| J[Client]
+    H -->|Static Content| K[Serve Files]
+    H -->|Dynamic Content| L[Execute CGI]
+    H -->|Error Handling| M[Generate Error Response]
+    A -->|Logs Events| N[Logger]
+    F -->|Logs Events| N
+    H -->|Logs Events| N
+    I -->|Logs Events| N
+```
+
 
 ## Usage
 
-https://github.com/user-attachments/assets/8ecc6cc6-2315-4811-82c2-c528cd770d82
+In order to test our Webserv implementation, clone and make it.
 
-
-
-
-### Compilation
 
 ```bash
+git clone https://github.com/deniz-oezdemir/Webserv.git
+cd Webserv
 make
 ```
-
-### Execution
+You can start by using the default config provided. This config has seven virtual servers litening on ports 8081 to 8087. We recommend to start with `http://localhost:8087/`, our humble Instagram clone.
 
 ```bash
 ./webserv [OPTIONAL: flags] [OPTIONAL: config_file]
@@ -105,30 +162,3 @@ siege -r 10 -c 255 http://127.00.00:8080/
 
 `curl --resolve dad.com:8086:127.0.0.1 http://dad.com:8086/`
 
-
-TODO:
-Limit the client body (use: curl -X POST -H "Content-Type: plain/text" --data "BODY IS HERE write something shorter or longer than body limit").
-
-TODO:
-Try to list a directory.
-
-## Diagram of Informationflow (tbd)
-
-```mermaid
-graph TD
-    A[Server Initialization] -->|Reads Configurations| B[ServerConfig]
-    A -->|Initializes Servers| C[ServerEngine]
-    C -->|Sets up Poll FDs| D[Poll File Descriptors]
-    D -->|Monitors Connections| E[Incoming Connections]
-    E -->|Accepts Connection| F[Client]
-    F -->|Parses Request| G[HttpRequest]
-    G -->|Processes Request| H[ServerEngine]
-    H -->|Generates Response| I[Response]
-    I -->|Sends Response| J[Client]
-    H -->|Static Content| K[Serve Files]
-    H -->|Dynamic Content| L[Execute CGI]
-    H -->|Error Handling| M[Generate Error Response]
-    A -->|Logs Events| N[Logger]
-    F -->|Logs Events| N
-    H -->|Logs Events| N
-    I -->|Logs Events| N
