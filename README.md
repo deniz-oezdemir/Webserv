@@ -13,13 +13,32 @@
 # Webserv
 https://github.com/user-attachments/assets/8ecc6cc6-2315-4811-82c2-c528cd770d82
 
-This is our solution for the Webserv project of [42 School Berlin](https://42berlin.de/de/). 
+This is our solution for the Webserv project of [42 School Berlin](https://42berlin.de/de/).
 
 👥 Team: [Deniz Özdemir](https://github.com/deniz-oezdemir), [Manuel Migoya](https://github.com/migmanu/) and [Sebastian Navarro](https://github.com/SebasNadu/).
 
 ⏳ Timeline: 1.5 months.
 
 🏅 Grade:
+
+## Table of Contents
+- [Summary](#summary)
+  - [Basic Requirements](#basic-requirements)
+  - [Bonus](#bonus)
+  - [Extras](#extras)
+- [Diagram of Information Flow](#diagram-of-information-flow)
+- [Usage](#usage)
+  - [Flags](#flags)
+  - [Execute Tests](#execute-tests)
+- [Configuration File](#configuration-file)
+  - [General Directives](#general-directives)
+  - [General Server Directives](#general-server-directives)
+  - [Location-Specific Directives](#location-specific-directives)
+- [Simple Testing](#simple-testing)
+- [Stress Testing](#stress-testing)
+- [Sources](#sources)
+  - [General](#general)
+  - [Repositories](#repositories)
 
 ## Summary
 
@@ -37,7 +56,7 @@ Webserv is a minimal implementation of a web server, loosely following the `ngin
 In addition to the mandatory requirements, we implemented several bonus features to enhance our web server:
 
 - **Cookies and Session Management:** Allows for more complex web applications requiring user state persistence.
-- **Multiple CGI Scripts:** Enables dynamic content generation with languages like PHP and Python.
+- **Multiple CGI Scripts:** Enables dynamic content generation with languages like Python, JavaScript, and Rust.
 
 ### Extras ✨
 Besides the bonus features, we added several extra functionalities:
@@ -66,6 +85,73 @@ graph TD
     F -->|Logs Events| N
     H -->|Logs Events| N
     I -->|Logs Events| N
+```
+
+```mermaid
+classDiagram
+    class ServerInput {
+        +parseArg_()
+    }
+
+    class ServerConfig {
+        +parseFile()
+        +isConfigOK()
+    }
+
+    class ServerEngine {
+        -Server[] servers_
+        -Client[] clients_
+        +initServerPollFds_()
+        +initializePollEvents_()
+        +processPollEvents_()
+    }
+
+    class Server {
+        +init()
+    }
+
+    class Client {
+        +readClientBuffer_()
+    }
+
+    class ConfigParser {
+        +checkValues()
+    }
+
+    class ConfigValue {
+        +getType()
+    }
+
+    class HttpErrorHandler {
+        +getErrorPage()
+    }
+
+    class HttpMethodHandler {
+        +handleRequest()
+    }
+
+    class HttpRequest {
+        +get...()
+        +set...()
+        +normalizeRequest_()
+    }
+
+    class HttpResponse {
+        +set...()
+        +toString()
+    }
+
+    ServerEngine --> Client : manages
+    ServerEngine --> Server : initializes
+    ServerEngine --> HttpMethodHandler : uses
+    Server --> ServerConfig : uses
+    Client --> HttpRequest : uses
+    HttpResponse --> HttpErrorHandler : uses
+    HttpMethodHandler --> HttpRequest : uses
+    HttpMethodHandler --> HttpResponse : creates
+    ServerConfig --> ConfigParser : uses
+    ServerConfig --> ServerInput : uses
+    ServerConfig --> ConfigValue : uses
 ```
 
 ## Usage 🚀
@@ -107,10 +193,6 @@ make test
 make test
 make test T=SpecificTestName
 ```
-
-## Miscellaneous
-
-You can test non-blocking behavior from multiple terminal clients with different messages like `yes "Example message 1" | telnet localhost 8080`
 
 ## Configuration File 🛠️
 
@@ -159,6 +241,8 @@ Or use `telnet` and paste a request. There are some example requests in the `tes
 telnet localhost 8087
 ```
 
+You can test non-blocking behavior from multiple terminal clients with different messages like `yes "Example message 1" | telnet localhost 8080`
+
 ## Stress Testing 🏋️
 
 To test the performance and measure its response under load, you use the `siege` command. Here's an example of how to use it:
@@ -175,9 +259,9 @@ Siege does not properly close client connections for time-based testing. But it 
 siege -r 10 -c 255 http://127.00.00:8080/
 ```
 
-## Sources Used for the Webserv Project
+## Sources
 
-### General Sources
+### General
 1. [RFC 2616: Hypertext Transfer Protocol -- HTTP/1.1](https://datatracker.ietf.org/doc/html/rfc2616#section-9.3)
 2. [42 Resources - Webserv](https://github.com/jotavare/42-resources?tab=readme-ov-file#webserv)
 3. [The computerscience book, pp. 117-120: High-level explanation of the HTTP client-server model](https://drive.google.com/file/d/1KgjN7_yIHBlDb_iy_gJvuM2O8daE7wEK/view?usp=drive_link)
@@ -195,7 +279,6 @@ siege -r 10 -c 255 http://127.00.00:8080/
 ### Repositories
 1. [Kaydooo/Webserv_42](https://github.com/Kaydooo/Webserv_42)
 2. [nicolasgasco/42_webserv](https://github.com/nicolasgasco/42_webserv)
-3. [theozanchi/42_Berlin_webserv](https://github.com/theozanchi/42_Berlin_webserv/tree/main)
-4. [mariiamakura/webserv](https://github.com/mariiamakura/webserv)
+3. [mariiamakura/webserv](https://github.com/mariiamakura/webserv)
 
 If you have any doubt about the project, or 42 in general, do not hesitate to contact us. You can do so via our emails listed in our GitHub profiles or via Slack, if you are a 42 student (denizod, jmigoya-, johnavar).
