@@ -36,8 +36,6 @@ In addition to the mandatory requirements, we implemented several bonus features
 - **Cookies and Session Management:** Allows for more complex web applications requiring user state persistence.
 - **Multiple CGI Scripts:** Enables dynamic content generation with languages like PHP and Python.
 
-These enhancements were rigorously tested to ensure seamless integration with the core functionalities. Overall, our project demonstrates a comprehensive understanding of HTTP server implementation and showcases our ability to extend its capabilities beyond the basics.
-
 ### Extras ✨
 Besides the bonus features, we added several extra functionalities:
 
@@ -45,8 +43,7 @@ Besides the bonus features, we added several extra functionalities:
 - **Custom Logger:** Implemented a detailed, level-based logging system.
 - **Syntax Checks:** Added a lot more syntax checks for HTTP requests than what the subject requires.
 
-
-## Diagram of Information flow (tbd)
+## Diagram of Information Flow (tbd)
 
 ```mermaid
 graph TD
@@ -68,18 +65,16 @@ graph TD
     I -->|Logs Events| N
 ```
 
-
 ## Usage 🚀
 
 In order to test our Webserv implementation, clone and make it.
-
 
 ```bash
 git clone https://github.com/deniz-oezdemir/Webserv.git
 cd Webserv
 make
 ```
-You can start by using the default config provided. This config has seven virtual servers listening on ports 8081 to 8087. We recommend to start with `http://localhost:8087/`, our humble Instagram clone.
+You can start by using the default config provided. This config has seven virtual servers listening on ports 8081 to 8087. We recommend starting with `http://localhost:8087/`, our humble Instagram clone.
 
 ```bash
 ./webserv [OPTIONAL: flags] [OPTIONAL: config_file]
@@ -112,7 +107,7 @@ make test T=SpecificTestName
 
 ## Miscellaneous
 
-You can test non blocking behaviour from multiple terminal clients with different messages like `yes "Example message 1" | telnet localhost 8080`
+You can test non-blocking behavior from multiple terminal clients with different messages like `yes "Example message 1" | telnet localhost 8080`
 
 ## Configuration File 🛠️
 
@@ -148,8 +143,20 @@ You can test non blocking behaviour from multiple terminal clients with differen
 | `upload_store`         | Specifies the directory where uploaded files should be saved.                                        |
 | `cgi`                  | Specifies the CGI extension script and the binary path to execute. e.g., `cgi .py /usr/bin/python3`. |
 
+## Simple Testing 🔍
+The easiest way to test is going to `http://localhost:8087/` with your browser. For more rigorous tests:
 
-## Stress testing 🏋️
+`curl --resolve dog.com:8085:127.0.0.1 http://dog.com:8085/`
+
+`curl --resolve dad.com:8086:127.0.0.1 http://dad.com:8086/`
+
+Or use `telnet` and paste a request. There are some example requests in the `test` directory. **Remember** to include the empty line at the end.
+
+```bash
+telnet localhost 8087
+```
+
+## Stress Testing 🏋️
 
 To test the performance and measure its response under load, you use the `siege` command. Here's an example of how to use it:
 
@@ -165,9 +172,27 @@ Siege does not properly close client connections for time-based testing. But it 
 siege -r 10 -c 255 http://127.00.00:8080/
 ```
 
-## Testing 🔍
+## Sources Used for the Webserv Project
 
-`curl --resolve dog.com:8085:127.0.0.1 http://dog.com:8085/`
+### General Sources
+1. [RFC 2616: Hypertext Transfer Protocol -- HTTP/1.1](https://datatracker.ietf.org/doc/html/rfc2616#section-9.3)
+2. [42 Resources - Webserv](https://github.com/jotavare/42-resources?tab=readme-ov-file#webserv)
+3. [The computerscience book, pp. 117-120: High-level explanation of the HTTP client-server model](https://drive.google.com/file/d/1KgjN7_yIHBlDb_iy_gJvuM2O8daE7wEK/view?usp=drive_link)
+4. [How the web works: HTTP and CGI explained](https://www.garshol.priv.no/download/text/http-tut.html) or [with annotations](https://drive.google.com/file/d/13dUBVxbOI5nkNM-6BMJyxq4DXfEF9m-F/view?usp=drive_link)
+5. [CGI by IBM](https://www.ibm.com/docs/en/i/7.5?topic=functionality-cgi)
+6. [Basic CGI tutorial in C++](https://www.tutorialspoint.com/cplusplus/cpp_web_programming.htm)
+7. [Tiny server written in C++](https://ncona.com/2019/04/building-a-simple-server-with-cpp/)
+8. [Evaluation sheet](https://winder.nom.za/ferdaws/42/Cursus/webserv.php)
+9. [Sockets and network programming in C](https://www.codequoi.com/en/sockets-and-network-programming-in-c/)
+10. [Basic webserver with Rust](https://www.youtube.com/watch?v=7GBlCinu9yg&list=TLPQMjUwODIwMjRAj6F-DJ0YYA&index=5)
+11. [Siege, testing tool](https://github.com/JoeDog/siege)
+12. [About sockaddr_in and sockaddr with bind()](https://stackoverflow.com/questions/21099041/why-do-we-cast-sockaddr-in-to-sockaddr-when-calling-bind)
+13. [About header whitespaces](https://stackoverflow.com/questions/31773667/handling-whitespaces-in-http-headers)
 
-`curl --resolve dad.com:8086:127.0.0.1 http://dad.com:8086/`
+### Repositories
+1. [Kaydooo/Webserv_42](https://github.com/Kaydooo/Webserv_42)
+2. [nicolasgasco/42_webserv](https://github.com/nicolasgasco/42_webserv)
+3. [theozanchi/42_Berlin_webserv](https://github.com/theozanchi/42_Berlin_webserv/tree/main)
+4. [mariiamakura/webserv](https://github.com/mariiamakura/webserv)
 
+If you have any doubt about the project, or 42 in general, do not hesitate to contact us. You can do so via our emails listed in our GitHub profiles or via Slack, if you are a 42 student (denizod, jmigoya-, johnavar).
