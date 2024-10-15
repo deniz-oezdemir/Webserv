@@ -172,7 +172,6 @@ make test
 #### Run specific test
 
 ```bash
-make test
 make test T=SpecificTestName
 ```
 
