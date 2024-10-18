@@ -70,6 +70,8 @@ Besides the bonus features, we added several extra functionalities:
 
 Below is a brief demonstration of our server (server no. 7 in the default config) serving the Instaclone website, which has a picture size limit of 3MB.
 
+https://github.com/user-attachments/assets/8e807509-84c8-425f-aedf-43d13d29e03f
+
 ## Class Diagram
 The following diagram illustrates the relationships and key methods of the main classes:
 
