@@ -18,7 +18,7 @@ This is our solution for the Webserv project of [42 School Berlin](https://42ber
 
 ⏳ Timeline: 1.5 months.
 
-🏅 Grade:
+🏅 Grade: 125/100
 
 https://github.com/user-attachments/assets/8e807509-84c8-425f-aedf-43d13d29e03f
 
