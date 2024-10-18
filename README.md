@@ -80,8 +80,8 @@ classDiagram
     }
 
     class ServerEngine {
-        -Server[] servers_
-        -Client[] clients_
+        Server[] servers_
+        Client[] clients_
         initServerPollFds_()
         initializePollEvents_()
         processPollEvents_()
