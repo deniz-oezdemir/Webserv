@@ -11,7 +11,6 @@
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 
 # Webserv
-https://github.com/user-attachments/assets/8ecc6cc6-2315-4811-82c2-c528cd770d82
 
 This is our solution for the Webserv project of [42 School Berlin](https://42berlin.de/de/).
 
@@ -22,20 +21,22 @@ This is our solution for the Webserv project of [42 School Berlin](https://42ber
 🏅 Grade:
 
 ## Table of Contents
+## Table of Contents
 - [Summary](#summary)
   - [Basic Requirements](#basic-requirements)
-  - [Bonus](#bonus)
-  - [Extras](#extras)
+  - [Bonus 🎉](#bonus-)
+  - [Extras ✨](#extras-)
+- [Demonstration](#demonstration)
 - [Class Diagram](#class-diagram)
-- [Usage](#usage)
+- [Usage 🚀](#usage-)
   - [Flags](#flags)
-  - [Execute Tests](#execute-tests)
-- [Configuration File](#configuration-file)
+  - [Execute Tests 🧪](#execute-tests-)
+- [Configuration File 🛠️](#configuration-file-)
   - [General Directives](#general-directives)
   - [General Server Directives](#general-server-directives)
   - [Location-Specific Directives](#location-specific-directives)
-- [Simple Testing](#simple-testing)
-- [Stress Testing](#stress-testing)
+- [Simple Testing 🔍](#simple-testing-)
+- [Stress Testing 🏋️](#stress-testing-)
 - [Sources](#sources)
   - [General](#general)
   - [Repositories](#repositories)
@@ -64,6 +65,10 @@ Besides the bonus features, we added several extra functionalities:
 - **Test Suite:** Utilized [Criterion](https://github.com/Snaipe/Criterion) for thorough testing. **Warning:** this does not follow the subject requirements, as it needs cpp11.
 - **Custom Logger:** Implemented a detailed, level-based logging system.
 - **Syntax Checks:** Added a lot more syntax checks for HTTP requests than what the subject requires.
+
+## Demonstration
+
+Below is a brief demonstration of our server (server no. 7 in the default config) serving the Instaclone website, which has a picture size limit of 3MB.
 
 ## Class Diagram
 The following diagram illustrates the relationships and key methods of the main classes:
