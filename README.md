@@ -20,13 +20,15 @@ This is our solution for the Webserv project of [42 School Berlin](https://42ber
 
 🏅 Grade:
 
-## Table of Contents
+https://github.com/user-attachments/assets/8e807509-84c8-425f-aedf-43d13d29e03f
+
+Above is a brief video demonstration of our server (server no. 7 in the default config) serving the Instaclone website, which has a picture size limit of 3MB.
+
 ## Table of Contents
 - [Summary](#summary)
   - [Basic Requirements](#basic-requirements)
   - [Bonus 🎉](#bonus-)
   - [Extras ✨](#extras-)
-- [Demonstration](#demonstration)
 - [Class Diagram](#class-diagram)
 - [Usage 🚀](#usage-)
   - [Flags](#flags)
@@ -65,12 +67,6 @@ Besides the bonus features, we added several extra functionalities:
 - **Test Suite:** Utilized [Criterion](https://github.com/Snaipe/Criterion) for thorough testing. **Warning:** this does not follow the subject requirements, as it needs cpp11.
 - **Custom Logger:** Implemented a detailed, level-based logging system.
 - **Syntax Checks:** Added a lot more syntax checks for HTTP requests than what the subject requires.
-
-## Demonstration
-
-Below is a brief demonstration of our server (server no. 7 in the default config) serving the Instaclone website, which has a picture size limit of 3MB.
-
-https://github.com/user-attachments/assets/8e807509-84c8-425f-aedf-43d13d29e03f
 
 ## Class Diagram
 The following diagram illustrates the relationships and key methods of the main classes:
