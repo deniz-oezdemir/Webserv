@@ -22,18 +22,24 @@ std::string HttpMethodHandler::handleRequest(
 {
 	if (method == "GET")
 	{
+		Logger::log(Logger::INFO)
+			<< "Server " << server.getServerIndex() << ": handling \033[32mGET\033[0m request" << std::endl;
 		Logger::log(Logger::DEBUG)
 			<< "Handling GET request: " << request.getUri() << std::endl;
 		return handleGetRequest_(request, server);
 	}
 	else if (method == "POST")
 	{
+		Logger::log(Logger::INFO)
+			<< "Server " << server.getServerIndex() << ": handling \033[33mPOST\033[0m request" << std::endl;
 		Logger::log(Logger::DEBUG)
 			<< "Handling POST request: " << request.getUri() << std::endl;
 		return handlePostRequest_(request, server);
 	}
 	else if (method == "DELETE")
 	{
+		Logger::log(Logger::INFO)
+			<< "Server " << server.getServerIndex() << ": handling \033[31mDELETE\033[0m request" << std::endl;
 		Logger::log(Logger::DEBUG)
 			<< "Handling DELETE request: " << request.getUri() << std::endl;
 		return handleDeleteRequest_(request, server);
