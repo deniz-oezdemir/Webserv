@@ -8,7 +8,7 @@
 Test(ServerEngine, handleGetRequest_FileExists)
 {
 	// Read the request from getRequest.txt
-	std::string requestStr = ft::readFile("getRequest.txt");
+	std::string requestStr = ft::readFile("./test_requests/getRequest.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
@@ -44,7 +44,7 @@ Test(ServerEngine, handleGetRequest_FileNotFound)
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 
 	// Read the request from nofileGetRequest.txt
-	std::string requestStr = ft::readFile("nofileGetRequest.txt");
+	std::string requestStr = ft::readFile("./test_requests/nofileGetRequest.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
@@ -81,7 +81,7 @@ Test(ServerEngine, handleGetRequest_NotImplemented)
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 
 	// Create a request string with an unsupported method (e.g., TRACE)
-	std::string requestStr = ft::readFile("traceRequest.txt");
+	std::string requestStr = ft::readFile("./test_requests/traceRequest.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
@@ -120,7 +120,7 @@ Test(ServerEngine, handleGetRequest_Root)
 	std::this_thread::sleep_for(std::chrono::seconds(3));
 
 	// Read the request from getRequest.txt
-	std::string requestStr = ft::readFile("getRequestRoot.txt");
+	std::string requestStr = ft::readFile("./test_requests/getRequestRoot.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);

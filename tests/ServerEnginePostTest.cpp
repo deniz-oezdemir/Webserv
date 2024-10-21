@@ -7,7 +7,7 @@
 Test(ServerEngine, handlePostRequest_)
 {
 	// Create a request string for POST method
-	std::string requestStr = ft::readFile("postRequest.txt");
+	std::string requestStr = ft::readFile("./test_requests/postRequest.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);

@@ -7,7 +7,7 @@
 Test(ServerEngine, handleDeleteRequest_)
 {
 	// Create a request string for DELETE method
-	std::string requestStr = ft::readFile("deleteRequest.txt");
+	std::string requestStr = ft::readFile("./test_requests/deleteRequest.txt");
 
 	// Parse the request string into an HttpRequest object
 	HttpRequest request = RequestParser::parseRequest(requestStr);
