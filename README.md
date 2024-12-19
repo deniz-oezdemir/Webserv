@@ -166,6 +166,8 @@ You can start by using the default config provided. This config has seven virtua
 
 ### Execute Tests 🧪
 
+We implemented comprehensive unit testing using [Criterion](https://github.com/Snaipe/Criterion). Our tests cover critical components and edge cases, ensuring high code quality and reliability.
+
 #### Run all tests
 
 ```bash
@@ -259,6 +261,7 @@ siege -r 10 -c 255 http://127.00.00:8080/
 11. [Siege, testing tool](https://github.com/JoeDog/siege)
 12. [About sockaddr_in and sockaddr with bind()](https://stackoverflow.com/questions/21099041/why-do-we-cast-sockaddr-in-to-sockaddr-when-calling-bind)
 13. [About header whitespaces](https://stackoverflow.com/questions/31773667/handling-whitespaces-in-http-headers)
+14. [Criterion Documentation](https://criterion.readthedocs.io/en/master/intro.html)
 
 ### Repositories
 1. [Kaydooo/Webserv_42](https://github.com/Kaydooo/Webserv_42)
